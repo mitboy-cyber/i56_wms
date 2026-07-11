@@ -1,0 +1,70 @@
+{{template "base.html" .}}
+{{define "title"}}包裹管理 - I56 Client{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div>
+    <div class="page-title">📦 包裹管理</div>
+    <div class="page-subtitle">共 {{.Total}} 个包裹</div>
+  </div>
+  <div class="flex gap-sm">
+    <a href="/client/predeclare" class="btn btn-primary">+ 预报包裹</a>
+    <a href="/client/orders/new" class="btn btn-ghost">下单</a>
+  </div>
+</div>
+
+<!-- BFT56-style status filter tabs with counts -->
+<div class="flex gap-sm mb-3" style="flex-wrap:wrap">
+  <a href="/client/parcels" class="btn btn-sm {{if not .ActiveStatus}}btn-primary{{else}}btn-ghost{{end}}">全部 <span class="badge badge-default">{{.AllCount}}</span></a>
+  <a href="/client/parcels?status=pre_declared" class="btn btn-sm {{if eq .ActiveStatus "pre_declared"}}btn-primary{{else}}btn-ghost{{end}}">预报 <span class="badge badge-default">{{.PreDeclaredCount}}</span></a>
+  <a href="/client/parcels?status=received" class="btn btn-sm {{if eq .ActiveStatus "received"}}btn-primary{{else}}btn-ghost{{end}}">已入仓 <span class="badge badge-default">{{.ReceivedCount}}</span></a>
+  <a href="/client/parcels?status=weighed" class="btn btn-sm {{if eq .ActiveStatus "weighed"}}btn-primary{{else}}btn-ghost{{end}}">已称重 <span class="badge badge-default">{{.WeighedCount}}</span></a>
+  <a href="/client/parcels?status=stored" class="btn btn-sm {{if eq .ActiveStatus "stored"}}btn-primary{{else}}btn-ghost{{end}}">已上架 <span class="badge badge-default">{{.StoredCount}}</span></a>
+  <a href="/client/parcels?status=picked" class="btn btn-sm {{if eq .ActiveStatus "picked"}}btn-primary{{else}}btn-ghost{{end}}">待打包 <span class="badge badge-default">{{.PickedCount}}</span></a>
+  <a href="/client/parcels?status=packed" class="btn btn-sm {{if eq .ActiveStatus "packed"}}btn-primary{{else}}btn-ghost{{end}}">已打包 <span class="badge badge-default">{{.PackedCount}}</span></a>
+  <a href="/client/parcels?status=outbound" class="btn btn-sm {{if eq .ActiveStatus "outbound"}}btn-primary{{else}}btn-ghost{{end}}">已出货 <span class="badge badge-default">{{.OutboundCount}}</span></a>
+  <a href="/client/parcels?status=loaded" class="btn btn-sm {{if eq .ActiveStatus "loaded"}}btn-primary{{else}}btn-ghost{{end}}">已装柜 <span class="badge badge-default">{{.LoadedCount}}</span></a>
+  <a href="/client/parcels?status=shipped" class="btn btn-sm {{if eq .ActiveStatus "shipped"}}btn-primary{{else}}btn-ghost{{end}}">运输中 <span class="badge badge-default">{{.ShippedCount}}</span></a>
+  <a href="/client/parcels?status=abnormal" class="btn btn-sm {{if eq .ActiveStatus "abnormal"}}btn-primary{{else}}btn-ghost{{end}}">已拒收 <span class="badge badge-default">{{.AbnormalCount}}</span></a>
+  <a href="/client/parcels?status=returned" class="btn btn-sm {{if eq .ActiveStatus "returned"}}btn-primary{{else}}btn-ghost{{end}}">已退货 <span class="badge badge-default">{{.ReturnedCount}}</span></a>
+</div>
+
+<!-- Batch operations bar -->
+<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--i56-border);margin-bottom:8px">
+  <div style="font-size:11px;color:var(--i56-text-secondary)">
+    {{if .ActiveStatus}}筛选状态：<span class="badge badge-brand">{{index . "StatusLabel"}}</span>{{end}}
+  </div>
+  <div class="flex gap-sm">
+    <a href="/client/predeclare" class="btn btn-xs btn-primary">+ 批量预报</a>
+    <button class="btn btn-xs btn-ghost" onclick="alert('导入功能：支持 Excel/CSV 批量导入包裹')">📥 导入 Excel/CSV</button>
+  </div>
+</div>
+
+<div class="data-table-wrapper">
+  <table class="data-table">
+    <thead><tr>
+      <th>快递单号</th><th>快递公司</th><th>品名</th><th>重量</th><th>尺寸</th>
+      <th>入仓时间</th><th>状态</th><th>操作</th>
+    </tr></thead>
+    <tbody>
+    {{if .Parcels}}{{range .Parcels}}
+    <tr>
+      <td class="font-medium">{{.TrackingNumber}}</td>
+      <td>{{.CourierCode}}</td>
+      <td>{{.ProductName}}</td>
+      <td>{{if .ActualWeight}}{{printf "%.2f" .ActualWeight}}kg{{else}}—{{end}}</td>
+      <td class="text-sm text-secondary">{{if .Length}}{{printf "%.0f" .Length}}×{{printf "%.0f" .Width}}×{{printf "%.0f" .Height}}cm{{else}}—{{end}}</td>
+      <td class="text-sm text-secondary">{{.CreatedAt.Format "01-02 15:04"}}</td>
+      <td><span class="badge badge-brand">{{statusDisplay .Status}}</span></td>
+      <td>
+        <a href="/client/parcels/predeclare?tn={{.TrackingNumber}}" class="btn btn-xs btn-ghost">详情</a>
+      </td>
+    </tr>
+    {{end}}{{else}}
+    <tr><td colspan="8" class="empty-state">
+      <div class="empty-state-icon">📦</div>
+      <div class="empty-state-text">{{if .ActiveStatus}}该状态下暂无包裹{{else}}暂无包裹{{end}}</div>
+    </td></tr>{{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}

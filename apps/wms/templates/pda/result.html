@@ -1,0 +1,96 @@
+{{template "base.html" .}}
+{{define "title"}}操作结果{{end}}
+{{define "header"}}
+操作结果
+<span class="brand">{{or .Status "完成"}}</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  {{if .Error}}
+  <!-- Error result -->
+  <div class="pda-result">
+    <div style="font-size:56px;margin-bottom:12px">❌</div>
+    <div class="title" style="color:var(--pda-danger)">操作失败</div>
+    <div class="subtitle">{{.Error}}</div>
+    <a href="{{or .BackUrl "/pda"}}" class="pda-btn pda-btn-outline pda-btn-lg mt-2">重试</a>
+    {{if .ActionUrl}}
+    <a href="{{.ActionUrl}}" class="pda-btn pda-btn-primary pda-btn-lg mt-2">{{or .ActionLabel "继续"}}</a>
+    {{end}}
+  </div>
+
+  {{else}}
+  <!-- Success result -->
+  <div class="pda-result">
+    {{if .Message}}
+    <svg class="checkmark" viewBox="0 0 52 52">
+      <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+      <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+    </svg>
+    {{end}}
+
+    {{if .Message}}
+    <div class="title" style="color:var(--pda-success)">✅ {{.Message}}</div>
+    {{end}}
+
+    {{if .ProductName}}
+    <div class="pda-card" style="margin-top:16px;text-align:left">
+      <div class="pda-info-row"><span class="key">包裹</span><span class="val">{{.ProductName}}</span></div>
+      {{if .TrackingNo}}
+      <div class="pda-info-row"><span class="key">运单号</span><span class="val font-mono text-sm">{{.TrackingNo}}</span></div>
+      {{end}}
+      {{if .Weight}}
+      <div class="pda-info-row"><span class="key">重量</span><span class="val">{{printf "%.2f kg" .Weight}}</span></div>
+      {{end}}
+      {{if .Length}}
+      <div class="pda-info-row"><span class="key">尺寸</span><span class="val">{{printf "%.0f×%.0f×%.0f cm" .Length .Width .Height}}</span></div>
+      {{end}}
+      {{if .Status}}
+      <div class="pda-info-row"><span class="key">状态</span>
+        <span class="val"><span class="pda-status pda-status-{{.Status}}">{{statusDisplay .Status}}</span></span>
+      </div>
+      {{end}}
+      {{if .OrderNo}}
+      <div class="pda-info-row"><span class="key">订单号</span><span class="val font-mono text-sm">{{.OrderNo}}</span></div>
+      {{end}}
+      {{if .Count}}
+      <div class="pda-info-row"><span class="key">包裹数</span><span class="val">{{.Count}} 件</span></div>
+      {{end}}
+      {{if .ContainerNo}}
+      <div class="pda-info-row"><span class="key">柜号</span><span class="val font-mono text-sm">{{.ContainerNo}}</span></div>
+      {{end}}
+    </div>
+    {{end}}
+
+    {{if .Parcels}}
+    <div class="pda-card mt-2" style="text-align:left">
+      <div class="pda-card-header">包裹清单</div>
+      <ul class="pda-order-items">
+        {{range .Parcels}}
+        <li>
+          <span style="font-family:monospace;font-size:12px">{{.TrackingNumber}}</span>
+          <span class="pda-status pda-status-{{.Status}}">{{statusDisplay .Status}}</span>
+        </li>
+        {{end}}
+      </ul>
+    </div>
+    {{end}}
+
+    <div class="flex gap-2 mt-4">
+      {{if .NextStepUrl}}
+      <a href="{{.NextStepUrl}}" class="pda-btn pda-btn-primary" style="flex:1;height:48px">{{or .NextStepLabel "下一步"}}</a>
+      {{end}}
+      <a href="{{or .BackUrl "/pda"}}" class="pda-btn pda-btn-outline" style="flex:1;height:48px">{{if .NextStepUrl}}返回{{else}}返回首页{{end}}</a>
+    </div>
+
+    {{if .UndoUrl}}
+    <div class="pda-toast" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:16px;max-width:100%">
+      <span class="pda-toast-text">操作已完成</span>
+      <form method="POST" action="{{.UndoUrl}}" style="display:inline">
+        <button type="submit" class="pda-toast-btn">撤销</button>
+      </form>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

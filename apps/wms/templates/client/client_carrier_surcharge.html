@@ -1,0 +1,77 @@
+{{template "base.html" .}}
+{{define "title"}}承运商加收价 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">➕ 承运商加收价</div>
+<div class="page-subtitle">超长费、超材费、棧板费、偏远费、上樓费等加收规则明细</div>
+
+{{if .Surcharges}}
+<div class="section-card">
+  <table class="data-table">
+    <thead><tr><th>承运商</th><th>清关点</th><th>加收项目</th><th>触发条件</th><th>计费规则</th><th>价格 (¥)</th></tr></thead>
+    <tbody>
+    {{range .Surcharges}}
+    <tr>
+      <td><strong>{{.Carrier}}</strong></td>
+      <td>{{.CustomsPoint}}</td>
+      <td><span class="badge badge-warning">{{.SurchargeName}}</span></td>
+      <td style="font-size:11px;color:var(--i56-text-secondary)">{{.Condition}}</td>
+      <td style="font-size:11px">{{.Rule}}</td>
+      <td style="font-weight:600;color:var(--i56-brand)">{{if eq .Price "按差"}}按差价{{else}}¥{{.Price}}{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+
+<!-- Surcharge Category Summary -->
+<div class="section-card mt-3">
+  <h3 style="font-size:13px;font-weight:600;margin-bottom:12px">📋 加收项目分类汇总</h3>
+  <div class="flex gap-3" style="flex-wrap:wrap">
+    <div class="stat-card" style="flex:1;min-width:140px">
+      <div class="stat-label">超長費</div>
+      <div class="stat-value" style="font-size:13px;font-weight:600">¥100-120</div>
+      <div class="stat-delta" style="font-size:10px">單邊&gt;150cm</div>
+    </div>
+    <div class="stat-card" style="flex:1;min-width:140px">
+      <div class="stat-label">超材費</div>
+      <div class="stat-value" style="font-size:13px;font-weight:600">按差額</div>
+      <div class="stat-delta" style="font-size:10px">體積重>實重2倍</div>
+    </div>
+    <div class="stat-card" style="flex:1;min-width:140px">
+      <div class="stat-label">棧板費</div>
+      <div class="stat-value" style="font-size:13px;font-weight:600">¥150/300</div>
+      <div class="stat-delta" style="font-size:10px">小板/大板</div>
+    </div>
+    <div class="stat-card" style="flex:1;min-width:140px">
+      <div class="stat-label">偏遠費</div>
+      <div class="stat-value" style="font-size:13px;font-weight:600">¥50-60</div>
+      <div class="stat-delta" style="font-size:10px">離島/偏遠</div>
+    </div>
+    <div class="stat-card" style="flex:1;min-width:140px">
+      <div class="stat-label">上樓費</div>
+      <div class="stat-value" style="font-size:13px;font-weight:600">¥20/層</div>
+      <div class="stat-delta" style="font-size:10px">無電梯4F以上</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-card mt-3">
+  <h3 style="font-size:13px;font-weight:600;margin-bottom:8px">💡 重要说明</h3>
+  <ul style="font-size:11px;color:var(--i56-text-secondary);padding-left:16px;line-height:1.8">
+    <li><strong>超長費</strong>：任一单边长度超过150cm即触发，按件加收</li>
+    <li><strong>超材費</strong>：体积重量超过实际重量2倍时，按体积重量计费差额</li>
+    <li><strong>棧板費</strong>：使用棧板时按棧板尺寸（小板≤120cm/大板&gt;120cm）加收</li>
+    <li><strong>偏遠費</strong>：派送至偏远/离岛地区时按票加收</li>
+    <li><strong>上樓費</strong>：无电梯建筑4层及以上按每层加收</li>
+    <li>以上费用在基础运费之外单独计算</li>
+  </ul>
+</div>
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无加收规则数据</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">请联系管理员配置承运商加收规则</p>
+  </div>
+</div>
+{{end}}
+{{end}}

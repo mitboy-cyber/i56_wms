@@ -1,0 +1,28 @@
+{{template "base.html" .}}
+{{define "breadcrumb"}}权限管理{{end}}
+{{define "content"}}
+<div class="page-title">🔑 权限管理</div>
+<div class="table-card">
+<div class="table-header">
+<span>权限列表</span>
+<button class="btn btn-primary" hx-get="/admin/permissions/add-form" hx-target="#perm-form" hx-swap="innerHTML">+ 新增</button>
+</div>
+<div id="perm-form"></div>
+<table>
+<thead><tr><th>ID</th><th>标识</th><th>名称</th><th>操作</th></tr></thead>
+<tbody>
+{{if .Permissions}}
+{{range .Permissions}}
+<tr><td>{{.ID}}</td><td>{{.Slug}}</td><td>{{.Name}}</td>
+<td class="flex gap-2">
+<button class="btn btn-xs" hx-get="/admin/permissions/{{.ID}}/edit" hx-target="#perm-form" hx-swap="innerHTML">编辑</button>
+<button class="btn btn-xs" style="color:var(--i56-error)" hx-delete="/admin/permissions/{{.ID}}" hx-confirm="确定删除?" hx-swap="none" hx-on::after-request="location.reload()">删除</button>
+</td></tr>
+{{end}}
+{{else}}
+<tr><td colspan="4" class="empty-state">暂无权限</td></tr>
+{{end}}
+</tbody>
+</table>
+</div>
+{{end}}

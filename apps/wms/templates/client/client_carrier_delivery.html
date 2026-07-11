@@ -1,0 +1,63 @@
+{{template "base.html" .}}
+{{define "title"}}承运商派送价 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">🚛 承运商派送价</div>
+<div class="page-subtitle">按清关点×区域×派送方式分组的承运商派送价格矩阵</div>
+
+{{if .DeliveryFees}}
+<div class="section-card">
+  <table class="data-table">
+    <thead><tr><th>承运商</th><th>清关点</th><th>区域</th><th>派送方式</th><th>条件</th><th>价格 (¥)</th><th>免运费门槛</th></tr></thead>
+    <tbody>
+    {{range .DeliveryFees}}
+    <tr>
+      <td><strong>{{.Carrier}}</strong></td>
+      <td>{{.CustomsPoint}}</td>
+      <td>{{.Area}}</td>
+      <td><span class="badge badge-{{if eq .DeliveryType "專車"}}warning{{else}}primary{{end}}">{{.DeliveryType}}</span></td>
+      <td style="font-size:11px;color:var(--i56-text-secondary)">{{.Condition}}</td>
+      <td style="font-weight:600;color:var(--i56-brand)">¥{{.Price}}</td>
+      <td>{{if .FreeThreshold}}<span class="badge badge-success">{{.FreeThreshold}}</span>{{else}}—{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+
+<!-- Weight Tier Matrix -->
+<div class="section-card mt-3">
+  <h3 style="font-size:13px;font-weight:600;margin-bottom:12px">📊 计重阶梯参考</h3>
+  <div class="code-block" style="font-size:10px">
+┌────────────┬──────────────────────────────────────┐
+│  承运商     │  计价规则                              │
+├────────────┼──────────────────────────────────────┤
+│  新竹物流   │  普通宅配 ¥20（≥10kg 免运）             │
+│            │  专车 ¥3500（单边≥600cm 或 ≥500kg）     │
+│            │  东部 ¥50（宜蘭/花蓮/台東）              │
+├────────────┼──────────────────────────────────────┤
+│  黑猫宅急便 │  台北 ¥15 / 高雄 ¥18                    │
+├────────────┼──────────────────────────────────────┤
+│  顺丰速运   │  台北 ¥12 / 台中 ¥12                    │
+└────────────┴──────────────────────────────────────┘
+  </div>
+</div>
+
+<div class="section-card mt-3">
+  <h3 style="font-size:13px;font-weight:600;margin-bottom:8px">💡 说明</h3>
+  <ul style="font-size:11px;color:var(--i56-text-secondary);padding-left:16px;line-height:1.8">
+    <li>派送价按清关点、区域和派送方式三个维度确定</li>
+    <li>宅配为默认派送方式，适用于普通包裹</li>
+    <li>专车适用于超大/超重件，按票计费</li>
+    <li>偏远地区（东部、离岛）可能产生额外派送费</li>
+    <li>免运费门槛仅适用于普通宅配</li>
+  </ul>
+</div>
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无派送价格数据</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">请联系管理员配置承运商派送价格</p>
+  </div>
+</div>
+{{end}}
+{{end}}

@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}Webhook投递{{end}}
+{{define "content"}}
+<div class="page-title">🔗 Webhook 投递</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>URL</th><th>事件</th><th>密钥</th><th>状态</th></tr></thead>
+<tbody>
+{{if .Webhooks}}{{range .Webhooks}}
+<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">{{.URL}}</td><td>{{.Events}}</td><td style="font-family:monospace">{{.Secret}}</td><td><span class="badge badge-{{if .Active}}success{{else}}default{{end}}">{{if .Active}}启用{{else}}停用{{end}}</span></td></tr>
+{{end}}{{else}}<tr><td colspan="4" class="empty-state">暂无Webhook</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

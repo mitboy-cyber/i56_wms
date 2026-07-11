@@ -1,0 +1,97 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 收货{{end}}
+{{define "header"}}
+收货入库
+<span class="brand" style="color:var(--pda-info)">📦</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <a href="/pda" class="pda-back">← 首页</a>
+
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-info)"></span> 包裹收货
+  </div>
+
+  <!-- Progress -->
+  <div class="pda-progress">
+    <div class="step current"><span class="dot"></span>收货</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>核重</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>上架</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>打包</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>装柜</div>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedParcel}}
+  <div class="pda-card pda-parcel-card" style="border-color:var(--pda-success)">
+    <div class="pda-parcel-header">
+      <span>{{or .ScannedParcel.ProductName "包裹"}}</span>
+      <span class="pda-status pda-status-{{.ScannedParcel.Status}}">{{statusDisplay .ScannedParcel.Status}}</span>
+    </div>
+    <div class="pda-parcel-tn">{{.ScannedParcel.TrackingNumber}}</div>
+    <div class="mt-2" style="font-size:12px;color:var(--pda-text-muted)">
+      快递：{{or .ScannedParcel.CourierCode "—"}} · 类型：{{or .ScannedParcel.CargoType "—"}}
+    </div>
+  </div>
+
+  <form method="POST" action="/pda/receive" id="receive-form">
+    <input type="hidden" name="tracking_no" value="{{.ScannedParcel.TrackingNumber}}">
+    <div class="pda-card">
+      <div class="text-sm text-muted mb-2" style="font-weight:600">称重与尺寸 (kg / cm)</div>
+      <div class="pda-input-row">
+        <input type="number" name="weight" class="pda-input" placeholder="实重(kg)" value="{{.Weight}}" step="0.01" min="0" style="font-size:15px">
+      </div>
+      <div class="pda-input-row">
+        <input type="number" name="length" class="pda-input" placeholder="长(cm)" value="{{.Length}}" step="0.1" min="0">
+        <input type="number" name="width" class="pda-input" placeholder="宽(cm)" value="{{.Width}}" step="0.1" min="0">
+        <input type="number" name="height" class="pda-input" placeholder="高(cm)" value="{{.Height}}" step="0.1" min="0">
+      </div>
+      <div class="mt-2">
+        <input type="text" name="location_barcode" class="pda-input" placeholder="库位条码（可选）" value="{{.LocationBarcode}}" style="font-size:14px">
+      </div>
+    </div>
+  </form>
+  <button type="submit" form="receive-form" class="pda-btn pda-btn-success pda-btn-lg mt-2">✅ 确认收货 — 入库</button>
+
+  {{else}}
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">📷</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描包裹运单号或手动输入</div>
+    <form method="GET" action="/pda/receive" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+    <div class="text-center mt-2" style="font-size:11px;color:var(--pda-text-muted)">将扫描枪对准条码，或手动输入后按回车</div>
+  </div>
+  {{end}}
+
+  {{if .Pending}}
+  <div class="pda-section-title">待收货包裹 <span class="count">{{len .Pending}}</span></div>
+  <div class="pda-card">
+    {{range .Pending}}
+    <div class="pda-scan-item">
+      <div>
+        <a href="/pda/receive?scan={{.TrackingNumber}}" style="font-family:monospace;font-size:12px;color:var(--pda-brand);text-decoration:none">{{.TrackingNumber}}</a>
+        <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.ProductName}}</span>
+      </div>
+      <span class="pda-status pda-status-pre_declared">已预报</span>
+    </div>
+    {{else}}
+    <div class="pda-empty"><div class="text-sm">暂无待收货包裹</div></div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var f=document.querySelector('#scan-form input[autofocus]');
+  if(!f) f=document.querySelector('#receive-form input[name="weight"]');
+  if(f) setTimeout(function(){f.focus()}, 150);
+});
+</script>
+{{end}}

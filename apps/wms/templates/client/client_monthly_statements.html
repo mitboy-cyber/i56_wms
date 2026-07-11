@@ -1,0 +1,83 @@
+{{template "base.html" .}}
+{{define "title"}}月结对账单 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">📅 月结对账单</div>
+<div class="page-subtitle">每月运费、服务费汇总 — 支持按月度筛选及明细查看</div>
+
+{{if .Periods}}
+<div class="mb-3 flex" style="align-items:center;gap:8px;flex-wrap:wrap">
+  <span style="font-size:11px;color:var(--i56-text-secondary)">选择账期：</span>
+  <a href="/client/monthly-statements" class="btn btn-sm{{if eq .PeriodFilter ""}} btn-primary{{end}}">全部</a>
+  {{range .Periods}}
+  <a href="/client/monthly-statements?period={{.}}" class="btn btn-sm{{if eq $.PeriodFilter .}} btn-primary{{end}}">{{.}}</a>
+  {{end}}
+</div>
+{{end}}
+
+{{if .Statements}}
+{{range .Statements}}
+<div class="section-card mb-3">
+  <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div>
+      <span style="font-size:15px;font-weight:700">{{.Period}}</span>
+      <span style="font-size:11px;color:var(--i56-text-secondary);margin-left:8px">账单</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-sm" onclick="alert('PDF 下载功能即将上线')">📥 下载PDF</button>
+    </div>
+  </div>
+
+  <div class="stat-grid mb-3">
+    <div class="stat-card">
+      <div class="stat-label">运费合计</div>
+      <div class="stat-value" style="font-size:18px">¥{{.Freight}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">服务费</div>
+      <div class="stat-value" style="font-size:18px">¥{{.ServiceFee}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">应付合计</div>
+      <div class="stat-value" style="font-size:18px;color:var(--i56-brand)">¥{{.Total}}</div>
+      <div class="stat-delta">{{.OrderCount}}笔订单 · {{.ParcelCount}}个包裹</div>
+    </div>
+  </div>
+
+  {{if .Orders}}
+  <div class="data-table-wrapper">
+    <div class="data-table-header">订单明细</div>
+    <table>
+      <thead>
+        <tr>
+          <th>订单号</th>
+          <th>日期</th>
+          <th>重量</th>
+          <th>费用类型</th>
+          <th style="text-align:right">金额</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{range .Orders}}
+      <tr>
+        <td class="inline-code">{{.OrderNo}}</td>
+        <td>{{.Date}}</td>
+        <td>{{.Weight}}</td>
+        <td><span class="badge badge-info">{{.Type}}</span></td>
+        <td style="text-align:right;font-weight:600">{{.Amount}}</td>
+      </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+</div>
+{{end}}
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无对账单</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">{{if .PeriodFilter}}该账期暂无记录{{else}}暂无历史账单数据{{end}}</p>
+  </div>
+</div>
+{{end}}
+{{end}}

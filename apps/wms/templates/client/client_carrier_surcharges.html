@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}承运商加收价{{end}}
+{{define "content"}}
+<div class="page-title">➕ 承运商加收价</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>承运商</th><th>清关点</th><th>加收项</th><th>条件</th><th>规则</th><th>价格</th></tr></thead>
+<tbody>
+{{if .Surcharges}}{{range .Surcharges}}
+<tr><td>{{.Carrier}}</td><td>{{.CustomsPoint}}</td><td>{{.SurchargeName}}</td><td>{{.Condition}}</td><td>{{.Rule}}</td><td>¥{{.Price}}</td></tr>
+{{end}}{{else}}<tr><td colspan="6" class="empty-state">暂无数据</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

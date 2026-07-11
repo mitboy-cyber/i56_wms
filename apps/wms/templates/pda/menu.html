@@ -1,0 +1,94 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 主菜单{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div>
+      <div style="font-size:16px;font-weight:700">{{.OperatorName}}</div>
+      <div style="font-size:11px;color:var(--pda-text-muted)">张三丰 · 深圳仓1号</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:12px;color:var(--pda-text-muted)">{{.CurrentTime}}</div>
+    </div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="pda-card" style="margin-bottom:14px">
+    <div style="display:flex;gap:12px;font-size:12px;justify-content:space-around">
+      <div class="text-center">
+        <div style="font-size:20px;font-weight:700;color:var(--pda-info)">{{.PendingReceive}}</div>
+        <div style="color:var(--pda-text-muted)">待收货</div>
+      </div>
+      <div class="text-center">
+        <div style="font-size:20px;font-weight:700;color:var(--pda-warning)">{{.PendingWeigh}}</div>
+        <div style="color:var(--pda-text-muted)">待核重</div>
+      </div>
+      <div class="text-center">
+        <div style="font-size:20px;font-weight:700;color:var(--pda-success)">{{.PendingPutAway}}</div>
+        <div style="color:var(--pda-text-muted)">待上架</div>
+      </div>
+      <div class="text-center">
+        <div style="font-size:20px;font-weight:700;color:#8b5cf6">{{.PendingPick}}</div>
+        <div style="color:var(--pda-text-muted)">待拣货</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu grid -->
+  <div class="pda-menu-grid">
+    <a href="/pda/receive" class="pda-menu-item">
+      <div class="icon" style="background:rgba(14,165,233,.15);color:#0ea5e9">📦</div>
+      <div class="name">包裹收货</div>
+      <div class="badge">{{.PendingReceive}} 待处理</div>
+    </a>
+    <a href="/pda/weigh" class="pda-menu-item">
+      <div class="icon" style="background:rgba(245,158,11,.15);color:#f59e0b">⚖️</div>
+      <div class="name">称重核重</div>
+      <div class="badge">{{.PendingWeigh}} 待处理</div>
+    </a>
+    <a href="/pda/putaway" class="pda-menu-item">
+      <div class="icon" style="background:rgba(16,185,129,.15);color:#10b981">📍</div>
+      <div class="name">上架入库</div>
+      <div class="badge">{{.PendingPutAway}} 待处理</div>
+    </a>
+    <a href="/pda/pick" class="pda-menu-item">
+      <div class="icon" style="background:rgba(139,92,246,.15);color:#8b5cf6">🛒</div>
+      <div class="name">订单拣货</div>
+      <div class="badge">{{.PendingPick}} 待处理</div>
+    </a>
+    <a href="/pda/pack" class="pda-menu-item">
+      <div class="icon" style="background:rgba(249,115,22,.15);color:#f97316">📋</div>
+      <div class="name">打包复核</div>
+      <div class="badge">{{.PendingPack}} 待处理</div>
+    </a>
+    <a href="/pda/query" class="pda-menu-item">
+      <div class="icon" style="background:rgba(100,116,139,.15);color:#64748b">🔍</div>
+      <div class="name">快件查询</div>
+      <div class="badge">全部包裹</div>
+    </a>
+  </div>
+
+  <!-- Recent scans -->
+  <div class="pda-section-title">最近操作记录</div>
+  <div class="pda-card">
+    {{if .RecentScans}}
+    <div class="pda-scan-list">
+      {{range .RecentScans}}
+      <div class="pda-scan-item">
+        <div>
+          <span class="action">{{.Action}}</span>
+          <span style="margin-left:6px;font-family:monospace;font-size:11px">{{.TrackingNumber}}</span>
+        </div>
+        <div class="time">{{.Message}}</div>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="pda-empty">
+      <div class="icon">📋</div>
+      <div class="text-sm">暂无操作记录</div>
+    </div>
+    {{end}}
+  </div>
+</div>
+{{end}}

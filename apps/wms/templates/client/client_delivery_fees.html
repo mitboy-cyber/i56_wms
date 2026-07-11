@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}承运商派送价{{end}}
+{{define "content"}}
+<div class="page-title">🚛 承运商派送价</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>承运商</th><th>清关点</th><th>区域</th><th>派送</th><th>条件</th><th>价格</th><th>免运费门槛</th></tr></thead>
+<tbody>
+{{if .DeliveryFees}}{{range .DeliveryFees}}
+<tr><td>{{.Carrier}}</td><td>{{.CustomsPoint}}</td><td>{{.Area}}</td><td>{{.DeliveryType}}</td><td>{{.Condition}}</td><td>¥{{.Price}}</td><td>¥{{.FreeThreshold}}</td></tr>
+{{end}}{{else}}<tr><td colspan="7" class="empty-state">暂无数据</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

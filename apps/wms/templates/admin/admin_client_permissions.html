@@ -1,0 +1,9 @@
+{{template "base.html" .}}
+{{define "breadcrumb"}}{{.Title}}{{end}}
+{{define "content"}}
+<div class="page-title">{{.Title}}</div>
+<div class="table-card">
+<div class="table-header"><span>{{.Title}}列表</span></div>
+<div>{{.ContentHTML}}</div>
+</div>
+{{end}}

@@ -1,0 +1,107 @@
+{{template "base.html" .}}
+{{define "title"}}预报包裹 - I56 Client{{end}}
+{{define "content"}}
+<div class="page-header">
+  <div>
+    <div class="page-title">📝 预报包裹</div>
+    <div class="page-subtitle">提前预报从淘宝/京东/拼多多等平台购买的包裹信息</div>
+  </div>
+</div>
+
+{{if .Error}}
+<div class="toast toast-error mb-3">{{.Error}}</div>
+{{end}}
+
+<div class="data-table-wrapper">
+  <div class="data-table-header">包裹信息</div>
+  <div class="p-4">
+    <form method="post" action="/client/predeclare">
+      <div class="form-inline">
+        <div class="form-group">
+          <label class="form-label">快递单号 *</label>
+          <input type="text" name="tracking_number" class="form-input" placeholder="例如: SF1234567890" required value="{{.TrackingNumber}}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">快递公司</label>
+          <select name="courier_code" class="form-select">
+            <option value="SF">顺丰</option>
+            <option value="ZTO">中通</option>
+            <option value="YTO">圆通</option>
+            <option value="STO">申通</option>
+            <option value="HTKY">百世</option>
+            <option value="JD">京东</option>
+            <option value="EMS">EMS</option>
+            <option value="">其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">品名 *</label>
+          <input type="text" name="product_name" class="form-input" placeholder="例如: 手机壳" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">仓库</label>
+          <select name="warehouse_id" class="form-select">
+          {{range .Warehouses}}
+            <option value="{{.ID}}">{{.Name}}</option>
+          {{end}}
+          </select>
+        </div>
+      </div>
+      <div class="form-inline mt-3">
+        <div class="form-group">
+          <label class="form-label">预估重量 (kg)</label>
+          <input type="number" name="weight" class="form-input" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">数量</label>
+          <input type="number" name="quantity" class="form-input" placeholder="1" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">价值 (CNY)</label>
+          <input type="number" name="value" class="form-input" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">货类</label>
+          <select name="cargo_type" class="form-select">
+            <option value="general">普货</option>
+            <option value="class1">一类</option>
+            <option value="class3">三类</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-inline mt-3">
+        <div class="form-group">
+          <label class="form-label">长 (cm)</label>
+          <input type="number" name="length" class="form-input" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">宽 (cm)</label>
+          <input type="number" name="width" class="form-input" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">高 (cm)</label>
+          <input type="number" name="height" class="form-input" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="mt-4">
+        <button type="submit" class="btn btn-primary">提交预报</button>
+        <a href="/client/parcels" class="btn btn-ghost ml-2">取消</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{if .Recent}}
+<div class="data-table-wrapper mt-4">
+  <div class="data-table-header">最近预报</div>
+  <table class="data-table">
+    <thead><tr><th>快递单号</th><th>品名</th><th>状态</th></tr></thead>
+    <tbody>
+    {{range .Recent}}
+    <tr><td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td><td><span class="badge badge-default">{{.Status}}</span></td></tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}
+{{end}}

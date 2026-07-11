@@ -1,0 +1,86 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 查询{{end}}
+{{define "header"}}
+快件查询
+<span class="brand">🔍</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:#64748b"></span> 快件查询
+  </div>
+
+  <div class="pda-card">
+    <form method="POST" action="/pda/query" id="query-form">
+      <input type="text" name="tracking_no" class="pda-input scanning" placeholder="输入或扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .Parcel}}
+  <div class="pda-card" style="border-color:var(--pda-brand)">
+    <div class="pda-parcel-header">
+      <span>{{or .Parcel.ProductName "包裹"}}</span>
+      <span class="pda-status pda-status-{{.Parcel.Status}}">{{statusDisplay .Parcel.Status}}</span>
+    </div>
+    <div class="pda-parcel-tn" style="font-size:14px;margin-top:4px">{{.Parcel.TrackingNumber}}</div>
+  </div>
+
+  <div class="pda-card">
+    <div class="pda-card-header">📦 包裹信息</div>
+    <div class="pda-info-row"><span class="key">产品名称</span><span class="val">{{or .Parcel.ProductName "—"}}</span></div>
+    <div class="pda-info-row"><span class="key">快递公司</span><span class="val">{{or .Parcel.CourierCode "—"}}</span></div>
+    <div class="pda-info-row"><span class="key">货物类型</span><span class="val">{{or .Parcel.CargoType "—"}}</span></div>
+    <div class="pda-info-row"><span class="key">实际重量</span><span class="val">{{printf "%.2f kg" .Parcel.ActualWeight}}</span></div>
+    <div class="pda-info-row"><span class="key">尺寸</span><span class="val">{{printf "%.0f × %.0f × %.0f cm" .Parcel.Length .Parcel.Width .Parcel.Height}}</span></div>
+    <div class="pda-info-row"><span class="key">体积重</span><span class="val">{{printf "%.2f kg" (volWeight .Parcel)}}</span></div>
+    <div class="pda-info-row"><span class="key">计费重</span><span class="val pda-highlight">{{printf "%.2f kg" (chgWeight .Parcel)}}</span></div>
+    {{if .Parcel.LocationCode}}
+    <div class="pda-info-row"><span class="key">库位</span><span class="val pda-highlight">{{.Parcel.LocationCode}}</span></div>
+    {{end}}
+    <div class="pda-info-row"><span class="key">状态</span>
+      <span class="val"><span class="pda-status pda-status-{{.Parcel.Status}}">{{statusDisplay .Parcel.Status}}</span></span>
+    </div>
+  </div>
+
+  <div class="pda-card">
+    <div class="pda-card-header">🔄 包裹生命周期</div>
+    <div class="pda-progress" style="flex-wrap:wrap;justify-content:center;margin:4px 0">
+      <div class="step {{if parcelAfterStep .Parcel.Status "pre_declared"}}done{{end}} {{if eq (string .Parcel.Status) "pre_declared"}}current{{end}}"><span class="dot"></span>预报</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "received"}}done{{end}} {{if eq (string .Parcel.Status) "received"}}current{{end}}"><span class="dot"></span>入库</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "weighed"}}done{{end}} {{if eq (string .Parcel.Status) "weighed"}}current{{end}}"><span class="dot"></span>核重</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "stored"}}done{{end}} {{if eq (string .Parcel.Status) "stored"}}current{{end}}"><span class="dot"></span>上架</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "picked"}}done{{end}} {{if eq (string .Parcel.Status) "picked"}}current{{end}}"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "packed"}}done{{end}} {{if eq (string .Parcel.Status) "packed"}}current{{end}}"><span class="dot"></span>打包</div><span class="arrow">→</span>
+      <div class="step {{if parcelAfterStep .Parcel.Status "shipped"}}done{{end}} {{if eq (string .Parcel.Status) "shipped"}}current{{end}}"><span class="dot"></span>发货</div>
+    </div>
+  </div>
+
+  {{if .ScanHistory}}
+  <div class="pda-card">
+    <div class="pda-card-header">📝 操作记录</div>
+    <div class="pda-scan-list">
+      {{range .ScanHistory}}
+      <div class="pda-scan-item">
+        <div>
+          <span class="action" style="color:var(--pda-brand)">{{.Action}}</span>
+          {{if .TrackingNumber}}<span style="font-family:monospace;font-size:11px;margin-left:4px">{{.TrackingNumber}}</span>{{end}}
+        </div>
+        <div class="time" style="text-align:right">
+          <div>{{.Message}}</div>
+          <div style="font-size:10px;color:var(--pda-text-muted)">{{.ScannedAt.Format "15:04:05"}}</div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+
+  {{end}}
+</div>
+{{end}}

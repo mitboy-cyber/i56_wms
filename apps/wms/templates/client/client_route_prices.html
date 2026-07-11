@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}线路价格{{end}}
+{{define "content"}}
+<div class="page-title">💰 线路价格</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>线路</th><th>运输方式</th><th>货类</th><th>首重(kg)</th><th>首重价</th><th>续重价</th><th>最低收费</th></tr></thead>
+<tbody>
+{{if .Pricings}}{{range .Pricings}}
+<tr><td>{{.RouteName}}</td><td>{{.TransportType}}</td><td>{{.CargoType}}</td><td>{{.FirstWeight}}</td><td>¥{{.FirstWeightPrice}}</td><td>¥{{.AdditionalWeightPrice}}</td><td>¥{{.MinCharge}}</td></tr>
+{{end}}{{else}}<tr><td colspan="7" class="empty-state">暂无价格</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

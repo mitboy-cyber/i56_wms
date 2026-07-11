@@ -1,0 +1,34 @@
+{{template "base.html" .}}
+{{define "title"}}申报人{{end}}
+{{define "content"}}
+<div class="page-title">🪪 申报人</div>
+{{if .Msg}}
+<div class="toast {{if eq .MsgType "success"}}toast-success{{else}}toast-info{{end}}" style="margin-bottom:12px">{{.Msg}}</div>
+{{end}}
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>类型</th><th>姓名</th><th>身分证</th><th>电话</th><th>归属会员</th><th>认证状态</th><th>操作</th></tr></thead>
+<tbody>
+{{if .Declarants}}{{range .Declarants}}
+<tr>
+  <td><span class="badge {{if eq .Type "公司"}}badge-primary{{else}}badge-info{{end}}">{{.Type}}</span></td>
+  <td>{{.Name}}</td>
+  <td>{{.IDNumber}}</td>
+  <td>{{.Phone}}</td>
+  <td>{{.MemberCode}}</td>
+  <td>
+    <span class="badge badge-{{if eq .AuthStatus "認證成功"}}success{{else if eq .AuthStatus "認證中"}}warning{{else if eq .AuthStatus "認證失敗"}}danger{{else}}default{{end}}">{{.AuthStatus}}</span>
+  </td>
+  <td class="btn-group">
+    <a href="/client/declarants/{{.ID}}" class="btn btn-sm">檢視</a>
+    {{if ne .AuthStatus "認證成功"}}
+    <form method="POST" action="/client/declarants/{{.ID}}/sync-cert" style="display:inline">
+      <button type="submit" class="btn btn-sm btn-primary">同步認證</button>
+    </form>
+    {{end}}
+    {{if .Active}}<button class="btn btn-sm btn-danger" onclick="if(confirm('确认停用？')){this.closest('form')?.submit()}">停用</button>{{end}}
+  </td>
+</tr>
+{{end}}{{else}}<tr><td colspan="7" class="empty-state">暂无申报人</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

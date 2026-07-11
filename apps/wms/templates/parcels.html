@@ -1,0 +1,6 @@
+{{template "base.html" .}}
+{{define "breadcrumb"}}{{.Title}}{{end}}
+{{define "content"}}
+<div class="page-title">{{.Title}}</div>
+{{.ContentHTML}}
+{{end}}

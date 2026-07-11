@@ -1,0 +1,89 @@
+{{template "base.html" .}}
+{{define "title"}}余额明细 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">💰 余额明细</div>
+<div class="page-subtitle">查看账户的充值、消费、退款等明细记录</div>
+
+<div class="stat-grid mb-3">
+  <div class="stat-card">
+    <div class="stat-label">当前余额</div>
+    <div class="stat-value" style="color:var(--i56-brand)">¥{{.Balance}}</div>
+    <div class="stat-delta">可用余额</div>
+  </div>
+  {{if .Entries}}
+  <div class="stat-card">
+    <div class="stat-label">筛选期间入账</div>
+    <div class="stat-value" style="color:#28c76f">+¥{{.TotalIn}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">筛选期间出账</div>
+    <div class="stat-value" style="color:#dc3232">-¥{{.TotalOut}}</div>
+  </div>
+  {{end}}
+</div>
+
+{{if .Months}}
+<div class="mb-3 flex" style="align-items:center;gap:8px;flex-wrap:wrap">
+  <span style="font-size:11px;color:var(--i56-text-secondary)">按月筛选：</span>
+  <a href="/client/ledger" class="btn btn-sm{{if eq .MonthFilter ""}} btn-primary{{end}}">全部</a>
+  {{range .Months}}
+  <a href="/client/ledger?month={{.}}" class="btn btn-sm{{if eq $.MonthFilter .}} btn-primary{{end}}">{{.}}</a>
+  {{end}}
+</div>
+{{end}}
+
+{{if .Entries}}
+<div class="data-table-wrapper">
+  <div class="data-table-header">
+    <span>交易记录</span>
+    <button class="btn btn-sm" onclick="location.reload()">🔄 刷新</button>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>时间</th>
+        <th>类型</th>
+        <th style="text-align:right">金额变动</th>
+        <th style="text-align:right">变动后余额</th>
+        <th>说明</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{range .Entries}}
+    <tr>
+      <td style="font-family:monospace;font-size:10px">{{.Time}}</td>
+      <td>
+        {{if eq .Type "recharge"}}
+          <span class="badge badge-success">充值</span>
+        {{else if eq .Type "refund"}}
+          <span class="badge badge-info">退款</span>
+        {{else if eq .Type "adjustment"}}
+          <span class="badge badge-primary">调整</span>
+        {{else if eq .Type "consumption"}}
+          <span class="badge badge-warning">消费</span>
+        {{else if eq .Type "fee"}}
+          <span class="badge badge-secondary">服务费</span>
+        {{else}}
+          <span class="badge badge-default">{{.TypeLabel}}</span>
+        {{end}}
+      </td>
+      <td style="text-align:right;font-family:monospace">
+        {{if .AmountIn}}<span style="color:#28c76f">+¥{{.AmountIn}}</span>{{end}}
+        {{if .AmountOut}}<span style="color:#dc3232">-¥{{.AmountOut}}</span>{{end}}
+      </td>
+      <td style="text-align:right;font-family:monospace;font-weight:600">¥{{.BalanceAfter}}</td>
+      <td style="color:var(--i56-text-secondary);font-size:10px">{{if .Description}}{{.Description}}{{else}}—{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无交易记录</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">{{if .MonthFilter}}该月份暂无记录，请尝试其他月份{{else}}账户暂无任何交易记录{{end}}</p>
+  </div>
+</div>
+{{end}}
+{{end}}

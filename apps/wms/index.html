@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I56 WMS — 智能仓储管理系统</title>
+<link rel="stylesheet" href="https://cdn.i56.io/design-language/v1/tokens.css">
+<script type="module">
+import 'https://cdn.i56.io/ui/v1/i56-ui.js';
+import '/modules/wms/wms-components.js';
+</script>
+</head>
+<body>
+<i56-app-layout>
+  <i56-sidebar slot="sidebar"></i56-sidebar>
+  <i56-header slot="header">
+    <span slot="title">I56 WMS 1.0 LTS</span>
+  </i56-header>
+
+  <main slot="content">
+    <!-- 指标卡片 -->
+    <i56-stat-cards>
+      <i56-card data-label="今日入库" data-value="{{.InboundToday}}"></i56-card>
+      <i56-card data-label="待拣货" data-value="{{.PendingPick}}"></i56-card>
+      <i56-card data-label="库存总量" data-value="{{.TotalInventory}}"></i56-card>
+      <i56-card data-label="出库中" data-value="{{.Shipping}}"></i56-card>
+    </i56-stat-cards>
+
+    <!-- 看板视图 -->
+    <i56-kanban id="inventory-kanban" columns="待收货,已上架,拣货中,已打包,已出库"></i56-kanban>
+
+    <!-- 数据表格 -->
+    <i56-table id="parcel-table"
+               data='{{.ParcelsJSON}}'
+               columns='["tracking_number","product_name","status","weight","location"]'
+               sortable>
+    </i56-table>
+  </main>
+</i56-app-layout>
+
+<!-- 全局交互层 -->
+<i56-command-palette></i56-command-palette>
+<i56-context-menu></i56-context-menu>
+<i56-ai-bar placeholder="Ask I56 to ship, query inventory, or generate reports..."></i56-ai-bar>
+<i56-toast-container position="top-right"></i56-toast-container>
+
+<script>
+// Module assembly — loads WMS-specific business logic
+import { WMSModule } from '/modules/wms/wms-module.js';
+const wms = new WMSModule();
+wms.mount(document.getElementById('inventory-kanban'));
+
+// SSE connection for real-time inventory updates
+const sse = new EventSource('/sse?channel=wms-inventory');
+sse.addEventListener('inventory-update', (e) => {
+  const data = JSON.parse(e.data);
+  document.getElementById('parcel-table').updateRow(data.trackingNumber, data);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+{{template "base.html" .}}
+{{define "title"}}主控台 - I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">{{.Title}}</div>
+
+<!-- 账户概览 -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">💰 账户余额</div>
+    <div class="stat-value">¥{{printf "%.2f" .Balance}}</div>
+    <div class="stat-delta up">可用</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">💳 信用额度</div>
+    <div class="stat-value">¥{{printf "%.2f" .CreditLimit}}</div>
+    <div class="stat-delta">¥{{printf "%.2f" .AvailableCredit}} 可用</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📦 包裹总数</div>
+    <div class="stat-value">{{.ParcelCount}}</div>
+    <div class="stat-delta">实时</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📋 订单总数</div>
+    <div class="stat-value">{{.OrderCount}}</div>
+    <div class="stat-delta">{{.ActiveOrderCount}} 处理中</div>
+  </div>
+</div>
+
+<!-- 包裹状态分布 -->
+<h3 class="section-title">📦 包裹状态分布</h3>
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-label">📝 预报</div>
+    <div class="stat-value">{{.PreDeclaredCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📥 入仓</div>
+    <div class="stat-value">{{.ReceivedCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📐 已称重</div>
+    <div class="stat-value">{{.WeighedCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📦 上架</div>
+    <div class="stat-value">{{.StoredCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">⏳ 待打包</div>
+    <div class="stat-value">{{.PickedCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">📦 打包中</div>
+    <div class="stat-value">{{.PackingCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">✅ 已打包</div>
+    <div class="stat-value">{{.PackedCount}}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">🚚 已出库</div>
+    <div class="stat-value">{{.ShippedCount}}</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <!-- 最近订单 -->
+  <div>
+    <div class="data-table-wrapper">
+      <div class="data-table-header">
+        <span>📋 最近订单</span>
+        <a href="/client/orders" class="btn btn-sm">查看全部</a>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>订单号</th><th>收件人</th><th>包裹数</th><th>重量</th><th>金额</th><th>状态</th></tr></thead>
+        <tbody>
+        {{if .Orders}}{{range .Orders}}
+        <tr>
+          <td class="inline-code">{{.OrderNo}}</td>
+          <td>{{.ReceiverName}}</td>
+          <td>{{.ParcelCount}}</td>
+          <td>{{.Weight}} kg</td>
+          <td>¥{{.Amount}}</td>
+          <td><span class="badge badge-primary">{{.Status}}</span></td>
+        </tr>
+        {{end}}{{else}}<tr><td colspan="6" class="empty-state">暂无订单</td></tr>{{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 最近包裹 -->
+  <div>
+    <div class="data-table-wrapper">
+      <div class="data-table-header">
+        <span>📦 最近包裹</span>
+        <a href="/client/parcels" class="btn btn-sm">查看全部</a>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>快递单号</th><th>品名</th><th>重量</th><th>状态</th></tr></thead>
+        <tbody>
+        {{if .Parcels}}{{range .Parcels}}
+        <tr>
+          <td class="inline-code">{{.TrackingNumber}}</td>
+          <td>{{.ProductName}}</td>
+          <td>{{.Weight}} kg</td>
+          <td><span class="badge badge-{{.StatusColor}}">{{.StatusLabel}}</span></td>
+        </tr>
+        {{end}}{{else}}<tr><td colspan="4" class="empty-state">暂无包裹</td></tr>{{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{end}}

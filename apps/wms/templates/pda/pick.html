@@ -1,0 +1,93 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 拣货{{end}}
+{{define "header"}}
+订单拣货
+<span class="brand" style="color:var(--pda-purple)">🛒</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <a href="/pda" class="pda-back">← 首页</a>
+
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-purple)"></span> 订单拣货
+  </div>
+
+  <div class="pda-progress">
+    <div class="step done"><span class="dot"></span>收货</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>核重</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>上架</div><span class="arrow">→</span>
+    <div class="step current"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>打包</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>装柜</div>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedOrder}}
+  <div class="pda-card" style="border-color:var(--pda-purple)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <div style="font-weight:700;font-size:15px">{{.ScannedOrder.OrderNo}}</div>
+        <div class="text-sm text-muted">{{.ScannedOrder.RecipientName}} · {{.ScannedOrder.ParcelCount}}件</div>
+      </div>
+      <span class="pda-status" style="background:rgba(139,92,246,.15);color:#8b5cf6;font-size:12px;padding:4px 10px;border-radius:12px">待拣货</span>
+    </div>
+  </div>
+
+  {{if .ScannedOrderParcels}}
+  <div class="pda-section-title">包裹清单 <span class="count">{{len .ScannedOrderParcels}}件</span></div>
+  <div class="pda-card">
+    <ul class="pda-order-items">
+      {{range .ScannedOrderParcels}}
+      <li>
+        <div>
+          <span style="font-family:monospace;font-size:12px">{{.TrackingNumber}}</span>
+          <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.ProductName}}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--pda-text-muted)">{{.LocationCode}}</span>
+          <span class="pda-status pda-status-{{.Status}}">{{statusDisplay .Status}}</span>
+        </div>
+      </li>
+      {{end}}
+    </ul>
+  </div>
+  {{end}}
+
+  <form method="POST" action="/pda/pick" id="pick-form">
+    <input type="hidden" name="order_no" value="{{.ScannedOrder.OrderNo}}">
+  </form>
+  <button type="submit" form="pick-form" class="pda-btn pda-btn-purple pda-btn-lg mt-2">🛒 确认拣货 — 全部拣选</button>
+
+  {{else}}
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">🛒</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描订单号开始拣货</div>
+    <form method="GET" action="/pda/pick" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描订单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+  </div>
+  {{end}}
+
+  {{if .PendingPickOrders}}
+  <div class="pda-section-title">待拣货订单 <span class="count">{{len .PendingPickOrders}}</span></div>
+  <div class="pda-card">
+    {{range .PendingPickOrders}}
+    <div class="pda-scan-item">
+      <div>
+        <a href="/pda/pick?scan={{.OrderNo}}" style="font-weight:600;font-size:13px;color:var(--pda-brand);text-decoration:none">{{.OrderNo}}</a>
+        <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.RecipientName}} · {{.ParcelCount}}件</span>
+      </div>
+      <span class="pda-status" style="background:rgba(139,92,246,.15);color:#8b5cf6;font-size:11px;padding:3px 10px;border-radius:10px">待拣货</span>
+    </div>
+    {{else}}
+    <div class="pda-empty"><div class="text-sm">暂无待拣货订单</div></div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

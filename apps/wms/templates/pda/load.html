@@ -1,0 +1,103 @@
+{{template "base.html" .}}
+{{define "title"}}装柜发货{{end}}
+{{define "header"}}
+装柜发货
+<span class="brand" style="color:var(--pda-brand)">出库</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-brand)"></span> 装柜发货
+  </div>
+
+  <!-- Progress -->
+  <div class="pda-progress">
+    <div class="step done"><span class="dot"></span>收货</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>核重</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>上架</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>打包</div><span class="arrow">→</span>
+    <div class="step current"><span class="dot"></span>装柜</div>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedOrder}}
+  <!-- Order found -->
+  <div class="pda-card" style="border-color:var(--pda-brand)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <div style="font-weight:700;font-size:15px">{{.ScannedOrder.OrderNo}}</div>
+        <div class="text-sm text-muted">{{.ScannedOrder.RecipientName}} · {{.ScannedOrder.ParcelCount}}件</div>
+      </div>
+      <span class="pda-status pda-status-packed">已打包</span>
+    </div>
+  </div>
+
+  {{if .ScannedOrderParcels}}
+  <div class="pda-section-title">包裹核对 ({{len .ScannedOrderParcels}}件)</div>
+  <div class="pda-card">
+    <ul class="pda-order-items">
+      {{range .ScannedOrderParcels}}
+      <li>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="check">✓</span>
+          <span style="font-family:monospace;font-size:12px">{{.TrackingNumber}}</span>
+          <span style="font-size:11px;color:var(--pda-text-muted)">{{.ProductName}}</span>
+        </div>
+        <span class="pda-status pda-status-{{.Status}}">{{statusDisplay .Status}}</span>
+      </li>
+      {{end}}
+    </ul>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--pda-border);display:flex;justify-content:space-between;font-size:13px">
+      <span>合计</span>
+      <span class="pda-highlight">{{len .ScannedOrderParcels}}件 · {{totalWeight .ScannedOrderParcels}}kg</span>
+    </div>
+  </div>
+  {{end}}
+
+  <form method="POST" action="/pda/load" id="load-form">
+    <input type="hidden" name="order_no" value="{{.ScannedOrder.OrderNo}}">
+    <div class="pda-card" style="border:2px dashed var(--pda-brand);text-align:center">
+      <div style="font-size:32px;margin-bottom:8px">🚛</div>
+      <div class="text-sm text-muted mb-2">扫描或输入柜号 / 车牌号</div>
+      <input type="text" name="container_no" class="pda-input scanning" placeholder="柜号/车牌号，如 CONT-001..." autofocus style="font-size:16px;text-align:center" autocomplete="off">
+      <div class="text-center mt-2" style="font-size:10px;color:var(--pda-text-muted)">扫描货柜条码或手动输入柜号</div>
+    </div>
+  </form>
+  <button type="submit" form="load-form" class="pda-btn pda-btn-primary pda-btn-lg mt-2">🚛 确认装柜</button>
+
+  {{else}}
+  <!-- Scan order for load -->
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">🚛</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描已打包订单进行装柜发货</div>
+    <form method="GET" action="/pda/load" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描订单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+    <div class="text-center mt-2" style="font-size:11px;color:var(--pda-text-muted)">使用扫描枪扫描订单条码</div>
+  </div>
+  {{end}}
+
+  {{if .PendingLoad}}
+  <div class="pda-section-title">待装柜订单 ({{len .PendingLoad}})</div>
+  <div class="pda-card">
+    {{range .PendingLoad}}
+    <div class="pda-scan-item">
+      <div>
+        <a href="/pda/load?scan={{.OrderNo}}" style="font-weight:600;font-size:13px;color:var(--pda-brand);text-decoration:none">{{.OrderNo}}</a>
+        <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.RecipientName}} · {{.ParcelCount}}件</span>
+      </div>
+      <span class="pda-status" style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:11px;padding:3px 10px;border-radius:10px">待装柜</span>
+    </div>
+    {{else}}
+    <div class="pda-empty"><div class="text-sm">暂无待装柜订单</div></div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

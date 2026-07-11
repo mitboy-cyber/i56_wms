@@ -1,0 +1,80 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 上架{{end}}
+{{define "header"}}
+上架入库
+<span class="brand" style="color:var(--pda-success)">📍</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <a href="/pda" class="pda-back">← 首页</a>
+
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-success)"></span> 上架入库
+  </div>
+
+  <div class="pda-progress">
+    <div class="step done"><span class="dot"></span>收货</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>核重</div><span class="arrow">→</span>
+    <div class="step current"><span class="dot"></span>上架</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>打包</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>装柜</div>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedParcel}}
+  <div class="pda-card pda-parcel-card" style="border-color:var(--pda-success)">
+    <div class="pda-parcel-header">
+      <span>{{or .ScannedParcel.ProductName "包裹"}}</span>
+      <span class="pda-status pda-status-{{.ScannedParcel.Status}}">{{statusDisplay .ScannedParcel.Status}}</span>
+    </div>
+    <div class="pda-parcel-tn">{{.ScannedParcel.TrackingNumber}}</div>
+    <div class="mt-2" style="font-size:12px;color:var(--pda-text-muted)">
+      {{printf "%.2fkg" .ScannedParcel.ActualWeight}} · {{printf "%.0f×%.0f×%.0fcm" .ScannedParcel.Length .ScannedParcel.Width .ScannedParcel.Height}}
+      {{if .ScannedParcel.LocationCode}} · 当前库位: <span class="pda-highlight">{{.ScannedParcel.LocationCode}}</span>{{end}}
+    </div>
+  </div>
+
+  <form method="POST" action="/pda/putaway" id="putaway-form">
+    <input type="hidden" name="tracking_no" value="{{.ScannedParcel.TrackingNumber}}">
+    <div class="pda-card" style="border:2px dashed var(--pda-success);text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">📍</div>
+      <div class="text-sm text-muted mb-2" style="font-weight:600">扫描目标库位条码</div>
+      <input type="text" name="location_barcode" class="pda-input scanning" placeholder="扫描或输入库位编号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </div>
+  </form>
+  <button type="submit" form="putaway-form" class="pda-btn pda-btn-success pda-btn-lg mt-2">✅ 确认上架</button>
+
+  {{else}}
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">📍</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描已收货包裹进行上架</div>
+    <form method="GET" action="/pda/putaway" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+  </div>
+  {{end}}
+
+  {{if .PendingPutAway}}
+  <div class="pda-section-title">待上架包裹 <span class="count">{{len .PendingPutAway}}</span></div>
+  <div class="pda-card">
+    {{range .PendingPutAway}}
+    <div class="pda-scan-item">
+      <div>
+        <a href="/pda/putaway?scan={{.TrackingNumber}}" style="font-family:monospace;font-size:12px;color:var(--pda-brand);text-decoration:none">{{.TrackingNumber}}</a>
+        <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.ProductName}}</span>
+      </div>
+      <span class="pda-status" style="background:rgba(14,165,233,.15);color:#0ea5e9;font-size:11px;padding:3px 10px;border-radius:10px">{{statusDisplay .Status}}</span>
+    </div>
+    {{else}}
+    <div class="pda-empty"><div class="text-sm">暂无待上架包裹</div></div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

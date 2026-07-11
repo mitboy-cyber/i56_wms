@@ -1,0 +1,65 @@
+{{template "base.html" .}}
+{{define "title"}}仓库资讯 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">🏗️ 仓库资讯</div>
+<div class="page-subtitle">查看合作仓库的地址、联系方式、收费标准及收货说明</div>
+
+{{if .Warehouses}}
+{{range .Warehouses}}
+<div class="section-card mb-3">
+  <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:15px;font-weight:700">{{.Name}}</span>
+    <span class="badge badge-primary">{{.Code}}</span>
+  </div>
+
+  <div class="stat-grid mb-3">
+    <div class="stat-card">
+      <div class="stat-label">📍 仓库地址</div>
+      <div class="stat-value" style="font-size:13px;font-weight:500">{{.Address}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📞 联系方式</div>
+      <div class="stat-value" style="font-size:13px;font-weight:500">{{.ContactName}}</div>
+      <div class="stat-delta">{{.ContactPhone}}</div>
+    </div>
+  </div>
+
+  <div class="flex gap-3 mb-3" style="flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <div class="form-label">🕐 营业时间</div>
+      <div class="code-block" style="font-size:10px">
+周一~周五 09:00-18:00
+周六 09:00-12:00
+周日及法定节假日休息
+入库截单 16:00（当日出库）</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div class="form-label">💰 仓储收费标准</div>
+      <div class="code-block" style="font-size:10px">
+免费仓储：{{.FreeStorageDays}}天
+超期费：¥{{.StorageDailyFee}}/件/天
+（按自然日计费）</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:8px">
+    <div class="form-label">📋 收货说明</div>
+    <div class="code-block" style="font-size:10px">
+1. 请提前在系统中预报包裹，获取入库单号
+2. 包裹外箱请标注客户代码：EZ001
+3. 易碎品请使用气泡膜包装并标注"易碎"标签
+4. 单件重量不超过 30kg
+5. 禁运品：液体、粉末、电池（未申报）、易燃易爆品
+6. 到货后1-2个工作日内完成入库上架</div>
+  </div>
+</div>
+{{end}}
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无仓库信息</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">请联系管理员添加仓库</p>
+  </div>
+</div>
+{{end}}
+{{end}}

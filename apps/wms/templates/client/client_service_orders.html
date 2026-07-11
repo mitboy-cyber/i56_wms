@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}附加服务订单{{end}}
+{{define "content"}}
+<div class="page-title">➕ 附加服务订单</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>服务单号</th><th>类型</th><th>金额</th><th>状态</th><th>时间</th></tr></thead>
+<tbody>
+{{if .Orders}}{{range .Orders}}
+<tr><td>{{.ServiceNo}}</td><td>{{.Type}}</td><td>¥{{.Amount}}</td><td><span class="badge badge-primary">{{.Status}}</span></td><td>{{.Time}}</td></tr>
+{{end}}{{else}}<tr><td colspan="5" class="empty-state">暂无服务订单</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

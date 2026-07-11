@@ -1,0 +1,111 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 首页{{end}}
+{{define "header"}}
+<div style="display:flex;align-items:center;gap:10px">
+  <div style="width:36px;height:36px;border-radius:50%;background:var(--pda-brand);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:700">张</div>
+  <div>
+    <div style="font-size:14px;font-weight:700">张三丰</div>
+    <div style="font-size:10px;color:var(--pda-text-muted)">深圳仓1号 · 操作员 #{{.OpID}}</div>
+  </div>
+</div>
+<span class="brand">{{.Now}}</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <!-- Stats bar -->
+  <div class="pda-stats">
+    <div class="pda-stat-item">
+      <div class="stat-val" style="color:var(--pda-info)">{{.Stats.PendingReceive}}</div>
+      <div class="stat-lbl">待收货</div>
+    </div>
+    <div class="pda-stat-item">
+      <div class="stat-val" style="color:var(--pda-warning)">{{.Stats.PendingPutAway}}</div>
+      <div class="stat-lbl">待上架</div>
+    </div>
+    <div class="pda-stat-item">
+      <div class="stat-val" style="color:var(--pda-purple)">{{.Stats.PendingPick}}</div>
+      <div class="stat-lbl">待拣货</div>
+    </div>
+    <div class="pda-stat-item">
+      <div class="stat-val" style="color:var(--pda-danger)">{{.Stats.AbnormalCount}}</div>
+      <div class="stat-lbl">异常件</div>
+    </div>
+  </div>
+
+  <!-- Quick actions grid -->
+  <div class="pda-section-title">快捷操作</div>
+  <div class="pda-menu-grid">
+    <a href="/pda/receive" class="pda-menu-item">
+      <div class="icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">📦</div>
+      <div class="name">包裹收货</div>
+      <div class="badge">{{.Stats.PendingReceive}} 待处理</div>
+    </a>
+    <a href="/pda/weigh" class="pda-menu-item">
+      <div class="icon" style="background:rgba(245,158,11,.12);color:#f59e0b">⚖️</div>
+      <div class="name">称重核重</div>
+      <div class="badge">已收货包裹</div>
+    </a>
+    <a href="/pda/putaway" class="pda-menu-item">
+      <div class="icon" style="background:rgba(16,185,129,.12);color:#10b981">📍</div>
+      <div class="name">上架入库</div>
+      <div class="badge">{{.Stats.PendingPutAway}} 待处理</div>
+    </a>
+    <a href="/pda/pick" class="pda-menu-item">
+      <div class="icon" style="background:rgba(139,92,246,.12);color:#8b5cf6">🛒</div>
+      <div class="name">订单拣货</div>
+      <div class="badge">{{.Stats.PendingPick}} 待处理</div>
+    </a>
+    <a href="/pda/pack" class="pda-menu-item">
+      <div class="icon" style="background:rgba(249,115,22,.12);color:#f97316">📋</div>
+      <div class="name">打包复核</div>
+      <div class="badge">{{.Stats.PendingPack}} 待处理</div>
+    </a>
+    <a href="/pda/load" class="pda-menu-item">
+      <div class="icon" style="background:rgba(59,130,246,.12);color:#3b82f6">🚛</div>
+      <div class="name">装柜发货</div>
+      <div class="badge">{{.Stats.PendingLoad}} 待处理</div>
+    </a>
+    <a href="/pda/task-pool" class="pda-menu-item">
+      <div class="icon" style="background:rgba(239,68,68,.12);color:#ef4444">🎯</div>
+      <div class="name">抢单池</div>
+      <div class="badge">抢任务</div>
+    </a>
+    <a href="/pda/exception" class="pda-menu-item">
+      <div class="icon" style="background:rgba(100,116,139,.12);color:#64748b">⚠️</div>
+      <div class="name">标异常</div>
+      <div class="badge">{{.Stats.AbnormalCount}} 异常</div>
+    </a>
+  </div>
+
+  <!-- Secondary actions -->
+  <div style="display:flex;gap:10px;margin-top:12px">
+    <a href="/pda/my-tasks" class="pda-btn pda-btn-outline" style="flex:1;font-size:13px">📋 我的任务</a>
+    <a href="/pda/query" class="pda-btn pda-btn-outline" style="flex:1;font-size:13px">🔍 快件查询</a>
+  </div>
+
+  <!-- Recent activity -->
+  {{if .RecentLogs}}
+  <div class="pda-section-title">最近操作记录</div>
+  <div class="pda-card">
+    <div class="pda-scan-list">
+      {{range .RecentLogs}}
+      <div class="pda-scan-item fade-in">
+        <div>
+          <span class="action" style="color:var(--pda-brand)">{{.Action}}</span>
+          <span style="font-family:monospace;font-size:11px;margin-left:6px">{{.TrackingNumber}}</span>
+        </div>
+        <div class="time">
+          <div>{{.Message}}</div>
+          <div style="font-size:10px;color:var(--pda-text-muted)">{{.ScannedAt.Format "15:04:05"}}</div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+
+  <div style="text-align:center;margin-top:20px">
+    <a href="/pda/logout" class="pda-btn pda-btn-outline pda-btn-sm" style="color:var(--pda-danger)">退出登录</a>
+  </div>
+</div>
+{{end}}

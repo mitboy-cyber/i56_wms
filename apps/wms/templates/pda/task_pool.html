@@ -1,0 +1,63 @@
+{{template "base.html" .}}
+{{define "title"}}抢单池{{end}}
+{{define "header"}}
+抢单池
+<span class="brand">{{.PoolCount}} 任务</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <div id="pull-indicator" class="pull-indicator">↓ 下拉刷新</div>
+
+  <!-- Segment tabs -->
+  <div class="pda-segment">
+    <a href="#" class="active">全部</a>
+    <a href="#">收货</a>
+    <a href="#">拣货</a>
+    <a href="#">打包</a>
+  </div>
+
+  {{if .Tasks}}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="text-sm text-muted">共 {{.PoolCount}} 个待抢任务</div>
+    <form method="GET" action="/pda/task-pool" style="margin:0">
+      <button type="submit" class="pda-btn pda-btn-outline pda-btn-sm" style="font-size:11px">⟳ 刷新</button>
+    </form>
+  </div>
+
+  {{range .Tasks}}
+  <form method="POST" action="/pda/task-pool" style="margin-bottom:8px">
+    <input type="hidden" name="task_type" value="{{.TaskType}}">
+    <input type="hidden" name="target_id" value="{{.TargetID}}">
+    <button type="submit" class="pda-task-item w-full" style="border:none;background:var(--pda-surface);width:100%;text-align:left;cursor:pointer;font-family:var(--pda-font)">
+      <div class="task-icon" style="
+        {{if eq .TaskType "receive"}}background:rgba(14,165,233,.12)
+        {{else if eq .TaskType "putaway"}}background:rgba(16,185,129,.12)
+        {{else if eq .TaskType "pick"}}background:rgba(139,92,246,.12)
+        {{else if eq .TaskType "pack"}}background:rgba(249,115,22,.12)
+        {{else}}background:rgba(59,130,246,.12){{end}}">{{.Icon}}</div>
+      <div class="task-info">
+        <div class="task-type">{{.TaskLabel}}</div>
+        <div class="task-desc">
+          {{.TargetID}}
+          {{if .TargetDesc}}· {{.TargetDesc}}{{end}}
+          {{if gt .ParcelCount 0}}· {{.ParcelCount}}件{{end}}
+        </div>
+        <div style="font-size:10px;color:var(--pda-text-muted);margin-top:4px">⏱ {{.CreatedAt}}</div>
+      </div>
+      <div class="task-arrow">抢单 ›</div>
+    </button>
+  </form>
+  {{end}}
+
+  {{else}}
+  <div class="pda-empty">
+    <div class="icon">🎉</div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:6px">暂无待抢任务</div>
+    <div class="text-sm">所有任务已分配，请稍后再来</div>
+    <form method="GET" action="/pda/task-pool" style="margin-top:16px">
+      <button type="submit" class="pda-btn pda-btn-outline pda-btn-sm">⟳ 刷新</button>
+    </form>
+  </div>
+  {{end}}
+</div>
+{{end}}

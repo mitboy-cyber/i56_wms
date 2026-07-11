@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{block "title" .}}I56 Framework{{end}}</title>
+<link rel="stylesheet" href="/static/css/i56-bdl.css">
+<script src="/static/js/i56-theme.js"></script>
+</head>
+<body>
+<div class="app-layout">
+<aside class="app-sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">I</div>
+    <a href="/admin" class="sidebar-title">I56 Framework</a>
+  </div>
+  <nav class="sidebar-nav">
+
+    <!-- ===== Group 1: 首页 (flat, not expandable) ===== -->
+    <a href="/admin" class="nav-item active">
+      <span class="nav-icon">🏠</span> 首页
+    </a>
+    <a href="/admin/warehouse-board" class="nav-item">
+      <span class="nav-icon">📊</span> 仓库看板
+    </a>
+
+    <!-- ===== Group 2: 订单管理 ===== -->
+    <div class="nav-group" data-page="oms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">📋 订单管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/orders" class="nav-item nav-sub-item">集运订单</a>
+        <a href="/admin/service-orders" class="nav-item nav-sub-item">附加服务订单</a>
+      </div>
+    </div>
+
+    <!-- ===== Group 3: 仓库管理 ===== -->
+    <div class="nav-group" data-page="wms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🏗️ 仓库管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/parcels" class="nav-item nav-sub-item">包裹列表</a>
+        <a href="/admin/service-workorders" class="nav-item nav-sub-item">附加服务工单</a>
+        <a href="/admin/service-templates" class="nav-item nav-sub-item">附加服务模板</a>
+        <a href="/admin/service-types" class="nav-item nav-sub-item">附加服务类型</a>
+        <a href="/admin/pda-sessions" class="nav-item nav-sub-item">PDA 在线会话</a>
+        <a href="/admin/warehouses" class="nav-item nav-sub-item">仓库列表</a>
+        <a href="/admin/inbound-board" class="nav-item nav-sub-item">入库看板</a>
+        <a href="/admin/warehouse-console" class="nav-item nav-sub-item">仓库作业台</a>
+        <a href="/admin/task-monitor" class="nav-item nav-sub-item">员工任务监控</a>
+        <a href="/admin/pda-workorder-templates" class="nav-item nav-sub-item">PDA 工单模板</a>
+        <a href="/admin/workflow-management" class="nav-item nav-sub-item">工单流程管理</a>
+        <a href="/admin/work-orders" class="nav-item nav-sub-item">工单列表</a>
+        <a href="/admin/exception-reports" class="nav-item nav-sub-item">异常记录</a>
+      </div>
+    </div>
+
+    <!-- ===== Group 4: 财务报表 ===== -->
+    <div class="nav-group" data-page="fin">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">💰 财务报表</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/report/order-profit" class="nav-item nav-sub-item">集运订单盈利</a>
+        <a href="/admin/report/service-profit" class="nav-item nav-sub-item">附加服务盈利</a>
+        <a href="/admin/report/client-profit" class="nav-item nav-sub-item">客户盈利</a>
+        <a href="/admin/report/route-profit" class="nav-item nav-sub-item">路线盈利</a>
+      </div>
+    </div>
+
+    <!-- ===== Group 5: 物流管理 ===== -->
+    <div class="nav-group" data-page="tms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🚛 物流管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/area-groups" class="nav-item nav-sub-item">区域组管理</a>
+        <a href="/admin/cargo-types" class="nav-item nav-sub-item">货物类型</a>
+        <a href="/admin/carriers" class="nav-item nav-sub-item">承运商列表</a>
+        <a href="/admin/container-loadings" class="nav-item nav-sub-item">装柜记录</a>
+        <a href="/admin/couriers" class="nav-item nav-sub-item">快递公司</a>
+        <a href="/admin/customs-brokers" class="nav-item nav-sub-item">清关公司</a>
+        <a href="/admin/customs-points" class="nav-item nav-sub-item">清关点管理</a>
+        <a href="/admin/route-templates" class="nav-item nav-sub-item">线路模板</a>
+        <a href="/admin/shipping-providers" class="nav-item nav-sub-item">运输公司</a>
+        <a href="/admin/transport-modes" class="nav-item nav-sub-item">运输方式</a>
+        <a href="/admin/logistics-tracking" class="nav-item nav-sub-item">物流追踪</a>
+      </div>
+    </div>
+
+    <!-- ===== Group 6: 客户管理 ===== -->
+    <div class="nav-group" data-page="crm">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">👤 客户管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/customer-addresses" class="nav-item nav-sub-item">客户收件地址</a>
+        <a href="/admin/customer-declarants" class="nav-item nav-sub-item">客户申报人</a>
+        <a href="/admin/clients" class="nav-item nav-sub-item">客户管理</a>
+        <a href="/admin/client-accounts" class="nav-item nav-sub-item">客户账号</a>
+        <a href="/admin/client-members" class="nav-item nav-sub-item">客户会员</a>
+        <a href="/admin/client-recharge" class="nav-item nav-sub-item">客户充值</a>
+        <a href="/admin/balance-logs" class="nav-item nav-sub-item">余额日志</a>
+        <a href="/admin/recharge-records" class="nav-item nav-sub-item">充值记录</a>
+        <a href="/admin/client-pricing" class="nav-item nav-sub-item">客户价格</a>
+        <a href="/admin/monthly-statements" class="nav-item nav-sub-item">月结对账单</a>
+        <a href="/admin/client-permissions" class="nav-item nav-sub-item">客户端权限</a>
+      </div>
+    </div>
+
+    <!-- ===== Group 7: 系统 ===== -->
+    <div class="nav-group" data-page="sys">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">⚙️ 系统</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/notifications" class="nav-item nav-sub-item">通知管理</a>
+        <a href="/admin/print-templates" class="nav-item nav-sub-item">打印模板</a>
+        <a href="/admin/roles" class="nav-item nav-sub-item">角色管理</a>
+        <a href="/admin/employees" class="nav-item nav-sub-item">员工管理</a>
+        <a href="/admin/system-params" class="nav-item nav-sub-item">系统参数</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/api-couriers" class="nav-item nav-sub-item">物流API对接</a>
+        <a href="/admin/system/api-customs" class="nav-item nav-sub-item">清关API对接</a>
+        <a href="/admin/system/api-notifications" class="nav-item nav-sub-item">通知渠道配置</a>
+        <a href="/admin/system/api-storage" class="nav-item nav-sub-item">存储配置</a>
+        <a href="/admin/system/api-printers" class="nav-item nav-sub-item">打印机设置</a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="version">v2.0 LTS</span>
+    </div>
+
+  </nav>
+</aside>
+
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-breadcrumb">
+      I56 Admin <span style="color:var(--i56-text-muted);margin:0 4px">/</span> <span>{{block "breadcrumb" .}}首页{{end}}</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sm btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
+    </div>
+  </header>
+  <main class="app-content">
+    {{block "content" .}}{{end}}
+  </main>
+</div>
+
+</div>
+<!-- I56 2.0 AI Command Bar (Ctrl+K) -->
+
+<div id="i56-ai-bar" class="ai-command-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;background:var(--i56-bg-card);border-top:2px solid var(--i56-brand);padding:16px 24px;box-shadow:0 -8px 32px rgba(0,0,0,0.08);backdrop-filter:blur(12px);font-family:Inter,sans-serif">
+  <div style="display:flex;align-items:center;gap:12px;max-width:800px;margin:0 auto">
+    <span style="font-size:24px">🤖</span>
+    <input id="ai-bar-input" style="flex:1;border:none;outline:none;font-size:16px;padding:12px 16px;border-radius:8px;background:var(--i56-bg-base);color:var(--i56-text-primary)" placeholder="输入指令：查订单、查包裹、问库存..." onkeydown="if(event.key==='Enter')aiBarSend()" onfocus="document.getElementById('i56-ai-bar').querySelector('.ai-suggestions').style.display='flex'" autofocus>
+    <button onclick="aiBarSend()" style="background:var(--i56-brand);color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">发送</button>
+    <button onclick="aiBarHide()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--i56-text-secondary)">✕</button>
+  </div>
+  <div class="ai-suggestions" style="display:none;gap:8px;max-width:800px;margin:12px auto 0;flex-wrap:wrap">
+    <span onclick="aiBarFill(this)" style="background:var(--i56-bg-base);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--i56-border)">📋 查订单</span>
+    <span onclick="aiBarFill(this)" style="background:var(--i56-bg-base);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--i56-border)">📦 查包裹</span>
+    <span onclick="aiBarFill(this)" style="background:var(--i56-bg-base);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--i56-border)">🏗️ 仓库清单</span>
+    <span onclick="aiBarFill(this)" style="background:var(--i56-bg-base);padding:6px 14px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid var(--i56-border)">💰 客户余额</span>
+  </div>
+  <div id="ai-bar-response" style="max-width:800px;margin:8px auto 0;font-size:14px;color:var(--i56-text-secondary);display:none"></div>
+</div>
+<!-- Modal container for add/edit forms -->
+<div id="modal-container" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)"></div>
+
+<script>
+/* ── AI Command Bar ── */
+function aiBarShow(){document.getElementById('i56-ai-bar').style.display='block';document.getElementById('ai-bar-input').focus()}
+function aiBarHide(){document.getElementById('i56-ai-bar').style.display='none';document.getElementById('ai-bar-response').style.display='none'}
+function aiBarFill(el){document.getElementById('ai-bar-input').value=el.textContent.trim();document.getElementById('ai-bar-input').focus()}
+async function aiBarSend(){
+  const inp=document.getElementById('ai-bar-input'); const rsp=document.getElementById('ai-bar-response');
+  const msg=inp.value.trim(); if(!msg) return;
+  rsp.style.display='block'; rsp.innerHTML='🤔 思考中...';
+  try{
+    const res=await fetch('/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
+    const data=await res.json();
+    rsp.innerHTML='<strong>AI:</strong> '+data.content;
+  }catch(e){rsp.innerHTML='AI 服务暂时不可用'}
+}
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();aiBarShow()}});
+
+/* ── Sidebar Expand/Collapse ── */
+function toggleNavGroup(header) {
+  const group = header.parentElement;
+  const wasOpen = group.classList.contains('open');
+  // Close all other groups
+  document.querySelectorAll('.nav-group.open').forEach(function(g) {
+    if (g !== group) g.classList.remove('open');
+  });
+  // Toggle current
+  if (wasOpen) { group.classList.remove('open'); }
+  else { group.classList.add('open'); }
+}
+
+/* ── Auto-expand groups based on current URL ── */
+(function() {
+  var currentUrl = window.location.pathname;
+  var subItems = document.querySelectorAll('.nav-sub-item');
+  var matched = false;
+  subItems.forEach(function(item) {
+    var href = item.getAttribute('href');
+    if (href && currentUrl.startsWith(href.split('?')[0]) && href.split('?')[0] !== '/admin') {
+      item.classList.add('active');
+      var group = item.closest('.nav-group');
+      if (group) group.classList.add('open');
+      matched = true;
+    }
+  });
+  // Also expand groups by data-page attribute (match URL segment)
+  if (!matched) {
+    var urlParts = currentUrl.replace(/^\/+|\/+$/g, '').split('/');
+    var pageSeg = urlParts[urlParts.length - 1] || '';
+    var groups = document.querySelectorAll('.nav-group[data-page]');
+    groups.forEach(function(group) {
+      var dp = group.getAttribute('data-page');
+      // Check if current page is in a known group based on known URL patterns
+      var groupPages = {
+        'oms': ['orders', 'service-orders'],
+        'wms': ['parcels', 'service-workorders', 'service-templates', 'service-types', 'pda-sessions', 'warehouses', 'inbound-board', 'warehouse-console', 'task-monitor', 'pda-workorder-templates', 'workflow-management', 'work-orders', 'exception-reports'],
+        'fin': ['report/order-profit', 'report/service-profit', 'report/client-profit', 'report/route-profit'],
+        'tms': ['area-groups', 'cargo-types', 'carriers', 'container-loadings', 'couriers', 'customs-brokers', 'customs-points', 'route-templates', 'shipping-providers', 'transport-modes', 'logistics-tracking'],
+        'crm': ['customer-addresses', 'customer-declarants', 'clients', 'client-accounts', 'client-members', 'client-recharge', 'balance-logs', 'recharge-records', 'client-pricing', 'monthly-statements', 'client-permissions'],
+        'sys': ['notifications', 'print-templates', 'roles', 'employees', 'system-params', 'system/api-couriers', 'system/api-customs', 'system/api-notifications', 'system/api-storage', 'system/api-printers']
+      };
+      var pages = groupPages[dp] || [];
+      for (var i = 0; i < pages.length; i++) {
+        if (currentUrl.indexOf('/admin/' + pages[i]) === 0) {
+          group.classList.add('open');
+          matched = true;
+          break;
+        }
+      }
+    });
+  }
+  // Un-mark 首页 active if we're on a different page
+  var topItems = document.querySelectorAll('a.nav-item:not(.nav-sub-item)');
+  topItems.forEach(function(item) {
+    var href = item.getAttribute('href');
+    if (href && currentUrl === href.split('?')[0]) {
+      item.classList.add('active');
+    } else if (href === '/admin' && currentUrl !== '/admin') {
+      item.classList.remove('active');
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+{{template "base.html" .}}
+{{define "title"}}客户价格 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">💰 客户价格</div>
+<div class="page-subtitle">按运输方式分组的线路价格明细（空运 / 海快 / 海运）</div>
+
+<!-- Transport Mode Tabs -->
+<div class="tabs" style="display:flex;gap:0;margin-bottom:12px;border-bottom:1px solid var(--i56-border)">
+  <div class="tab active" onclick="switchPricingTab(event,'tab-all')" style="padding:8px 16px;font-size:12px;color:var(--i56-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s">📋 全部</div>
+  <div class="tab" onclick="switchPricingTab(event,'tab-air')" style="padding:8px 16px;font-size:12px;color:var(--i56-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s">✈️ 空运</div>
+  <div class="tab" onclick="switchPricingTab(event,'tab-seaexpress')" style="padding:8px 16px;font-size:12px;color:var(--i56-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s">🚢 海快</div>
+  <div class="tab" onclick="switchPricingTab(event,'tab-sea')" style="padding:8px 16px;font-size:12px;color:var(--i56-text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s">⚓ 海运</div>
+</div>
+
+<!-- Tab: All -->
+<div id="tab-all" class="pricing-tab active">
+  <div class="data-table-wrapper">
+  <table class="data-table">
+  <thead><tr><th>线路</th><th>运输方式</th><th>货类</th><th>首重(kg)</th><th>首重价</th><th>续重价</th><th>最低收费</th></tr></thead>
+  <tbody>
+  {{if .AllPricings}}{{range .AllPricings}}
+  <tr>
+    <td>{{.RouteName}}</td>
+    <td><span class="badge badge-{{if eq .TransportType "air"}}primary{{else if eq .TransportType "sea_express"}}info{{else}}secondary{{end}}">{{.TransportType}}</span></td>
+    <td>{{.CargoType}}</td>
+    <td>{{.FirstWeight}}</td>
+    <td style="font-weight:600">¥{{.FirstWeightPrice}}</td>
+    <td>¥{{.AdditionalWeightPrice}}</td>
+    <td style="color:var(--i56-brand)">¥{{.MinCharge}}</td>
+  </tr>
+  {{end}}{{else}}<tr><td colspan="7" class="empty-state">暂无价格</td></tr>{{end}}
+  </tbody></table></div>
+</div>
+
+<!-- Tab: Air -->
+<div id="tab-air" class="pricing-tab" style="display:none">
+  <div class="data-table-wrapper">
+  <table class="data-table">
+  <thead><tr><th>线路</th><th>货类</th><th>首重(kg)</th><th>首重价</th><th>续重价</th><th>最低收费</th></tr></thead>
+  <tbody>
+  {{if .AirPricings}}{{range .AirPricings}}
+  <tr>
+    <td>{{.RouteName}}</td>
+    <td>{{.CargoType}}</td>
+    <td>{{.FirstWeight}}</td>
+    <td style="font-weight:600">¥{{.FirstWeightPrice}}</td>
+    <td>¥{{.AdditionalWeightPrice}}</td>
+    <td style="color:var(--i56-brand)">¥{{.MinCharge}}</td>
+  </tr>
+  {{end}}{{else}}<tr><td colspan="6" class="empty-state">暂无空运价格</td></tr>{{end}}
+  </tbody></table></div>
+  <div class="section-card mt-2" style="font-size:11px;color:var(--i56-text-secondary)">
+    <strong>✈️ 空运说明：</strong>首重0.5kg起，适合小件急件，时效1-3天。普货¥20/kg，特货¥28/kg。
+  </div>
+</div>
+
+<!-- Tab: Sea Express -->
+<div id="tab-seaexpress" class="pricing-tab" style="display:none">
+  <div class="data-table-wrapper">
+  <table class="data-table">
+  <thead><tr><th>线路</th><th>货类</th><th>首重(kg)</th><th>首重价</th><th>续重价</th><th>最低收费</th></tr></thead>
+  <tbody>
+  {{if .SeaExpressPricings}}{{range .SeaExpressPricings}}
+  <tr>
+    <td>{{.RouteName}}</td>
+    <td>{{.CargoType}}</td>
+    <td>{{.FirstWeight}}</td>
+    <td style="font-weight:600">¥{{.FirstWeightPrice}}</td>
+    <td>¥{{.AdditionalWeightPrice}}</td>
+    <td style="color:var(--i56-brand)">¥{{.MinCharge}}</td>
+  </tr>
+  {{end}}{{else}}<tr><td colspan="6" class="empty-state">暂无海快价格</td></tr>{{end}}
+  </tbody></table></div>
+  <div class="section-card mt-2" style="font-size:11px;color:var(--i56-text-secondary)">
+    <strong>🚢 海快说明：</strong>首重1kg起，性价比之选，时效3-7天。普货¥8.30/kg，最低消费¥50。
+  </div>
+</div>
+
+<!-- Tab: Sea -->
+<div id="tab-sea" class="pricing-tab" style="display:none">
+  <div class="data-table-wrapper">
+  <table class="data-table">
+  <thead><tr><th>线路</th><th>货类</th><th>首重(kg)</th><th>首重价</th><th>续重价</th><th>最低收费</th></tr></thead>
+  <tbody>
+  {{if .SeaPricings}}{{range .SeaPricings}}
+  <tr>
+    <td>{{.RouteName}}</td>
+    <td>{{.CargoType}}</td>
+    <td>{{.FirstWeight}}</td>
+    <td style="font-weight:600">¥{{.FirstWeightPrice}}</td>
+    <td>¥{{.AdditionalWeightPrice}}</td>
+    <td style="color:var(--i56-brand)">¥{{.MinCharge}}</td>
+  </tr>
+  {{end}}{{else}}<tr><td colspan="6" class="empty-state">暂无海运价格</td></tr>{{end}}
+  </tbody></table></div>
+  <div class="section-card mt-2" style="font-size:11px;color:var(--i56-text-secondary)">
+    <strong>⚓ 海运说明：</strong>首重10kg起，适合大件重货，时效5-14天。家具类¥2.50/kg，最低消费¥50。
+  </div>
+</div>
+
+<script>
+function switchPricingTab(e, tabId) {
+  // Update tab active state
+  var tabs = e.target.parentElement.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('active');
+    tabs[i].style.color = 'var(--i56-text-secondary)';
+    tabs[i].style.borderBottomColor = 'transparent';
+  }
+  e.target.classList.add('active');
+  e.target.style.color = 'var(--i56-brand)';
+  e.target.style.borderBottomColor = 'var(--i56-brand)';
+
+  // Show target tab content
+  var contents = document.querySelectorAll('.pricing-tab');
+  for (var i = 0; i < contents.length; i++) {
+    contents[i].style.display = 'none';
+    contents[i].classList.remove('active');
+  }
+  var target = document.getElementById(tabId);
+  if (target) {
+    target.style.display = 'block';
+    target.classList.add('active');
+  }
+}
+
+// Set initial tab active styling
+document.addEventListener('DOMContentLoaded', function() {
+  var initialTab = document.querySelector('.tab.active');
+  if (initialTab) {
+    initialTab.style.color = 'var(--i56-brand)';
+    initialTab.style.borderBottomColor = 'var(--i56-brand)';
+  }
+});
+</script>
+{{end}}

@@ -1,0 +1,57 @@
+{{template "base.html" .}}
+{{define "title"}}创建订单{{end}}
+{{define "content"}}
+<div class="page-title">📋 创建集运订单</div>
+{{if .Error}}<div class="alert alert-error mb-3">{{.Error}}</div>{{end}}
+{{if .Success}}<div class="alert alert-success mb-3">{{.Success}}</div>{{end}}
+
+<form method="POST" action="/client/orders/create" style="max-width:900px">
+<div class="data-table-wrapper mb-3">
+<div class="data-table-header">步骤1：选择包裹</div>
+<table class="data-table">
+<thead><tr><th>选择</th><th>快递单号</th><th>品名</th><th>实重</th><th>状态</th><th>库位</th></tr></thead>
+<tbody>
+{{if .AvailableParcels}}{{range .AvailableParcels}}
+<tr>
+  <td><input type="checkbox" name="parcel_ids" value="{{.ID}}" class="form-input" style="width:18px;height:18px"></td>
+  <td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td>
+  <td>{{printf "%.2f" .ActualWeight}}kg</td>
+  <td><span class="badge badge-success">已上架</span></td>
+  <td>{{.LocationCode}}</td>
+</tr>
+{{end}}{{else}}
+<tr><td colspan="6" class="empty-state">暂无可选包裹，请先预报包裹并等待入仓上架</td></tr>
+{{end}}
+</tbody></table></div>
+
+<div class="data-table-wrapper mb-3">
+<div class="data-table-header">步骤2：收件人</div>
+<select name="address_id" class="form-input" style="width:100%" required>
+<option value="">-- 请选择收件地址 --</option>
+{{if .Addresses}}{{range .Addresses}}
+<option value="{{.ID}}">{{.RecipientName}} — {{.Phone}} — {{.Address}}</option>
+{{end}}{{end}}
+</select>
+</div>
+
+<div class="data-table-wrapper mb-3">
+<div class="data-table-header">步骤3：运输线路</div>
+<select name="route_id" class="form-input" style="width:100%" required>
+<option value="">-- 请选择线路 --</option>
+{{if .Routes}}{{range .Routes}}
+<option value="{{.ID}}">{{.Name}} — {{.TransportType}} — ¥{{.BaseWeightPrice}}/kg</option>
+{{end}}{{end}}
+</select>
+</div>
+
+<div class="data-table-wrapper mb-3">
+<div class="data-table-header">步骤4：备注</div>
+<textarea name="remark" class="form-input" style="width:100%;min-height:60px" placeholder="订单备注（选填）"></textarea>
+</div>
+
+<div style="display:flex;gap:12px">
+<button type="submit" class="btn btn-primary" style="padding:12px 32px">📋 提交订单</button>
+<a href="/client/orders" class="btn" style="padding:12px 32px">取消</a>
+</div>
+</form>
+{{end}}

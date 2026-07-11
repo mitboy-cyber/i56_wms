@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}我的訂單{{end}}
+{{define "content"}}
+<div class="page-title">📋 我的訂單</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>订单号</th><th>收件人</th><th>包裹数</th><th>线路</th><th>总重</th><th>金额</th><th>状态</th></tr></thead>
+<tbody>
+{{if .Orders}}{{range .Orders}}
+<tr><td>{{.OrderNo}}</td><td>{{.ReceiverName}}</td><td>{{.ParcelCount}}</td><td>{{.Route}}</td><td>{{.Weight}}kg</td><td>¥{{.Amount}}</td><td><span class="badge badge-primary">{{.Status}}</span></td></tr>
+{{end}}{{else}}<tr><td colspan="7" class="empty-state">暂无订单</td></tr>{{end}}
+</tbody></table></div>
+{{end}}

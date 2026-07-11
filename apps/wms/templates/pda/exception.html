@@ -1,0 +1,105 @@
+{{template "base.html" .}}
+{{define "title"}}标异常{{end}}
+{{define "header"}}
+标异常
+<span class="brand" style="color:var(--pda-danger)">⚠</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-danger)"></span> 标记异常
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedParcel}}
+  <!-- Parcel found -->
+  <div class="pda-card pda-parcel-card" style="border-color:var(--pda-danger)">
+    <div class="pda-parcel-header">
+      <span>{{or .ScannedParcel.ProductName "包裹"}}</span>
+      <span class="pda-status pda-status-{{.ScannedParcel.Status}}">{{statusDisplay .ScannedParcel.Status}}</span>
+    </div>
+    <div class="pda-parcel-tn" style="font-size:14px;margin-top:4px">{{.ScannedParcel.TrackingNumber}}</div>
+    <div class="mt-2" style="font-size:12px;color:var(--pda-text-muted)">
+      快递：{{or .ScannedParcel.CourierCode "—"}} · {{printf "%.2fkg" .ScannedParcel.ActualWeight}} · {{printf "%.0f×%.0f×%.0fcm" .ScannedParcel.Length .ScannedParcel.Width .ScannedParcel.Height}}
+    </div>
+  </div>
+
+  <form method="POST" action="/pda/exception" id="exception-form">
+    <input type="hidden" name="tracking_no" value="{{.ScannedParcel.TrackingNumber}}">
+
+    <!-- Exception type selection -->
+    <div class="pda-section-title">异常类型</div>
+    <div class="pda-exception-types">
+      <label class="pda-exception-chip selected" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="破损" checked>
+        <span class="chip-icon">💔</span>
+        破损
+      </label>
+      <label class="pda-exception-chip" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="少件">
+        <span class="chip-icon">📦</span>
+        少件
+      </label>
+      <label class="pda-exception-chip" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="错件">
+        <span class="chip-icon">❌</span>
+        错件
+      </label>
+      <label class="pda-exception-chip" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="条码不清">
+        <span class="chip-icon">🔍</span>
+        条码不清
+      </label>
+      <label class="pda-exception-chip" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="超重">
+        <span class="chip-icon">⚖️</span>
+        超重
+      </label>
+      <label class="pda-exception-chip" onclick="selectExceptionType(this)">
+        <input type="radio" name="reason_type" value="禁运品">
+        <span class="chip-icon">🚫</span>
+        禁运品
+      </label>
+    </div>
+
+    <!-- Notes -->
+    <div class="mt-3">
+      <div class="text-sm text-muted mb-2" style="font-weight:600">备注说明（可选）</div>
+      <textarea name="note" class="pda-textarea" placeholder="描述异常详情..."></textarea>
+    </div>
+  </form>
+  <button type="submit" form="exception-form" class="pda-btn pda-btn-danger pda-btn-lg mt-3">⚠️ 确认标记异常</button>
+
+  {{else}}
+  <!-- Scan parcel to mark exception -->
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">⚠️</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描包裹运单号标记异常</div>
+    <form method="GET" action="/pda/exception" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+  </div>
+
+  <div class="pda-card mt-3">
+    <div class="pda-card-header">常见异常处理</div>
+    <div style="font-size:12px;color:var(--pda-text-muted);line-height:1.8">
+      <div>💔 <strong>破损</strong> — 包裹外包装或内件损坏</div>
+      <div>📦 <strong>少件</strong> — 件数与预报不符</div>
+      <div>❌ <strong>错件</strong> — 货物与预报信息不一致</div>
+      <div>🔍 <strong>条码不清</strong> — 运单条码无法识别</div>
+      <div>⚖️ <strong>超重</strong> — 实际重量远超预报</div>
+      <div>🚫 <strong>禁运品</strong> — 含有违禁/危险品</div>
+    </div>
+  </div>
+  {{end}}
+
+  <div style="text-align:center;margin-top:12px">
+    <a href="/pda/query" class="pda-btn pda-btn-outline pda-btn-sm">🔍 先去查询包裹状态</a>
+  </div>
+</div>
+{{end}}

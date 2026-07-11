@@ -1,0 +1,89 @@
+{{template "base.html" .}}
+{{define "title"}}仓库资讯 — I56 Client{{end}}
+{{define "content"}}
+<div class="page-title">🏗️ 仓库资讯</div>
+<div class="page-subtitle">查看合作仓库的地址、地图位置、营业时间、收货说明及仓储收费标准</div>
+
+{{if .Warehouses}}
+{{range .Warehouses}}
+<div class="section-card mb-3">
+  <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:15px;font-weight:700">{{.Name}}</span>
+    <span class="badge badge-primary">{{.Code}}</span>
+  </div>
+
+  <!-- Map Placeholder -->
+  <div class="section-card mb-2" style="background:var(--i56-bg-base);border-radius:6px;text-align:center;padding:20px">
+    <div style="font-size:32px;margin-bottom:4px">🗺️</div>
+    <div style="font-size:12px;color:var(--i56-text-muted)">📍 {{.Address}}</div>
+    <div style="font-size:10px;color:var(--i56-text-muted);margin-top:4px">地图即将上线，敬请期待</div>
+  </div>
+
+  <!-- Basic Info Grid -->
+  <div class="stat-grid mb-3">
+    <div class="stat-card">
+      <div class="stat-label">📍 仓库地址</div>
+      <div class="stat-value" style="font-size:12px;font-weight:500">{{.Address}}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📞 联系方式</div>
+      <div class="stat-value" style="font-size:12px;font-weight:500">{{.ContactName}}</div>
+      <div class="stat-delta">{{.ContactPhone}}</div>
+    </div>
+  </div>
+
+  <!-- Operating Hours & Storage Fees -->
+  <div class="flex gap-3 mb-3" style="flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <div class="form-label">🕐 营业时间</div>
+      <div class="code-block" style="font-size:10px">{{.OperatingHours}}</div>
+      <div class="form-label" style="margin-top:8px">⏰ 入库截单</div>
+      <div class="code-block" style="font-size:10px">{{.CutoffTime}}</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div class="form-label">💰 仓储收费标准</div>
+      <div class="code-block" style="font-size:10px">
+📌 免费仓储：首 {{.FreeStorageDays}} 天
+📌 超期费：¥{{.StorageDailyFee}}/件/天
+📌 单件限重：{{.MaxWeightPerItem}}
+📌 按自然日计费</div>
+    </div>
+  </div>
+
+  <!-- Receiving Instructions -->
+  <div style="margin-bottom:8px">
+    <div class="form-label">📋 收货说明</div>
+    <div class="code-block" style="font-size:10px">
+1. 请提前在系统中预报包裹，获取入库单号
+2. 包裹外箱请标注客户代码：EZ001
+3. 易碎品请使用气泡膜包装并标注"易碎"标签
+4. 单件重量不超过 {{.MaxWeightPerItem}}
+5. 禁运品：液体、粉末、电池（未申报）、易燃易爆品
+6. 到货后1-2个工作日内完成入库上架
+7. 请确保快递面单清晰可辨，勿覆盖面单信息</div>
+  </div>
+
+  <!-- Time Slot Guide -->
+  <div style="margin-bottom:8px">
+    <div class="form-label">📅 收货时段与时效</div>
+    <table class="data-table" style="margin-top:8px">
+      <thead><tr><th>时段</th><th>到货处理</th><th>预计上架</th></tr></thead>
+      <tbody>
+        <tr><td>上午 09:00-12:00</td><td>当天处理</td><td>当天或次日</td></tr>
+        <tr><td>下午 12:00-16:00</td><td>当天处理</td><td>次日</td></tr>
+        <tr><td>16:00后</td><td>次日处理</td><td>次日或后天</td></tr>
+        <tr><td>周末/节假日</td><td>节后首个工作日</td><td>节后1-2个工作日</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}
+{{else}}
+<div class="data-table-wrapper">
+  <div class="empty-state">
+    <p style="font-size:14px;margin-bottom:8px">暂无仓库信息</p>
+    <p style="font-size:11px;color:var(--i56-text-muted)">请联系管理员添加仓库</p>
+  </div>
+</div>
+{{end}}
+{{end}}

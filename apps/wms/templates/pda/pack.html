@@ -1,0 +1,95 @@
+{{template "base.html" .}}
+{{define "title"}}PDA 打包{{end}}
+{{define "header"}}
+打包复核
+<span class="brand" style="color:var(--pda-orange)">📋</span>
+{{end}}
+{{define "content"}}
+<div class="pda-content">
+  <a href="/pda" class="pda-back">← 首页</a>
+
+  <div class="pda-card-header" style="font-size:16px;margin-bottom:12px">
+    <span class="dot" style="background:var(--pda-orange)"></span> 打包复核
+  </div>
+
+  <div class="pda-progress">
+    <div class="step done"><span class="dot"></span>收货</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>核重</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>上架</div><span class="arrow">→</span>
+    <div class="step done"><span class="dot"></span>拣货</div><span class="arrow">→</span>
+    <div class="step current"><span class="dot"></span>打包</div><span class="arrow">→</span>
+    <div class="step"><span class="dot"></span>装柜</div>
+  </div>
+
+  {{if .Error}}
+  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.08)">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
+  </div>
+  {{end}}
+
+  {{if .ScannedOrder}}
+  <div class="pda-card" style="border-color:var(--pda-orange)">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:700;font-size:15px">{{.ScannedOrder.OrderNo}}</div>
+        <div class="text-sm text-muted">{{.ScannedOrder.RecipientName}}</div>
+      </div>
+      <span class="pda-status pda-status-picked">已拣货</span>
+    </div>
+  </div>
+
+  {{if .ScannedOrderParcels}}
+  <div class="pda-section-title">包裹核对清单 <span class="count">{{len .ScannedOrderParcels}}件</span></div>
+  <div class="pda-card">
+    <ul class="pda-order-items">
+      {{range .ScannedOrderParcels}}
+      <li>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="check">✓</span>
+          <span style="font-family:monospace;font-size:12px">{{.TrackingNumber}}</span>
+          <span style="font-size:11px;color:var(--pda-text-muted)">{{.ProductName}}</span>
+        </div>
+        <span style="font-size:11px;color:var(--pda-text-muted)">{{printf "%.2fkg" .ActualWeight}}</span>
+      </li>
+      {{end}}
+    </ul>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--pda-border);display:flex;justify-content:space-between;font-size:13px">
+      <span>合计</span>
+      <span class="pda-highlight">{{len .ScannedOrderParcels}}件 · {{totalWeight .ScannedOrderParcels}}kg</span>
+    </div>
+  </div>
+  {{end}}
+
+  <form method="POST" action="/pda/pack" id="pack-form">
+    <input type="hidden" name="order_no" value="{{.ScannedOrder.OrderNo}}">
+  </form>
+  <button type="submit" form="pack-form" class="pda-btn pda-btn-warning pda-btn-lg mt-2">📋 确认打包 — 生成面单</button>
+
+  {{else}}
+  <div class="pda-card">
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">📋</div>
+    <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描已拣货订单进行打包复核</div>
+    <form method="GET" action="/pda/pack" id="scan-form">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="扫描订单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    </form>
+  </div>
+  {{end}}
+
+  {{if .PendingPackOrders}}
+  <div class="pda-section-title">待打包订单 <span class="count">{{len .PendingPackOrders}}</span></div>
+  <div class="pda-card">
+    {{range .PendingPackOrders}}
+    <div class="pda-scan-item">
+      <div>
+        <a href="/pda/pack?scan={{.OrderNo}}" style="font-weight:600;font-size:13px;color:var(--pda-brand);text-decoration:none">{{.OrderNo}}</a>
+        <span style="font-size:11px;color:var(--pda-text-muted);margin-left:6px">{{.RecipientName}} · {{.ParcelCount}}件</span>
+      </div>
+      <span class="pda-status" style="background:rgba(249,115,22,.15);color:#f97316;font-size:11px;padding:3px 10px;border-radius:10px">待打包</span>
+    </div>
+    {{else}}
+    <div class="pda-empty"><div class="text-sm">暂无待打包订单</div></div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

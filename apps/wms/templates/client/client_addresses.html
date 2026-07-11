@@ -1,0 +1,13 @@
+{{template "base.html" .}}
+{{define "title"}}收件地址{{end}}
+{{define "content"}}
+<div class="page-title">📍 收件地址</div>
+<div class="data-table-wrapper">
+<table class="data-table">
+<thead><tr><th>收件人</th><th>电话</th><th>地区</th><th>地址</th><th>默认</th></tr></thead>
+<tbody>
+{{if .Addresses}}{{range .Addresses}}
+<tr><td>{{.Name}}</td><td>{{.Phone}}</td><td>{{.Country}} {{.City}}</td><td>{{.Address}}</td><td>{{if .IsDefault}}✅{{end}}</td></tr>
+{{end}}{{else}}<tr><td colspan="5" class="empty-state">暂无地址</td></tr>{{end}}
+</tbody></table></div>
+{{end}}
