@@ -1,0 +1,336 @@
+{{template "admin/base_new.html" .}}
+
+{{define "title"}}权限管理 — I56 Framework{{end}}
+
+{{define "page_title"}}
+  <i56-icon name="shield" class="me-2"></i56-icon>权限管理
+{{end}}
+
+{{define "page_actions"}}
+  <i56-button variant="primary" size="sm" onclick="openAddForm()">
+    <i56-icon name="plus"></i56-icon> 新增权限
+  </i56-button>
+  <i56-badge variant="neutral">{{len .Permissions}} 条记录</i56-badge>
+{{end}}
+
+{{define "stat_cards"}}
+<div class="stat-cards">
+  <div class="stat-card">
+    <div class="stat-card__header">
+      <span class="stat-card__label">权限总数</span>
+      <div class="stat-card__icon stat-card__icon--blue">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+          <path d="M9 0a1 1 0 0 1 1 1v1.089c.535.098 1.04.29 1.502.567l.773-.773a1 1 0 0 1 1.414 1.414l-.773.773c.277.462.469.967.567 1.502H14a1 1 0 0 1 0 2h-1.089a5.007 5.007 0 0 1-.567 1.502l.773.773a1 1 0 0 1-1.414 1.414l-.773-.773a5.003 5.003 0 0 1-1.502.567V12a1 1 0 0 1-2 0v-1.089a5.006 5.006 0 0 1-1.502-.567l-.773.773a1 1 0 0 1-1.414-1.414l.773-.773A5.007 5.007 0 0 1 4.518 7.93H3.43a1 1 0 0 1 0-2h1.089a5.007 5.007 0 0 1 .567-1.502l-.773-.773a1 1 0 0 1 1.414-1.414l.773.773A5.003 5.003 0 0 1 8 2.518V1a1 1 0 0 1 1-1Zm0 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card__value">{{len .Permissions}}</div>
+    <div class="stat-card__change up">已配置</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__header">
+      <span class="stat-card__label">启用中</span>
+      <div class="stat-card__icon stat-card__icon--green">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card__value">
+      {{$activeCount := 0}}
+      {{range .Permissions}}{{if .IsActive}}{{$activeCount = add $activeCount 1}}{{end}}{{end}}
+      {{$activeCount}}
+    </div>
+    <div class="stat-card__change up">活跃</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__header">
+      <span class="stat-card__label">已停用</span>
+      <div class="stat-card__icon stat-card__icon--red">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+          <path fill-rule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L9 7.94l2.47-2.47a.75.75 0 1 1 1.06 1.06L10.06 9l2.47 2.47a.75.75 0 1 1-1.06 1.06L9 10.06l-2.47 2.47a.75.75 0 0 1-1.06-1.06L7.94 9 5.47 6.53a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card__value">
+      {{$inactiveCount := 0}}
+      {{range .Permissions}}{{if not .IsActive}}{{$inactiveCount = add $inactiveCount 1}}{{end}}{{end}}
+      {{$inactiveCount}}
+    </div>
+    <div class="stat-card__change down">停用</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__header">
+      <span class="stat-card__label">模块数</span>
+      <div class="stat-card__icon stat-card__icon--amber">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+          <path d="M2.25 2.25a.75.75 0 1 0 0 1.5h13.5a.75.75 0 0 0 0-1.5H2.25ZM1.5 6.75a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75v3.75A.75.75 0 0 1 5.25 11.25h-3a.75.75 0 0 1-.75-.75V6.75ZM8.25 9a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5h-7.5Zm.75-2.25a.75.75 0 0 1 .75-.75h6a.75.75 0 0 1 0 1.5h-6a.75.75 0 0 1-.75-.75Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="stat-card__value">
+      {{$modules := list}}
+      {{range .Permissions}}
+        {{if not (contains $modules .Module)}}
+          {{$modules = append $modules .Module}}
+        {{end}}
+      {{end}}
+      {{len $modules}}
+    </div>
+    <div class="stat-card__change up">模块</div>
+  </div>
+</div>
+{{end}}
+
+{{define "content"}}
+<!-- Inline Add/Edit Form Container -->
+<div id="perm-form-container"></div>
+
+<!-- Permissions Table -->
+<i56-table id="permissions-table" class="i56-table--full-width">
+  <thead>
+    <tr>
+      <th style="width:60px">ID</th>
+      <th>权限名</th>
+      <th style="width:200px">Slug</th>
+      <th style="width:120px">模块</th>
+      <th>描述</th>
+      <th style="width:80px">状态</th>
+      <th style="width:120px">操作</th>
+    </tr>
+  </thead>
+  <tbody id="perm-tbody">
+    {{range .Permissions}}
+    <tr id="perm-row-{{.ID}}">
+      <td class="td-mono">{{.ID}}</td>
+      <td><strong>{{.Name}}</strong></td>
+      <td><code>{{.Slug}}</code></td>
+      <td>
+        <i56-badge variant="info" size="sm">{{.Module}}</i56-badge>
+      </td>
+      <td class="td-muted">{{if .Description}}{{.Description}}{{else}}—{{end}}</td>
+      <td>
+        {{if .IsActive}}
+          <i56-badge variant="success" size="sm">启用</i56-badge>
+        {{else}}
+          <i56-badge variant="neutral" size="sm">停用</i56-badge>
+        {{end}}
+      </td>
+      <td>
+        <div style="display:flex;gap:4px;">
+          <i56-button variant="ghost" size="xs"
+            hx-get="/admin/permissions/edit-form?id={{.ID}}"
+            hx-target="#perm-form-container"
+            hx-swap="innerHTML"
+            title="编辑">
+            <i56-icon name="edit"></i56-icon>
+          </i56-button>
+          <i56-button variant="ghost-danger" size="xs"
+            hx-delete="/admin/permissions/delete?id={{.ID}}"
+            hx-target="#perm-row-{{.ID}}"
+            hx-swap="outerHTML"
+            hx-confirm="确定删除此权限？"
+            title="删除">
+            <i56-icon name="delete"></i56-icon>
+          </i56-button>
+        </div>
+      </td>
+    </tr>
+    {{else}}
+    <tr>
+      <td colspan="7" class="td-empty">
+        <div class="i56-empty-state">
+          <div class="i56-empty-state__icon">🔒</div>
+          <div class="i56-empty-state__title">暂无权限记录</div>
+          <div class="i56-empty-state__desc">点击"新增权限"创建第一条权限规则</div>
+        </div>
+      </td>
+    </tr>
+    {{end}}
+  </tbody>
+</i56-table>
+
+<!-- Add Form Template (hidden, shown via JS) -->
+<template id="perm-add-form-template">
+  <div class="i56-card i56-card--accent" id="perm-form-inline">
+    <div class="i56-card__header">
+      <div class="i56-card__header-left">
+        <i56-icon name="shield"></i56-icon>
+        <span class="i56-card__title">新增权限</span>
+      </div>
+      <i56-button variant="ghost" size="xs" onclick="closePermForm()">
+        <i56-icon name="close"></i56-icon>
+      </i56-button>
+    </div>
+    <div class="i56-card__body">
+      <form id="perm-add-form" hx-post="/admin/permissions/save" hx-swap="none"
+            class="i56-form i56-form--inline">
+        <input type="hidden" name="id" value="0">
+        <div class="i56-form__group">
+          <label class="i56-label">权限名</label>
+          <input type="text" name="name" class="i56-input" placeholder="例如：查看订单" required>
+        </div>
+        <div class="i56-form__group">
+          <label class="i56-label">Slug</label>
+          <input type="text" name="slug" class="i56-input i56-input--mono" placeholder="例如：orders.view" required>
+        </div>
+        <div class="i56-form__group">
+          <label class="i56-label">模块</label>
+          <input type="text" name="module" class="i56-input" placeholder="例如：orders">
+        </div>
+        <div class="i56-form__group i56-form__group--wide">
+          <label class="i56-label">描述</label>
+          <input type="text" name="description" class="i56-input" placeholder="权限说明...">
+        </div>
+        <div class="i56-form__actions">
+          <i56-button type="submit" variant="primary" size="sm">
+            <i56-icon name="check"></i56-icon> 创建
+          </i56-button>
+          <i56-button type="button" variant="ghost" size="sm" onclick="closePermForm()">取消</i56-button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script>
+  function openAddForm() {
+    var container = document.getElementById('perm-form-container');
+    if (container.querySelector('#perm-form-inline')) return; // already open
+    var tpl = document.getElementById('perm-add-form-template');
+    container.innerHTML = '';
+    container.appendChild(tpl.content.cloneNode(true));
+  }
+
+  function closePermForm() {
+    var form = document.getElementById('perm-form-inline');
+    if (form) form.remove();
+  }
+
+  // Auto-close when HTMX redirect fires
+  document.body.addEventListener('htmx:beforeRedirect', function() {
+    closePermForm();
+  });
+</script>
+
+<style>
+  /* Inline styles scoped to this page */
+  .td-mono {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+  }
+  .td-muted {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .td-empty {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .i56-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+  }
+  .i56-empty-state__icon {
+    font-size: 36px;
+    opacity: 0.6;
+  }
+  .i56-empty-state__title {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+  .i56-empty-state__desc {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  /* Inline card styles (used by form) */
+  .i56-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .i56-card--accent {
+    border-color: var(--brand-500);
+  }
+  .i56-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(56, 189, 248, 0.05);
+  }
+  .i56-card__header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--brand-400);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .i56-card__title {
+    color: var(--brand-400);
+  }
+  .i56-card__body {
+    padding: 16px;
+  }
+  .i56-form--inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .i56-form__group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+  }
+  .i56-form__group--wide {
+    min-width: 200px;
+    flex: 1;
+  }
+  .i56-form__actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .i56-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .i56-input {
+    height: 34px;
+    padding: 0 12px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: border-color 150ms ease;
+  }
+  .i56-input:focus {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 3px var(--state-focus);
+  }
+  .i56-input--mono {
+    font-family: var(--font-mono, monospace);
+    font-size: 12px;
+  }
+</style>
+{{end}}

@@ -1,0 +1,23 @@
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    tenant_id INT NOT NULL REFERENCES tenants(id),
+    order_no VARCHAR(50),
+    client_id INT,
+    member_id INT,
+    warehouse_id INT,
+    route_id INT,
+    recipient_name VARCHAR(100),
+    recipient_phone VARCHAR(30),
+    recipient_address TEXT,
+    total_actual_weight REAL DEFAULT 0,
+    total_chargeable_weight REAL DEFAULT 0,
+    total_price REAL DEFAULT 0,
+    status VARCHAR(30) DEFAULT 'pending',
+    tracking_numbers TEXT,
+    carrier_tracking_no VARCHAR(100),
+    customs_number VARCHAR(50),
+    container_no VARCHAR(30),
+    remark TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);

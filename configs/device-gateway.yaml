@@ -1,0 +1,55 @@
+# Device Gateway Configuration
+# I56 WMS — Hardware Integration Service
+
+server:
+  port: 9100        # HTTP API port
+  ws_port: 9101     # WebSocket port for real-time events
+
+wms:
+  api_url: "http://localhost:8080"
+  api_key: ""
+
+devices:
+  # ── Weighbridges (地磅) ──
+  scales:
+    - id: "SCALE-001"
+      port: "/dev/ttyUSB0"
+      baud: 9600
+      protocol: "CONTINUOUS"   # CONTINUOUS | MODBUS_RTU | TOLEDO | CUSTOM
+      warehouse: "厦门仓"
+
+    - id: "SCALE-002"
+      port: "/dev/ttyUSB3"
+      baud: 9600
+      protocol: "MODBUS_RTU"
+      warehouse: "厦门仓"
+
+    - id: "SCALE-003"
+      port: "/dev/ttyUSB4"
+      baud: 9600
+      protocol: "TOLEDO"
+      warehouse: "厦门仓"
+
+  # ── Inbound Conveyors (入库机) ──
+  conveyors:
+    - id: "CONV-001"
+      port: "/dev/ttyUSB1"
+      baud: 115200
+      protocol: "MODBUS_RTU"
+      warehouse: "厦门仓"
+
+    - id: "CONV-002"
+      port: "/dev/ttyUSB5"
+      baud: 115200
+      protocol: "MODBUS_RTU"
+      warehouse: "厦门仓"
+
+  # ── Barcode Scanners ──
+  scanners:
+    - id: "SCAN-001"
+      port: "/dev/ttyUSB2"
+      baud: 9600
+
+    - id: "SCAN-002"
+      port: "/dev/ttyUSB6"
+      baud: 9600

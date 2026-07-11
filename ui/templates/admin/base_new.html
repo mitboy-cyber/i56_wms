@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{block "title" .}}{{.Title}}{{end}} — I56 Framework</title>
+<link rel="stylesheet" href="/static/css/i56-bdl.css">
+<script src="/static/js/i56-theme.js"></script>
+<script src="/static/js/i56-components.js"></script>
+<script src="/static/js/i56-command.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@1.9.12/dist/htmx.min.js"></script>
+<style>
+/* ============================================================
+   I56 BDL 1.0 — Design Tokens (CSS Custom Properties)
+   ============================================================ */
+:root {
+  /* Brand */
+  --brand-50:  #ecfeff;
+  --brand-100: #cffafe;
+  --brand-200: #a5f3fc;
+  --brand-300: #67e8f9;
+  --brand-400: #22d3ee;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;
+  --brand-700: #0e7490;
+  --brand-800: #155e75;
+  --brand-900: #164e63;
+  --brand-950: #083344;
+
+  /* Surfaces */
+  --surface-root:     #0b1121;
+  --surface-elevated: #111827;
+  --surface-overlay:  #1a2332;
+  --surface-card:     #1e293b;
+  --surface-sidebar:  #0f1a2e;
+
+  /* Text */
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+  --text-inverse:   #0f172a;
+
+  /* Borders */
+  --border-default:  #1e3a5f;
+  --border-subtle:   #17263f;
+  --border-accent:   var(--brand-500);
+
+  /* States */
+  --state-hover:   rgba(56, 189, 248, 0.08);
+  --state-active:  rgba(56, 189, 248, 0.15);
+  --state-focus:   rgba(56, 189, 248, 0.25);
+
+  /* Typography */
+  --font-sans:  'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Sizing */
+  --topbar-height: 48px;
+  --sidebar-width: 240px;
+  --sidebar-collapsed-width: 64px;
+  --ai-bar-height: 52px;
+  --command-palette-width: 560px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* Sidebar state (set via JS) */
+  --sidebar-current-width: var(--sidebar-width);
+}
+
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--surface-root);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--brand-400);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--brand-300);
+}
+
+/* ============================================================
+   Layout Shell
+   ============================================================ */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* ============================================================
+   Top Bar
+   ============================================================ */
+.topbar {
+  height: var(--topbar-height);
+  min-height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 200;
+  position: relative;
+}
+
+.topbar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7));
+  z-index: -1;
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 200px;
+}
+
+.topbar__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--brand-400);
+  user-select: none;
+}
+
+.topbar__logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+.topbar__tenant {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 480px;
+  margin: 0 var(--space-6);
+}
+
+.topbar__search {
+  position: relative;
+  width: 100%;
+}
+
+.topbar__search input {
+  width: 100%;
+  height: 34px;
+  padding: 0 var(--space-3) 0 36px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.topbar__search input::placeholder {
+  color: var(--text-muted);
+}
+
+.topbar__search input:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px var(--state-focus);
+}
+
+.topbar__search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.topbar__search-kbd {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  padding: 1px 5px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+.topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+  position: relative;
+}
+
+.topbar__icon-btn:hover {
+  background: var(--state-hover);
+  color: var(--text-primary);
+}
+
+.topbar__icon-btn .badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid var(--surface-root);
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.topbar__user:hover {
+  background: var(--state-hover);
+}
+
+.topbar__user .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-400));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  color: white;
+}
+
+.topbar__user .role-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+.sidebar {
+  width: var(--sidebar-current-width);
+  min-width: var(--sidebar-current-width);
+  height: 100%;
+  background: var(--surface-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width var(--duration-slow) var(--ease-out),
+              min-width var(--duration-slow) var(--ease-out);
+  z-index: 100;
+  position: relative;
+}
+
+.sidebar.collapsed {
+  --sidebar-current-width: var(--sidebar-collapsed-width);
+}
+
+.sidebar__nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2) var(--space-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+.sidebar__nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar__nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar__nav::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 2px;
+}
+
+/* Nav group */
+.sidebar__group {
+  margin-bottom: var(--space-1);
+}
+
+.sidebar__group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast) var(--ease-out);
+  text-align: left;
+}
+
+.sidebar__group-header:hover {
+  color: var(--text-secondary);
+}
+
+.sidebar__group-header svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar__group-chevron {
+  margin-left: auto;
+  transition: transform var(--duration-normal) var(--ease-out);
+  font-size: 10px;
+}
+
+.sidebar__group-header[aria-expanded="true"] .sidebar__group-chevron {
+  transform: rotate(90deg);
+}
+
+/* Group items container */
+.sidebar__group-items {
+  overflow: hidden;
+  transition: max-height var(--duration-normal) var(--ease-out);
+}
+
+.sidebar__group-items.collapsed {
+  max-height: 0 !important;
+}
+
+/* Nav item */
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 7px var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid transparent;
+  transition: all var(--duration-fast) var(--ease-out);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sidebar__item:hover {
+  background: var(--state-hover);
+  color: var(--text-primary);
+}
+
+.sidebar__item.active {
+  background: var(--state-active);
+  color: var(--brand-400);
+  border-left-color: var(--brand-500);
+}
+
+.sidebar__item svg,
+.sidebar__item .nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar__item .nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Collapsed state: hide labels */
+.sidebar.collapsed .sidebar__group-header span,
+.sidebar.collapsed .sidebar__item .nav-label,
+.sidebar.collapsed .sidebar__group-chevron,
+.sidebar.collapsed .sidebar__group-items {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar__item {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.sidebar.collapsed .sidebar__group-header {
+  justify-content: center;
+  padding: var(--space-2);
+}
+
+/* Sidebar footer */
+.sidebar__footer {
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sidebar__collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.sidebar__collapse-btn:hover {
+  background: var(--state-hover);
+  color: var(--text-secondary);
+}
+
+.sidebar__collapse-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.sidebar.collapsed .sidebar__collapse-btn svg {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .sidebar__collapse-btn span {
+  display: none;
+}
+
+/* ============================================================
+   Main Content Area
+   ============================================================ */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-root);
+}
+
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-5) var(--space-6);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+.content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.breadcrumb a {
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.breadcrumb a:hover {
+  color: var(--brand-400);
+}
+
+.breadcrumb__sep {
+  color: var(--border-default);
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.page-header__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.page-header__subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Stat Cards Row (KPI Metrics)
+   ============================================================ */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.stat-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.stat-card__label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-card__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.stat-card__icon--blue  { background: rgba(56, 189, 248, 0.15); color: var(--brand-400); }
+.stat-card__icon--green { background: rgba(52, 211, 153, 0.15); color: #34d399; }
+.stat-card__icon--amber { background: rgba(251, 191, 36, 0.15);  color: #fbbf24; }
+.stat-card__icon--red   { background: rgba(248, 113, 113, 0.15); color: #f87171; }
+
+.stat-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.stat-card__change {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.stat-card__change.up   { color: #34d399; }
+.stat-card__change.down { color: #f87171; }
+
+/* ============================================================
+   Content Slot Block
+   ============================================================ */
+.content-block {
+  min-height: 200px;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.app-footer {
+  padding: var(--space-3) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-footer__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.app-footer a {
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.app-footer a:hover {
+  color: var(--brand-400);
+}
+
+/* ============================================================
+   Command Palette Overlay
+   ============================================================ */
+.command-palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.command-palette-overlay.open {
+  display: flex;
+}
+
+.command-palette {
+  width: var(--command-palette-width);
+  max-width: 90vw;
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.command-palette__header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.command-palette__input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-family: var(--font-sans);
+  outline: none;
+  caret-color: var(--brand-500);
+}
+
+.command-palette__input::placeholder {
+  color: var(--text-muted);
+}
+
+.command-palette__results {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.command-palette__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.command-palette__item:hover,
+.command-palette__item.selected {
+  background: var(--state-hover);
+}
+
+.command-palette__item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-400);
+  flex-shrink: 0;
+}
+
+.command-palette__item-text {
+  flex: 1;
+}
+
+.command-palette__item-title {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.command-palette__item-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.command-palette__item-shortcut {
+  font-size: 11px;
+  padding: 1px 6px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.command-palette__footer {
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  gap: var(--space-4);
+}
+
+.command-palette__footer kbd {
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+/* ============================================================
+   AI Command Bar (bottom dock)
+   ============================================================ */
+.ai-command-bar {
+  height: var(--ai-bar-height);
+  min-height: var(--ai-bar-height);
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  gap: var(--space-3);
+  z-index: 50;
+}
+
+.ai-command-bar__input {
+  flex: 1;
+  height: 36px;
+  padding: 0 var(--space-3);
+  background: var(--surface-root);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--ease-out),
+              box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.ai-command-bar__input::placeholder {
+  color: var(--text-muted);
+}
+
+.ai-command-bar__input:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px var(--state-focus);
+}
+
+.ai-command-bar__send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--brand-600);
+  color: white;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.ai-command-bar__send:hover {
+  background: var(--brand-500);
+}
+
+.ai-command-bar__send:disabled {
+  background: var(--border-default);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.ai-command-bar__hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Utility Classes
+   ============================================================ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   Transition helpers
+   ============================================================ */
+.sidebar .nav-label,
+.sidebar .sidebar__group-header span {
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .sidebar__group-header span {
+  opacity: 0;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: var(--topbar-height);
+    bottom: 0;
+    z-index: 150;
+    transform: translateX(0);
+    transition: transform var(--duration-normal) var(--ease-out);
+  }
+
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar__center {
+    display: none;
+  }
+
+  .content-scroll {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============================================================
+       Top Bar
+       ============================================================ -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="/admin" class="topbar__logo">
+        <svg viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="currentColor" fill-opacity="0.15"/>
+          <rect x="4" y="4" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="16" y="4" width="8" height="8" rx="2" fill="currentColor" fill-opacity="0.7"/>
+          <rect x="4" y="16" width="8" height="8" rx="2" fill="currentColor" fill-opacity="0.5"/>
+          <rect x="16" y="16" width="8" height="8" rx="2" fill="currentColor" fill-opacity="0.9"/>
+        </svg>
+        I56
+      </a>
+      <span class="topbar__tenant">{{if .TenantName}}{{.TenantName}}{{else}}集运通{{end}}</span>
+    </div>
+
+    <div class="topbar__center">
+      <div class="topbar__search">
+        <svg class="topbar__search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+        </svg>
+        <input type="text" id="global-search" placeholder="搜索... (Ctrl+K)" />
+        <span class="topbar__search-kbd">⌘K</span>
+      </div>
+    </div>
+
+    <div class="topbar__right">
+      <!-- Notifications -->
+      <button class="topbar__icon-btn" title="通知" aria-label="通知">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M13.5 6a4.5 4.5 0 0 0-9 0c0 4.5-2.25 6-2.25 6h13.5s-2.25-1.5-2.25-6Z"/>
+          <path d="M10.5 14.25a1.5 1.5 0 0 1-3 0"/>
+        </svg>
+        <span class="badge-dot"></span>
+      </button>
+
+      <!-- User dropdown toggle -->
+      <button class="topbar__user" id="user-menu-toggle" aria-haspopup="true" aria-expanded="false">
+        <div class="avatar">{{if .User.Name}}{{slice .User.Name 0 1}}{{else}}A{{end}}</div>
+        <div style="text-align:left;line-height:1.3;">
+          <div>{{if .User.Name}}{{.User.Name}}{{else}}Admin{{end}}</div>
+          <div class="role-tag">{{if .User.Role}}{{.User.Role}}{{else}}系统管理员{{end}}</div>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style="margin-left:2px;">
+          <path d="M3 4.5L6 7.5L9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ============================================================
+         Sidebar
+         ============================================================ -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar__nav">
+        {{if .MenuItems}}
+          {{range .MenuItems}}
+            <!-- Group: {{.Name}} -->
+            <div class="sidebar__group">
+              <button class="sidebar__group-header"
+                      aria-expanded="{{if .Active}}true{{else}}false{{end}}"
+                      onclick="toggleSidebarGroup(this)">
+                {{if .Icon}}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    {{.Icon}}
+                  </svg>
+                {{end}}
+                <span>{{.Name}}</span>
+                <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                  <path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div class="sidebar__group-items{{if not .Active}} collapsed{{end}}"
+                   style="max-height:{{if .Active}}{{mul (len .Children) 34}}{{else}}0{{end}}px;">
+                {{range .Children}}
+                  <a href="{{.URL}}" class="sidebar__item{{if .Active}} active{{end}}">
+                    {{if .Icon}}
+                      <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        {{.Icon}}
+                      </svg>
+                    {{end}}
+                    <span class="nav-label">{{.Name}}</span>
+                  </a>
+                {{end}}
+              </div>
+            </div>
+          {{end}}
+        {{else}}
+        <!-- Default sidebar navigation when no MenuItems provided -->
+        <!-- 首页 -->
+        <a href="/admin" class="sidebar__item{{if eq .Page "dashboard"}} active{{end}}">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
+            <path d="M2.25 10.5h4.5a.75.75 0 0 0 .75-.75v-7.5a.75.75 0 0 0-.75-.75H2.25a.75.75 0 0 0-.75.75v7.5c0 .414.336.75.75.75Zm0 6h4.5a.75.75 0 0 0 .75-.75v-3a.75.75 0 0 0-.75-.75H2.25a.75.75 0 0 0-.75.75v3c0 .414.336.75.75.75ZM11.25 7.5h4.5a.75.75 0 0 0 .75-.75v-5.25a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v5.25c0 .414.336.75.75.75Zm0 9h4.5a.75.75 0 0 0 .75-.75v-5.25a.75.75 0 0 0-.75-.75h-4.5a.75.75 0 0 0-.75.75v5.25c0 .414.336.75.75.75Z"/>
+          </svg>
+          <span class="nav-label">首页</span>
+        </a>
+
+        <!-- 订单管理 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M0 2.5A1.5 1.5 0 0 1 1.5 1h3A1.5 1.5 0 0 1 6 2.5v11A1.5 1.5 0 0 1 4.5 15h-3A1.5 1.5 0 0 1 0 13.5v-11ZM8 2.5A1.5 1.5 0 0 1 9.5 1h3A1.5 1.5 0 0 1 14 2.5v3A1.5 1.5 0 0 1 12.5 7h-3A1.5 1.5 0 0 1 8 5.5v-3Zm0 7A1.5 1.5 0 0 1 9.5 8h3A1.5 1.5 0 0 1 14 9.5v4a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 8 13.5v-4Z"/>
+            </svg>
+            <span>订单管理</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/orders" class="sidebar__item"><span class="nav-label">集运订单</span></a>
+            <a href="/admin/service-orders" class="sidebar__item"><span class="nav-label">附加服务订单</span></a>
+          </div>
+        </div>
+
+        <!-- 仓库管理 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1Zm3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1.5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1H2v5.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8h.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1h-3Z"/>
+            </svg>
+            <span>仓库管理</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/parcels" class="sidebar__item"><span class="nav-label">包裹列表</span></a>
+            <a href="/admin/warehouses" class="sidebar__item"><span class="nav-label">仓库列表</span></a>
+            <a href="/admin/inbound-board" class="sidebar__item"><span class="nav-label">入库看板</span></a>
+            <a href="/admin/warehouse-console" class="sidebar__item"><span class="nav-label">仓库作业台</span></a>
+            <a href="/admin/storage-locations" class="sidebar__item"><span class="nav-label">库位管理</span></a>
+          </div>
+        </div>
+
+        <!-- 财务 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M0 14a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v0Zm8-3a6 6 0 1 1 6-6.87M8 11A5.99 5.99 0 0 1 2.87 5M8 11V5"/>
+            </svg>
+            <span>财务报表</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/report/order-profit" class="sidebar__item"><span class="nav-label">集运订单盈利</span></a>
+            <a href="/admin/report/service-profit" class="sidebar__item"><span class="nav-label">附加服务盈利</span></a>
+            <a href="/admin/report/client-profit" class="sidebar__item"><span class="nav-label">客户盈利</span></a>
+            <a href="/admin/report/route-profit" class="sidebar__item"><span class="nav-label">路线盈利</span></a>
+          </div>
+        </div>
+
+        <!-- 物流管理 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M2.908 2.067A.978.978 0 0 0 2 3.034V8h3.168a.5.5 0 0 1 .5.5v2.062A8.5 8.5 0 0 0 10 4c.53 0 1.04.065 1.53.19a.5.5 0 0 0 .632-.624A8.495 8.495 0 0 0 8.715.967 1 1 0 0 0 7.5 1H3.033a.97.97 0 0 0-.125 1.067Z"/>
+              <path d="M.5 8.5A.5.5 0 0 1 1 8h3.5a.5.5 0 0 1 .5.5V12H1.5a.5.5 0 0 1-.5-.5v-3Zm6.5 3.5V11h3.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H9a7.002 7.002 0 0 0 5.815-4.103.5.5 0 0 0-.46-.648H7.672l-.016.001a.5.5 0 0 0-.484.503V12Z"/>
+            </svg>
+            <span>物流管理</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/area-groups" class="sidebar__item"><span class="nav-label">区域组管理</span></a>
+            <a href="/admin/carriers" class="sidebar__item"><span class="nav-label">承运商列表</span></a>
+            <a href="/admin/routes" class="sidebar__item"><span class="nav-label">线路模板</span></a>
+            <a href="/admin/container-loadings" class="sidebar__item"><span class="nav-label">装柜记录</span></a>
+            <a href="/admin/tracking" class="sidebar__item"><span class="nav-label">物流追踪</span></a>
+          </div>
+        </div>
+
+        <!-- 客户管理 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
+            </svg>
+            <span>客户管理</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/clients" class="sidebar__item"><span class="nav-label">客户管理</span></a>
+            <a href="/admin/client-addresses" class="sidebar__item"><span class="nav-label">客户收件地址</span></a>
+            <a href="/admin/client-users" class="sidebar__item"><span class="nav-label">客户账号</span></a>
+            <a href="/admin/client-members" class="sidebar__item"><span class="nav-label">客户会员</span></a>
+            <a href="/admin/client-recharges" class="sidebar__item"><span class="nav-label">客户充值</span></a>
+          </div>
+        </div>
+
+        <!-- 系统 -->
+        <div class="sidebar__group">
+          <button class="sidebar__group-header" aria-expanded="false" onclick="toggleSidebarGroup(this)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0a1 1 0 0 1 1 1v1.089c.535.098 1.04.29 1.502.567l.773-.773a1 1 0 0 1 1.414 1.414l-.773.773c.277.462.469.967.567 1.502H13a1 1 0 0 1 0 2h-1.089a5.007 5.007 0 0 1-.567 1.502l.773.773a1 1 0 0 1-1.414 1.414l-.773-.773a5.003 5.003 0 0 1-1.502.567V13a1 1 0 0 1-2 0v-1.089a5.006 5.006 0 0 1-1.502-.567l-.773.773a1 1 0 0 1-1.414-1.414l.773-.773A5.007 5.007 0 0 1 2.518 8.93H1.43a1 1 0 0 1 0-2h1.089a5.007 5.007 0 0 1 .567-1.502l-.773-.773a1 1 0 0 1 1.414-1.414l.773.773A5.003 5.003 0 0 1 6 2.518V1a1 1 0 0 1 1-1Zm0 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/>
+            </svg>
+            <span>系统</span>
+            <svg class="sidebar__group-chevron" width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M4.5 3L7.5 6L4.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sidebar__group-items collapsed" style="max-height:0">
+            <a href="/admin/users" class="sidebar__item"><span class="nav-label">员工管理</span></a>
+            <a href="/admin/roles" class="sidebar__item"><span class="nav-label">角色管理</span></a>
+            <a href="/admin/permissions" class="sidebar__item"><span class="nav-label">权限管理</span></a>
+            <a href="/admin/notifications" class="sidebar__item"><span class="nav-label">通知管理</span></a>
+            <a href="/admin/audit-log" class="sidebar__item"><span class="nav-label">操作日志</span></a>
+          </div>
+        </div>
+        {{end}}
+      </nav>
+
+      <!-- Sidebar collapse toggle -->
+      <div class="sidebar__footer">
+        <button class="sidebar__collapse-btn" onclick="toggleSidebar()" title="折叠侧边栏">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path fill-rule="evenodd" d="M6 8a.5.5 0 0 0 .5.5h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L12.293 7.5H6.5A.5.5 0 0 0 6 8Zm-2.5 7a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5Z"/>
+          </svg>
+          <span>折叠</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============================================================
+         Main Content Area
+         ============================================================ -->
+    <main class="main-content" id="main-content">
+      <div class="content-scroll">
+
+        <!-- Breadcrumbs -->
+        {{if .Breadcrumbs}}
+        <nav class="breadcrumb" aria-label="面包屑导航">
+          {{range $i, $bc := .Breadcrumbs}}
+            {{if $i}}<span class="breadcrumb__sep">/</span>{{end}}
+            {{if $bc.URL}}<a href="{{$bc.URL}}">{{$bc.Name}}</a>{{else}}<span>{{$bc.Name}}</span>{{end}}
+          {{end}}
+        </nav>
+        {{end}}
+
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-header__title">{{block "page_title" .}}{{.Title}}{{end}}</h1>
+            {{if .Subtitle}}<p class="page-header__subtitle">{{.Subtitle}}</p>{{end}}
+          </div>
+          <div class="page-header__actions">
+            {{block "page_actions" .}}{{end}}
+          </div>
+        </div>
+
+        <!-- Stats Cards Row (optional, defined by page) -->
+        {{block "stat_cards" .}}{{end}}
+
+        <!-- Main Content Slot -->
+        <div class="content-block">
+          {{block "content" .}}
+            <div style="text-align:center;padding:60px 0;color:var(--text-muted);">
+              <p>内容区域 — 请定义 <code>content</code> 块</p>
+            </div>
+          {{end}}
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="app-footer__left">
+          <span>I56 Framework 1.0 LTS © 2026</span>
+          <a href="/docs" target="_blank">文档</a>
+          <a href="/admin/audit-log">操作日志</a>
+        </div>
+        <span>{{if .User.Name}}{{.User.Name}}{{else}}Admin{{end}} · {{if .User.Role}}{{.User.Role}}{{else}}系统管理员{{end}}</span>
+      </footer>
+    </main>
+
+  </div><!-- /.app-body -->
+
+</div><!-- /.app-shell -->
+
+<!-- ============================================================
+     Command Palette Overlay
+     ============================================================ -->
+<div class="command-palette-overlay" id="command-palette-overlay">
+  <div class="command-palette" role="dialog" aria-label="命令面板">
+    <div class="command-palette__header">
+      <input type="text"
+             class="command-palette__input"
+             id="command-palette-input"
+             placeholder="输入命令或搜索..."
+             autocomplete="off" />
+    </div>
+    <div class="command-palette__results" id="command-palette-results">
+      <!-- Dynamically filled by i56-command.js -->
+    </div>
+    <div class="command-palette__footer">
+      <span><kbd>↑↓</kbd> 导航</span>
+      <span><kbd>↵</kbd> 选择</span>
+      <span><kbd>Esc</kbd> 关闭</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     AI Command Bar
+     ============================================================ -->
+<div class="ai-command-bar" id="ai-command-bar">
+  <input type="text"
+         class="ai-command-bar__input"
+         id="ai-command-input"
+         placeholder="Ask I56... (Shift+Enter 发送)" />
+  <button class="ai-command-bar__send"
+          id="ai-command-send"
+          title="发送"
+          aria-label="发送 AI 命令">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+    </svg>
+  </button>
+  <span class="ai-command-bar__hint">Shift+Enter 发送</span>
+</div>
+
+<!-- ============================================================
+     JavaScript: Sidebar, Command Palette, AI Bar
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ---- Sidebar Toggle ----
+  window.toggleSidebar = function() {
+    var sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('i56-sidebar-collapsed', sidebar.classList.contains('collapsed'));
+  };
+
+  // Restore sidebar state
+  (function() {
+    var sidebar = document.getElementById('sidebar');
+    if (localStorage.getItem('i56-sidebar-collapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+    }
+  })();
+
+  // ---- Sidebar Group Toggle ----
+  window.toggleSidebarGroup = function(btn) {
+    var items = btn.nextElementSibling;
+    var expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    if (expanded) {
+      items.classList.add('collapsed');
+      items.style.maxHeight = '0';
+    } else {
+      items.classList.remove('collapsed');
+      var childCount = items.querySelectorAll('.sidebar__item').length;
+      items.style.maxHeight = (childCount * 34) + 'px';
+    }
+  };
+
+  // ---- Command Palette (Ctrl+K / Cmd+K) ----
+  var overlay = document.getElementById('command-palette-overlay');
+  var cmdInput = document.getElementById('command-palette-input');
+  var globalSearch = document.getElementById('global-search');
+
+  function openCommandPalette() {
+    overlay.classList.add('open');
+    cmdInput.focus();
+    cmdInput.value = '';
+  }
+
+  function closeCommandPalette() {
+    overlay.classList.remove('open');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+K or Cmd+K → open command palette
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      openCommandPalette();
+    }
+    // Escape → close
+    if (e.key === 'Escape' && overlay.classList.contains('open')) {
+      closeCommandPalette();
+    }
+  });
+
+  // Click overlay background to close
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      closeCommandPalette();
+    }
+  });
+
+  // Focus global search also triggers command palette
+  if (globalSearch) {
+    globalSearch.addEventListener('focus', function() {
+      openCommandPalette();
+    });
+  }
+
+  // ---- AI Command Bar ----
+  var aiInput = document.getElementById('ai-command-input');
+  var aiSend = document.getElementById('ai-command-send');
+
+  if (aiInput && aiSend) {
+    function sendAICommand() {
+      var text = aiInput.value.trim();
+      if (!text) return;
+      // Dispatch custom event for i56-components.js to handle
+      var event = new CustomEvent('i56:ai-command', {
+        bubbles: true,
+        detail: { command: text, source: 'ai-bar' }
+      });
+      aiInput.dispatchEvent(event);
+      aiInput.value = '';
+      aiSend.disabled = true;
+    }
+
+    aiSend.addEventListener('click', sendAICommand);
+
+    aiInput.addEventListener('input', function() {
+      aiSend.disabled = aiInput.value.trim() === '';
+    });
+
+    aiInput.addEventListener('keydown', function(e) {
+      // Shift+Enter → send
+      if (e.key === 'Enter' && e.shiftKey) {
+        e.preventDefault();
+        sendAICommand();
+      }
+    });
+  }
+
+  // Expose for i56-command.js integration
+  window.I56CommandPalette = {
+    open: openCommandPalette,
+    close: closeCommandPalette,
+    get overlay() { return overlay; },
+    get input() { return cmdInput; }
+  };
+
+  console.log('[I56 BDL] Base layout initialized. Sidebar + Command Palette + AI Bar ready.');
+})();
+</script>
+
+</body>
+</html>

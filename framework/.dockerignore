@@ -1,0 +1,16 @@
+.git
+.gitignore
+.gitkeep
+*.db
+*.test
+.env
+.env.*
+node_modules/
+vendor/
+tmp/
+docs/
+tests/
+deployments/
+Makefile
+*.md
+.git/

@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: i56-server
+  labels:
+    app: i56-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: i56-server
+  template:
+    metadata:
+      labels:
+        app: i56-server
+    spec:
+      containers:
+      - name: i56-server
+        image: i56-framework:1.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GIN_MODE
+          value: "release"
+        - name: DB_HOST
+          value: "postgres-service"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: i56-secrets
+              key: db-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: i56-secrets
+              key: db-password
+        - name: DB_NAME
+          value: "i56_framework"
+        - name: REDIS_ADDR
+          value: "redis-service:6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: i56-secrets
+              key: jwt-secret
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: i56-service
+spec:
+  selector:
+    app: i56-server
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: i56-secrets
+type: Opaque
+stringData:
+  db-user: i56
+  db-password: i56_secret
+  jwt-secret: changeme

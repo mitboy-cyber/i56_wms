@@ -1,0 +1,38 @@
+{
+  "analyzed_at": "2026-07-11",
+  "source": "BFT56 (bft56.com)",
+  "framework": "Laravel Livewire + Alpine.js + Filament",
+  "admin_pages": 46,
+  "client_pages": 15,
+  
+  "order_lifecycle": [
+    "已取消", "待拣货", "待打包", "待核重", "待送出库",
+    "待送装柜", "待装柜", "已装柜", "已出运"
+  ],
+  "parcel_lifecycle": [
+    "预报", "已入仓", "已上架", "待打包", "打包中", "已打包"
+  ],
+  "route_types": ["商业海快", "海快", "海运", "空运特货", "空運"],
+  
+  "order_detail_tabs": [
+    "基础信息", "收件人/申报信息", "计费明细", "费用明细",
+    "包裹列表", "打包冻结快照", "附加服务(已做)", "单号/状态", "操作日志"
+  ],
+  
+  "order_cost_breakdown": [
+    "基础运费(¥=重量×单价)",
+    "承运商运输费",
+    "附加服务费(栈板/超长/超材)",
+    "合计"
+  ],
+  
+  "client_dashboard_metrics": [
+    "账户余额 ¥945,986.48",
+    "信用额度 ¥10,000,000.00",
+    "全部包裹 6,115",
+    "预报 42", "已入仓 38", "已上架 4,300",
+    "待打包 92", "打包中 40", "已打包 1,587"
+  ],
+  
+  "i56_current_status": "46 admin pages READ, RBAC CRUD, PDA 8-screen, BDL Pro theme"
+}
