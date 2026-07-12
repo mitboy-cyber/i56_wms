@@ -210,6 +210,10 @@ func Register(
 			case orderDomain.StatusPendingLoading: act.Icon = "📦"; act.Text = fmt.Sprintf("订单 %s 待装柜 (%s)", o.OrderNo, o.RecipientName)
 			case orderDomain.StatusCustomsClearance: act.Icon = "🛃"; act.Text = fmt.Sprintf("订单 %s 清关中 (%s)", o.OrderNo, o.RecipientName)
 			case orderDomain.StatusLoaded: act.Icon = "🏗️"; act.Text = fmt.Sprintf("订单 %s 已装柜 (%s)", o.OrderNo, o.RecipientName)
+			case orderDomain.StatusPendingPacking: act.Icon = "📋"; act.Text = fmt.Sprintf("订单 %s 待打包 (%s)", o.OrderNo, o.RecipientName)
+			case orderDomain.StatusShipped: act.Icon = "📦"; act.Text = fmt.Sprintf("订单 %s 已发货 (%s)", o.OrderNo, o.RecipientName)
+			case orderDomain.StatusOutForDelivery: act.Icon = "🚚"; act.Text = fmt.Sprintf("订单 %s 派送中 (%s)", o.OrderNo, o.RecipientName)
+			case orderDomain.StatusCancelled: act.Icon = "❌"; act.Text = fmt.Sprintf("订单 %s 已取消 (%s)", o.OrderNo, o.RecipientName)
 			default: act.Icon = "📋"; act.Text = fmt.Sprintf("订单 %s %s (%s)", o.OrderNo, string(o.Status), o.RecipientName)
 			}
 			activities = append(activities, act)
@@ -414,6 +418,14 @@ func Register(
 		for _, p := range allParcels {
 			statusCN := common.ParcelStatusCN(string(p.Status))
 			cargoCN := common.CargoTypeCN(p.CargoType)
+			// AI classifier: if cargo_type is empty or "普货", run classifier on product_name
+			if (p.CargoType == "" || p.CargoType == "general") && cargoClassifier != nil && p.ProductName != "" {
+				result := cargoClassifier.Classify(p.ProductName)
+				if result.Category != "" && result.Category != "general" {
+					aiCN := classifier.CategoryCN(result.Category)
+					cargoCN = fmt.Sprintf(`%s <span class="badge badge-brand" title="AI 建议">AI: %s</span>`, cargoCN, aiCN)
+				}
+			}
 			dims := "—"
 			if p.Length > 0 {
 				dims = fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height)

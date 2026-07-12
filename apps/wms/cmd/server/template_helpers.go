@@ -64,6 +64,7 @@ func initTemplates() map[string]*template.Template {
 		{"reports", "admin/system/reports.html"},
 		{"report_view", "admin/system/report_view.html"},
 		{"api_ezway", "admin/system/api_ezway.html"},
+		{"ai_chat", "admin/system/ai_chat_page.html"},
 		// TMS module — data_table-based templates (P3)
 		{"carriers", "admin/tms/carriers.html"},
 		{"couriers", "admin/tms/couriers.html"},
@@ -97,6 +98,7 @@ func initTemplates() map[string]*template.Template {
 			p.k == "wms_parcels" || p.k == "wms_warehouses" || p.k == "wms_exceptions" || p.k == "wms_service_workorders" || p.k == "wms_service_templates" ||
 			p.k == "crm_clients" || p.k == "crm_accounts" || p.k == "crm_members" || p.k == "crm_addresses" || p.k == "crm_declarants" ||
 			p.k == "sys_roles" || p.k == "sys_employees" || p.k == "sys_print_templates" ||
+			p.k == "ai_chat" ||
 			p.k == "fin_order_profit" || p.k == "fin_route_profit" {
 			files := []string{"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
 			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
