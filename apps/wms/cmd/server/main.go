@@ -324,9 +324,9 @@ func main() {
 	// ★ New Framework v2.3 routes
 	// OpenAPI spec endpoint
 	router.RegisterOpenAPIEndpoint(r, openapiGen)
-	registerSchedulerRoutes(r, sch, a)
-	registerAuditRoutes(r, auditLogger, a)
-	registerReportRoutes(r, reportEngine, a)
+	registerSchedulerRoutes(r, sch, a, tmpl)
+	registerAuditRoutes(r, auditLogger, a, tmpl)
+	registerReportRoutes(r, reportEngine, a, tmpl)
 	// Register some demo routes for OpenAPI documentation
 	registerOpenAPIDemoRoutes(r, openapiGen, a)
 

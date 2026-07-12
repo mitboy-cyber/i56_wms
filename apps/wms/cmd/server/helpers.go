@@ -30,8 +30,22 @@ func initTemplates()map[string]*template.Template{
 	tmpl:=map[string]*template.Template{}
 	for _,p:=range[]struct{k,file string}{{"login","login.html"},{"dashboard","dashboard.html"},{"clients","clients.html"},{"parcels","parcels.html"},{"orders","orders.html"},{"warehouses","warehouses.html"},{"routes","routes.html"},{"generic_list","generic_list.html"},{"warehouse_console","warehouse_console.html"},{"admin_permissions","admin/admin_permissions.html"},{"admin_roles","admin/admin_roles.html"},{"admin_users","admin/admin_users.html"},{"admin_client_permissions","admin/admin_client_permissions.html"},
 		{"base_new","admin/base_new.html"},
+		// System page templates (Phase 1: replace inline HTML)
+		{"scheduler","admin/system/scheduler.html"},
+		{"audit_logs","admin/system/audit_logs.html"},
+		{"reports","admin/system/reports.html"},
+		{"report_view","admin/system/report_view.html"},
+		{"api_ezway","admin/system/api_ezway.html"},
+		// TMS module — data_table-based templates (P3)
+		{"carriers", "admin/tms/carriers.html"},
+		{"couriers", "admin/tms/couriers.html"},
+		{"area_groups", "admin/tms/area_groups.html"},
+		{"route_templates", "admin/tms/route_templates.html"},
 	}{
-		if p.k == "base_new" {
+		if p.k == "carriers" || p.k == "couriers" || p.k == "area_groups" || p.k == "route_templates" {
+			files := []string{"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
+			tmpl[p.k]=template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
+		} else if p.k == "base_new" {
 			files := []string{"templates/base.html", "templates/admin/base_new.html"}
 			tmpl[p.k]=template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
 		} else {

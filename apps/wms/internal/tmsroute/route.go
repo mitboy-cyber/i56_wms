@@ -59,7 +59,7 @@ func Register(
 	const tenant int64 = 1
 	gp := rc.NewGenericList()
 
-	// ─── /admin/couriers — 快递公司 (from admin_modules.go TMS) ───
+	// ─── /admin/couriers — 快递公司 (template-based P3) ───
 	r.GET("/admin/couriers", a(func(w http.ResponseWriter, req *http.Request) {
 		couriers, _ := cour.List(req.Context())
 		rows := make([][]string, len(couriers))
@@ -69,7 +69,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"顺丰速运", "SF", "中国大陆", "启用", "07-01"}}
 		}
-		gp(w, "tms_couriers", "快递公司", len(rows), []string{"名称", "编码", "区域", "状态", "创建时间"}, rows, "/admin/couriers/add-form")
+		rc.Tmpl["couriers"].ExecuteTemplate(w, "couriers.html", map[string]any{
+			"Title": "快递公司", "Page": "tms_couriers",
+			"Columns": []string{"名称", "编码", "区域", "状态", "创建时间"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/couriers/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/couriers/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -298,14 +303,22 @@ func Register(
 		common.Redirect(w, "/admin/customs-brokers")
 	}))
 
-	// ─── /admin/route-templates — 线路模板 CRUD (from admin_crud.go) ───
+	// ─── /admin/route-templates — 线路模板 CRUD (template-based P3) ───
 	r.GET("/admin/route-templates", a(func(w http.ResponseWriter, req *http.Request) {
-		rows := [][]string{
-			{"厦门→台湾空运", "厦门仓", "空运", "3-5天", "台湾", "启用"},
-			{"深圳→台湾海快", "深圳仓", "海快", "5-7天", "台湾", "启用"},
-			{"厦门→台湾海运", "厦门仓", "海运", "7-10天", "台湾", "启用"},
+		routes, _, _ := rr.List(req.Context(), tenant, 0, 100)
+		rows := make([][]string, len(routes))
+		for i, rt := range routes {
+			rows[i] = []string{rt.Name, fmt.Sprintf("%d", rt.WarehouseID), rt.TransportType, fmt.Sprintf("%d-%d天", rt.MinDays, rt.MaxDays), "台湾", func()string{if rt.IsActive{return "启用"};return "停用"}()}
 		}
-		gp(w, "route_templates", "线路模板", len(rows), []string{"线路名称", "始发仓", "运输方式", "时效", "目的地", "状态"}, rows, "/admin/route-templates/add-form")
+		if len(rows) == 0 {
+			rows = [][]string{{"厦门→台湾空运", "厦门仓", "空运", "3-5天", "台湾", "启用"}, {"深圳→台湾海快", "深圳仓", "海快", "5-7天", "台湾", "启用"}, {"厦门→台湾海运", "厦门仓", "海运", "7-10天", "台湾", "启用"}}
+		}
+		rc.Tmpl["route_templates"].ExecuteTemplate(w, "route_templates.html", map[string]any{
+			"Title": "线路模板", "Page": "route_templates",
+			"Columns": []string{"线路名称", "始发仓", "运输方式", "时效", "目的地", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/route-templates/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/route-templates/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -377,7 +390,7 @@ func Register(
 		common.Redirect(w, "/admin/route-templates")
 	}))
 
-	// ─── /admin/carriers — 承运商列表 (from in-memory bftCarrierSeed) ───
+	// ─── /admin/carriers — 承运商列表 (template-based P3) ───
 	r.GET("/admin/carriers", a(func(w http.ResponseWriter, req *http.Request) {
 		bftCarriersMu.Lock()
 		carriers := make([]BftCarrier, len(bftCarriers))
@@ -387,7 +400,12 @@ func Register(
 		for i, c := range carriers {
 			rows[i] = []string{c.Name, c.Code, c.CustomsPoint, c.DeliveryMethod, c.DeliveryPrice, c.Surcharge, c.Status}
 		}
-		gp(w, "tms_carriers", "承运商", len(rows), []string{"名称", "编码", "清关点", "派送方式", "派送价", "加收费", "状态"}, rows, "/admin/carriers/add-form")
+		rc.Tmpl["carriers"].ExecuteTemplate(w, "carriers.html", map[string]any{
+			"Title": "承运商列表", "Page": "tms_carriers",
+			"Columns": []string{"名称", "编码", "清关点", "派送方式", "派送价", "加收费", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/carriers/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/carriers/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -582,7 +600,7 @@ func Register(
 		common.Redirect(w, "/admin/cargo-types")
 	}))
 
-	// ─── /admin/area-groups — 区域组 (from admin_crud.go) ───
+	// ─── /admin/area-groups — 区域组 (template-based P3) ───
 	var areaGroupsMu sync.Mutex
 	var areaGroups = []struct{ Name, Code, Coverage string }{{"华南区", "CN-SOUTH", "广东/福建/海南"}, {"华东区", "CN-EAST", "上海/浙江/江苏"}, {"台湾区", "TW", "全台湾"}}
 
@@ -592,7 +610,12 @@ func Register(
 		areaGroupsMu.Unlock()
 		rows := make([][]string, len(ags))
 		for i, ag := range ags { rows[i] = []string{ag.Name, ag.Code, ag.Coverage, "启用"} }
-		gp(w, "tms_area_groups", "区域组", len(rows), []string{"区域名", "编码", "覆盖范围", "状态"}, rows, "/admin/area-groups/add-form")
+		rc.Tmpl["area_groups"].ExecuteTemplate(w, "area_groups.html", map[string]any{
+			"Title": "区域组管理", "Page": "tms_area_groups",
+			"Columns": []string{"区域名", "编码", "覆盖范围", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/area-groups/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/area-groups/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)

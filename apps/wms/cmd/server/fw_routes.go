@@ -3,28 +3,28 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/i56/framework/core/audit"
 	"github.com/i56/framework/core/report"
 	"github.com/i56/framework/core/router"
 	"github.com/i56/framework/core/scheduler"
-
-	"github.com/i56/i56-apps/i56-wms/internal/common"
 )
 
 // ─── Scheduler Routes ───
 
-func registerSchedulerRoutes(r *router.Router, sch *scheduler.Scheduler, a func(http.HandlerFunc) http.HandlerFunc) {
+func registerSchedulerRoutes(r *router.Router, sch *scheduler.Scheduler, a func(http.HandlerFunc) http.HandlerFunc, tmpl map[string]*template.Template) {
 	// Admin page: scheduler status
 	r.GET("/admin/system/scheduler", a(func(w http.ResponseWriter, req *http.Request) {
 		jobs := sch.ListJobs()
-		var sb strings.Builder
-		sb.WriteString(`<h1 style="margin-bottom:16px">⏰ 定时任务调度器</h1>
-<table class="data-table" style="width:100%"><thead><tr><th>任务名称</th><th>Cron表达式</th><th>上次运行</th><th>下次运行</th><th>运行次数</th><th>状态</th><th>操作</th></tr></thead><tbody>`)
+		type jobView struct {
+			Name, CronExpr, LastRun, NextRun, Status, StatusClass string
+			RunCount                                                int64
+		}
+		views := make([]jobView, 0, len(jobs))
 		for _, j := range jobs {
 			lastRun := "-"
 			if !j.LastRun.IsZero() {
@@ -44,24 +44,17 @@ func registerSchedulerRoutes(r *router.Router, sch *scheduler.Scheduler, a func(
 				status = "错误"
 				statusClass = "badge badge-danger"
 			}
-			fmt.Fprintf(&sb, `<tr>
-<td>%s</td><td><code>%s</code></td><td>%s</td><td>%s</td><td>%d</td>
-<td><span class="%s">%s</span></td>
-<td><button class="btn btn-sm btn-primary" onclick="triggerJob('%s')">立即执行</button></td>
-</tr>`, j.Name, j.CronExpr, lastRun, nextRun, j.RunCount, statusClass, status, j.Name)
+			views = append(views, jobView{
+				Name: j.Name, CronExpr: j.CronExpr,
+				LastRun: lastRun, NextRun: nextRun,
+				RunCount: j.RunCount, Status: status, StatusClass: statusClass,
+			})
 		}
-		sb.WriteString(`</tbody></table>
-<script>async function triggerJob(name){const r=await fetch('/api/system/scheduler/trigger?name='+encodeURIComponent(name),{method:'POST'});location.reload()}</script>
-<div style="margin-top:24px;padding:16px;background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:var(--i56-radius-md)">
-<h2 style="font-size:14px;margin-bottom:12px">内置任务</h2>
-<ul style="margin:8px 0;padding-left:20px;font-size:13px;color:var(--i56-text-secondary);line-height:1.8">
-<li><b>bill-generation</b> — @daily — 每日账单生成</li>
-<li><b>weight-cleanup</b> — @every 6h — 清理旧重量记录</li>
-<li><b>statistics-report</b> — @every 1h — 生成统计报表</li>
-<li><b>backup-database</b> — 0 2 * * * — 数据库备份 (凌晨2点)</li>
-<li><b>health-check</b> — @every 5m — 设备健康检查</li>
-</ul></div>`)
-		common.RenderAdminPage(w, "定时任务调度器", "系统 / 定时任务调度器", sb.String())
+		tmpl["scheduler"].ExecuteTemplate(w, "scheduler.html", map[string]any{
+			"Jobs":       views,
+			"Active":     "scheduler",
+			"Breadcrumb": "系统 / 定时任务调度器",
+		})
 	}))
 
 	// API: trigger a job
@@ -91,7 +84,7 @@ func registerSchedulerRoutes(r *router.Router, sch *scheduler.Scheduler, a func(
 
 // ─── Audit Routes ───
 
-func registerAuditRoutes(r *router.Router, auditLogger *audit.AuditLogger, a func(http.HandlerFunc) http.HandlerFunc) {
+func registerAuditRoutes(r *router.Router, auditLogger *audit.AuditLogger, a func(http.HandlerFunc) http.HandlerFunc, tmpl map[string]*template.Template) {
 	// Admin page: audit logs
 	r.GET("/admin/system/audit-logs", a(func(w http.ResponseWriter, req *http.Request) {
 		actionFilter := req.URL.Query().Get("action")
@@ -120,52 +113,40 @@ func registerAuditRoutes(r *router.Router, auditLogger *audit.AuditLogger, a fun
 		}
 
 		entries, total, _ := auditLogger.Query(req.Context(), filter)
-		var sb strings.Builder
-		sb.WriteString(`<h1 style="margin-bottom:16px">📋 操作审计日志</h1>
-<form method="GET" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
-<div><label style="font-size:13px;color:var(--i56-text-secondary)">操作类型</label>
-<select name="action" class="form-select" style="min-width:120px">
-<option value="">全部</option>`)
-		for _, act := range []string{"CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "EXPORT", "IMPORT", "VIEW"} {
-			sel := ""
-			if act == actionFilter { sel = " selected" }
-			fmt.Fprintf(&sb, `<option value="%s"%s>%s</option>`, act, sel, act)
-		}
-		sb.WriteString(`</select></div>
-<div><label style="font-size:13px;color:var(--i56-text-secondary)">资源类型</label>
-<select name="resource" class="form-select" style="min-width:120px">
-<option value="">全部</option>`)
-		for _, res := range []string{"order", "parcel", "client", "warehouse", "user", "role"} {
-			sel := ""
-			if res == resourceFilter { sel = " selected" }
-			fmt.Fprintf(&sb, `<option value="%s"%s>%s</option>`, res, sel, res)
-		}
-		fmt.Fprintf(&sb, `</select></div>
-<div><label style="font-size:13px;color:var(--i56-text-secondary)">开始日期</label><input type="date" name="from" value="%s" class="form-input"></div>
-<div><label style="font-size:13px;color:var(--i56-text-secondary)">结束日期</label><input type="date" name="to" value="%s" class="form-input"></div>
-<button type="submit" class="btn btn-primary">筛选</button>
-</form>`, fromStr, toStr)
 
-		fmt.Fprintf(&sb, `<p style="color:var(--i56-text-secondary);margin-bottom:12px">共 %d 条记录</p>`, total)
-		sb.WriteString(`<table class="data-table" style="width:100%"><thead><tr><th>时间</th><th>用户</th><th>操作</th><th>资源</th><th>资源ID</th><th>详情</th><th>IP</th></tr></thead><tbody>`)
+		type auditView struct {
+			CreatedAt, UserID, Action, BadgeClass, Resource, ResourceID, Detail, DetailPreview, IP string
+		}
+		views := make([]auditView, 0, len(entries))
 		for _, e := range entries {
 			detailPreview := e.Detail
 			if len(detailPreview) > 50 {
 				detailPreview = detailPreview[:50] + "..."
 			}
-			fmt.Fprintf(&sb, `<tr>
-<td>%s</td><td>%d</td><td><span class="badge badge-%s">%s</span></td>
-<td>%s</td><td>%s</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="%s">%s</td><td>%s</td>
-</tr>`,
-				e.CreatedAt.Format("2006-01-02 15:04:05"), e.UserID,
-				actionBadgeClass(e.Action), e.Action,
-				e.Resource, e.ResourceID, e.Detail, detailPreview, e.IP)
+			views = append(views, auditView{
+				CreatedAt:    e.CreatedAt.Format("2006-01-02 15:04:05"),
+				UserID:       fmt.Sprintf("%d", e.UserID),
+				Action:       e.Action,
+				BadgeClass:   actionBadgeClass(e.Action),
+				Resource:     e.Resource,
+				ResourceID:   e.ResourceID,
+				Detail:       e.Detail,
+				DetailPreview: detailPreview,
+				IP:           e.IP,
+			})
 		}
-		if len(entries) == 0 {
-			sb.WriteString(`<tr><td colspan="7" style="text-align:center;color:var(--i56-text-muted)">暂无审计日志</td></tr>`)
-		}
-		sb.WriteString(`</tbody></table>`)
-		common.RenderAdminPage(w, "操作审计日志", "系统 / 操作审计日志", sb.String())
+
+		tmpl["audit_logs"].ExecuteTemplate(w, "audit_logs.html", map[string]any{
+			"Entries":         views,
+			"Total":           total,
+			"ActionFilter":    actionFilter,
+			"ResourceFilter":  resourceFilter,
+			"FromStr":         fromStr,
+			"ToStr":           toStr,
+			"ActionOptions":   []string{"CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT", "EXPORT", "IMPORT", "VIEW"},
+			"ResourceOptions": []string{"order", "parcel", "client", "warehouse", "user", "role"},
+			"Breadcrumb":      "系统 / 操作审计日志",
+		})
 	}))
 
 	// API: list audit entries
@@ -195,13 +176,15 @@ func actionBadgeClass(action string) string {
 
 // ─── Report Routes ───
 
-func registerReportRoutes(r *router.Router, engine *report.BuiltinEngine, a func(http.HandlerFunc) http.HandlerFunc) {
+func registerReportRoutes(r *router.Router, engine *report.BuiltinEngine, a func(http.HandlerFunc) http.HandlerFunc, tmpl map[string]*template.Template) {
 	// Admin page: report list
 	r.GET("/admin/system/reports", a(func(w http.ResponseWriter, req *http.Request) {
 		reports := engine.ListReports()
-		var sb strings.Builder
-		sb.WriteString(`<h1 style="margin-bottom:16px">📊 内置报表</h1>
-<table class="data-table" style="width:100%"><thead><tr><th>报表名称</th><th>描述</th><th>显示方式</th><th>参数</th><th>操作</th></tr></thead><tbody>`)
+		type reportView struct {
+			Name, Title, Query, DisplayIcon, DisplayLabel string
+			ParamCount                                      int
+		}
+		views := make([]reportView, 0, len(reports))
 		for _, rpt := range reports {
 			paramCount := len(rpt.Params)
 			displayIcon := "📋"
@@ -212,14 +195,16 @@ func registerReportRoutes(r *router.Router, engine *report.BuiltinEngine, a func
 			if rpt.Display == "chart" {
 				displayLabel = "图表"
 			}
-			fmt.Fprintf(&sb, `<tr>
-<td><b>%s %s</b></td><td style="font-size:12px;color:var(--i56-text-muted)"><code>%s</code></td>
-<td>%s</td><td>%d 个参数</td>
-<td><a href="/admin/system/reports/view?name=%s" class="btn btn-sm btn-primary">查看</a></td>
-</tr>`, displayIcon, rpt.Title, rpt.Query, displayLabel, paramCount, rpt.Name)
+			views = append(views, reportView{
+				Name: rpt.Name, Title: rpt.Title, Query: rpt.Query,
+				DisplayIcon: displayIcon, DisplayLabel: displayLabel,
+				ParamCount: paramCount,
+			})
 		}
-		sb.WriteString(`</tbody></table>`)
-		common.RenderAdminPage(w, "内置报表", "系统 / 内置报表", sb.String())
+		tmpl["reports"].ExecuteTemplate(w, "reports.html", map[string]any{
+			"Reports":    views,
+			"Breadcrumb": "系统 / 内置报表",
+		})
 	}))
 
 	// View report
@@ -231,26 +216,19 @@ func registerReportRoutes(r *router.Router, engine *report.BuiltinEngine, a func
 		}
 		result, err := engine.Execute(req.Context(), name, nil)
 		if err != nil {
-			common.RenderAdminPage(w, "报表错误", "系统 / 内置报表 / 错误", fmt.Sprintf(`<div class="data-table-wrapper" style="padding:32px;text-align:center"><p style="color:var(--i56-error);font-size:14px">报表执行失败: %s</p><a href="/admin/system/reports" class="btn btn-sm btn-primary mt-4">← 返回报表列表</a></div>`, err.Error()))
+			tmpl["report_view"].ExecuteTemplate(w, "report_view.html", map[string]any{
+				"Error":      err.Error(),
+				"Breadcrumb": "系统 / 内置报表 / 错误",
+			})
 			return
 		}
-		var sb strings.Builder
-		fmt.Fprintf(&sb, `<h1 style="margin-bottom:16px">%s</h1>
-<p style="color:var(--i56-text-secondary);margin-bottom:16px">共 %d 行数据</p>
-<table class="data-table" style="width:100%"><thead><tr>`, result.Title, result.Total)
-		for _, col := range result.Columns {
-			fmt.Fprintf(&sb, "<th>%s</th>", col)
-		}
-		sb.WriteString("</tr></thead><tbody>")
-		for _, row := range result.Rows {
-			sb.WriteString("<tr>")
-			for _, cell := range row {
-				fmt.Fprintf(&sb, "<td>%v</td>", cell)
-			}
-			sb.WriteString("</tr>")
-		}
-		sb.WriteString(`</tbody></table>`)
-		common.RenderAdminPage(w, result.Title, "系统 / 内置报表 / "+result.Title, sb.String())
+		tmpl["report_view"].ExecuteTemplate(w, "report_view.html", map[string]any{
+			"Title":      result.Title,
+			"Total":      result.Total,
+			"Columns":    result.Columns,
+			"Rows":       result.Rows,
+			"Breadcrumb": "系统 / 内置报表 / " + result.Title,
+		})
 	}))
 
 	// API: execute report

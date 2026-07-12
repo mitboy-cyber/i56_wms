@@ -1,5 +1,6 @@
-{{/* data_table.html — unified data-table partial template */}}
-{{/* Usage: {{template "data_table.html" .}} where . contains Headers []string and Rows [][]string */}}
+{{define "data_table"}}
+{{/* data_table — unified data-table partial template */}}
+{{/* Usage: {{template "data_table" .}} where . contains Columns []string and Rows [][]string */}}
 {{/* Optional: .HasActions bool, .AddURL string, .Title string, .Total int, .Page string */}}
 
 <div class="page-header">
@@ -107,4 +108,5 @@
 </div>
 {{else}}
 <div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">暂无内容</div></div>
+{{end}}
 {{end}}
