@@ -130,6 +130,8 @@ gp := func(w http.ResponseWriter, page, title, icon string, total int, cols []st
 			case orderDomain.StatusPendingLoading: a.Icon="📦"; a.Text=fmt.Sprintf("订单 %s 待装柜 (%s)",o.OrderNo,o.RecipientName)
 			case orderDomain.StatusCustomsClearance: a.Icon="🛃"; a.Text=fmt.Sprintf("订单 %s 清关中 (%s)",o.OrderNo,o.RecipientName)
 			case orderDomain.StatusLoaded: a.Icon="🏗️"; a.Text=fmt.Sprintf("订单 %s 已装柜 (%s)",o.OrderNo,o.RecipientName)
+			case orderDomain.StatusPendingPacking: a.Icon="📋"; a.Text=fmt.Sprintf("订单 %s 待打包 (%s)",o.OrderNo,o.RecipientName)
+			case orderDomain.StatusShipped: a.Icon="📦"; a.Text=fmt.Sprintf("订单 %s 已发货 (%s)",o.OrderNo,o.RecipientName)
 			default: a.Icon="📋"; a.Text=fmt.Sprintf("订单 %s %s (%s)",o.OrderNo,string(o.Status),o.RecipientName)
 			}; acts=append(acts,a); ei++ }
 		for _, p := range parcels { if ei>=8{break}; a:=act{Time:p.CreatedAt.Format("01-02 15:04")}
