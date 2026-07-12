@@ -84,8 +84,8 @@
         </div>
       </div>
       <div class="mt-4">
-        <button type="submit" class="btn btn-primary">提交预报</button>
-        <a href="/client/parcels" class="btn btn-ghost ml-2">取消</a>
+        <button type="submit" class="i56-btn i56-btn-primary">提交预报</button>
+        <a href="/client/parcels" class="i56-btn i56-btn-ghost ml-2">取消</a>
       </div>
     </form>
   </div>
@@ -98,7 +98,7 @@
     <thead><tr><th>快递单号</th><th>品名</th><th>状态</th></tr></thead>
     <tbody>
     {{range .Recent}}
-    <tr><td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td><td><span class="badge badge-default">{{.Status}}</span></td></tr>
+    <tr><td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td><td><span class="i56-badge i56-badge-default">{{.Status}}</span></td></tr>
     {{end}}
     </tbody>
   </table>

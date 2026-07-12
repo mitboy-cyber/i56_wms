@@ -7,10 +7,10 @@
     <div class="page-subtitle">{{.Order.OrderNo}}</div>
   </div>
   <div class="flex gap-sm">
-    <a href="/client/orders" class="btn btn-ghost">← 返回</a>
+    <a href="/client/orders" class="i56-btn i56-btn-ghost">← 返回</a>
     {{if .Order.Cancellable}}
     <form method="post" action="/client/orders/{{.Order.ID}}/cancel" onsubmit="return confirm('确认取消该订单？')">
-      <button class="btn btn-danger">取消订单</button>
+      <button class="i56-btn i56-btn-danger">取消订单</button>
     </form>
     {{end}}
   </div>
@@ -65,7 +65,7 @@
       <td>{{.ProductName}}</td>
       <td>{{.CourierCode}}</td>
       <td>{{printf "%.2f" .ActualWeight}}kg</td>
-      <td><span class="badge badge-default">{{.Status}}</span></td>
+      <td><span class="i56-badge i56-badge-default">{{.Status}}</span></td>
     </tr>
     {{end}}{{else}}
     <tr><td colspan="5" class="empty-state">暂无包裹</td></tr>{{end}}

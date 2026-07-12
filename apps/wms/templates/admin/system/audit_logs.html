@@ -26,7 +26,7 @@
   <label style="font-size:13px;color:var(--i56-text-secondary)">结束日期</label>
   <input type="date" name="to" value="{{.ToStr}}" class="form-input">
 </div>
-<button type="submit" class="btn btn-primary">筛选</button>
+<button type="submit" class="i56-btn i56-btn-primary">筛选</button>
 </form>
 
 <p style="color:var(--i56-text-secondary);margin-bottom:12px">共 {{.Total}} 条记录</p>
@@ -40,7 +40,7 @@
 <tr>
   <td>{{.CreatedAt}}</td>
   <td>{{.UserID}}</td>
-  <td><span class="badge badge-{{.BadgeClass}}">{{.Action}}</span></td>
+  <td><span class="i56-badge i56-badge-{{.BadgeClass}}">{{.Action}}</span></td>
   <td>{{.Resource}}</td>
   <td>{{.ResourceID}}</td>
   <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="{{.Detail}}">{{.DetailPreview}}</td>

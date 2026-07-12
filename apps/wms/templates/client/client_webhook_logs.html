@@ -5,9 +5,9 @@
 <div class="page-subtitle">查看所有 Webhook 回调的投递状态、Payload 内容及重试记录</div>
 
 <div class="mb-3 flex gap-2">
-  <button class="btn btn-sm" onclick="location.reload()">🔄 刷新数据</button>
-  <a href="/client/webhooks" class="btn btn-sm">🔗 管理Webhook订阅</a>
-  <a href="/client/api-credentials" class="btn btn-sm">🔑 API凭证</a>
+  <button class="i56-btn i56-btn-sm" onclick="location.reload()">🔄 刷新数据</button>
+  <a href="/client/webhooks" class="i56-btn i56-btn-sm">🔗 管理Webhook订阅</a>
+  <a href="/client/api-credentials" class="i56-btn i56-btn-sm">🔑 API凭证</a>
 </div>
 
 {{if .Logs}}
@@ -30,17 +30,17 @@
     <tr>
       <td class="inline-code" style="font-size:10px">{{.Time}}</td>
       <td>
-        <span class="badge badge-primary" title="{{.Event}}">{{.EventLabel}}</span>
+        <span class="i56-badge i56-badge-primary" title="{{.Event}}">{{.EventLabel}}</span>
       </td>
       <td>
         {{if eq .StatusClass "success"}}
-          <span class="badge badge-success">✅ {{.StatusLabel}}</span>
+          <span class="i56-badge i56-badge-success">✅ {{.StatusLabel}}</span>
         {{else if eq .StatusClass "danger"}}
-          <span class="badge" style="background:rgba(220,50,50,0.15);color:#dc3232">❌ {{.StatusLabel}}</span>
+          <span class="i56-badge" style="background:rgba(220,50,50,0.15);color:#dc3232">❌ {{.StatusLabel}}</span>
         {{else if eq .StatusClass "warning"}}
-          <span class="badge badge-warning">⏳ {{.StatusLabel}}</span>
+          <span class="i56-badge i56-badge-warning">⏳ {{.StatusLabel}}</span>
         {{else}}
-          <span class="badge badge-default">{{.StatusLabel}}</span>
+          <span class="i56-badge i56-badge-default">{{.StatusLabel}}</span>
         {{end}}
       </td>
       <td class="inline-code">{{if .StatusCode}}{{.StatusCode}}{{else}}—{{end}}</td>
@@ -50,9 +50,9 @@
       <td>
         <div class="btn-group">
           {{if ne .StatusClass "success"}}
-          <button class="btn btn-sm btn-primary" onclick="manualRetry('{{.ObjectID}}')" title="手动重试">🔄 重试</button>
+          <button class="i56-btn i56-btn-sm i56-btn-primary" onclick="manualRetry('{{.ObjectID}}')" title="手动重试">🔄 重试</button>
           {{end}}
-          <button class="btn btn-sm" onclick="showPayload('{{.ObjectID}}', `{{.Payload}}`)" title="查看Payload">📋 内容</button>
+          <button class="i56-btn i56-btn-sm" onclick="showPayload('{{.ObjectID}}', `{{.Payload}}`)" title="查看Payload">📋 内容</button>
         </div>
       </td>
     </tr>
@@ -77,21 +77,21 @@
 {{end}}
 
 <style>
-.payload-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
-.payload-modal.show{display:flex}
-.payload-modal-content{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:10px;padding:20px;max-width:600px;width:90%;max-height:70vh;overflow-y:auto}
-.payload-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.payload-modal-title{font-size:14px;font-weight:700}
-.payload-modal-body{font-family:monospace;font-size:11px;background:var(--i56-bg-base);border:1px solid var(--i56-border);border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto}
+.i56-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+.i56-modal.show{display:flex}
+.i56-modal-content{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:10px;padding:20px;max-width:600px;width:90%;max-height:70vh;overflow-y:auto}
+.i56-modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.i56-modal-title{font-size:14px;font-weight:700}
+.i56-modal-body{font-family:monospace;font-size:11px;background:var(--i56-bg-base);border:1px solid var(--i56-border);border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto}
 </style>
 
-<div class="payload-modal" id="payloadModal">
-  <div class="payload-modal-content">
-    <div class="payload-modal-header">
-      <span class="payload-modal-title">📋 Payload 内容 — <span id="payloadObjectId"></span></span>
-      <button class="btn btn-sm" onclick="closePayload()">✕ 关闭</button>
+<div class="i56-modal" id="payloadModal">
+  <div class="i56-modal-content">
+    <div class="i56-modal-header">
+      <span class="i56-modal-title">📋 Payload 内容 — <span id="payloadObjectId"></span></span>
+      <button class="i56-btn i56-btn-sm" onclick="closePayload()">✕ 关闭</button>
     </div>
-    <div class="payload-modal-body" id="payloadBody"></div>
+    <div class="i56-modal-body" id="payloadBody"></div>
   </div>
 </div>
 

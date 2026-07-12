@@ -677,14 +677,14 @@ func Register(
 		common.HtmlOK(w)
 		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>存储配置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
-.card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
-.card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
+.i56-card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
+.i56-card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
 .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .info-item{display:flex;padding:6px 0;font-size:12px}
 .info-label{color:var(--i56-text-secondary);min-width:80px;flex-shrink:0}
 .info-value{color:var(--i56-text-primary);font-weight:500}
-.btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer}.btn-primary:hover{opacity:.9}
-.btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid var(--i56-border);background:var(--i56-bg-surface);color:var(--i56-text-primary);cursor:pointer}.btn-sm:hover{background:var(--i56-bg-surface-hover)}
+.i56-btn.i56-btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer}.i56-btn.i56-btn-primary:hover{opacity:.9}
+.i56-btn-sm{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid var(--i56-border);background:var(--i56-bg-surface);color:var(--i56-text-primary);cursor:pointer}.i56-btn-sm:hover{background:var(--i56-bg-surface-hover)}
 .test-result{padding:8px;margin-top:8px;border-radius:4px;font-size:11px}
 .test-success{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
 </style></head><body>`))
@@ -695,14 +695,14 @@ func Register(
 		for _, c := range configs {
 			sb := "success"; st := "启用"
 			if !c.IsActive { sb = "default"; st = "停用" }
-			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">💾 %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, c.Name, sb, st)
+			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">💾 %s <span class="i56-badge i56-badge-%s" style="margin-left:8px">%s</span></div>`, c.Name, sb, st)
 			fmt.Fprint(w, `<div class="info-grid">`)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">存储类型</span><span class="info-value">%s</span></div>`, c.Provider)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Bucket</span><span class="info-value" style="font-family:monospace">%s</span></div>`, c.Bucket)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Endpoint</span><span class="info-value" style="font-family:monospace;font-size:10px">%s</span></div>`, c.Endpoint)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Region</span><span class="info-value">%s</span></div>`, c.Region)
 			fmt.Fprint(w, `</div>`)
-			fmt.Fprintf(w, `<div style="margin-top:12px;display:flex;gap:8px"><button class="i56-btn i56-btn-primary" onclick="testUpload(%d)">🧪 上传测试</button><a href="/admin/system/api-storage" class="i56-btn-sm">返回列表</a></div><div id="tu-%d"></div></div>`, c.ID, c.ID)
+			fmt.Fprintf(w, `<div style="margin-top:12px;display:flex;gap:8px"><button class="i56-btn i56-btn-primary" onclick="testUpload(%d)">🧪 上传测试</button><a href="/admin/system/api-storage" class="i56-btn i56-btn-sm">返回列表</a></div><div id="tu-%d"></div></div>`, c.ID, c.ID)
 		}
 		w.Write([]byte(`<script>function testUpload(id){var el=document.getElementById('tu-'+id);el.innerHTML='<div class="test-result" style="color:var(--i56-text-muted)">🔄 正在测试连接...</div>';setTimeout(function(){el.innerHTML='<div class="test-result test-success">✅ 上传测试成功！文件: test-upload.txt (128 bytes)<br>延迟: 45ms</div>'},1200)}</script></body></html>`))
 	}))
@@ -758,13 +758,13 @@ func Register(
 		common.HtmlOK(w)
 		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>打印机设置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
-.card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
-.card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
+.i56-card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
+.i56-card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
 .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .info-item{display:flex;padding:6px 0;font-size:12px}
 .info-label{color:var(--i56-text-secondary);min-width:90px;flex-shrink:0}
 .info-value{color:var(--i56-text-primary);font-weight:500}
-.btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer}.btn-primary:hover{opacity:.9}
+.i56-btn.i56-btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer}.i56-btn.i56-btn-primary:hover{opacity:.9}
 .test-result{padding:8px;margin-top:8px;border-radius:4px;font-size:11px}
 .test-success{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
 .test-warning{background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3)}
@@ -782,7 +782,7 @@ func Register(
 			if p.IPAddress != "" { ip = p.IPAddress }
 			sb := "success"; st := "在线"
 			if i > 0 { sb = "default"; st = "离线" }
-			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">🖨️ %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, p.Name, sb, st)
+			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">🖨️ %s <span class="i56-badge i56-badge-%s" style="margin-left:8px">%s</span></div>`, p.Name, sb, st)
 			fmt.Fprint(w, `<div class="info-grid">`)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">打印机名称</span><span class="info-value">%s</span></div>`, p.Name)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">IP 地址</span><span class="info-value" style="font-family:monospace">%s</span></div>`, ip)
@@ -859,7 +859,7 @@ func Register(
 		} else {
 			fmt.Fprint(w, `<div style="text-align:center;padding:40px"><div style="font-size:48px">📦</div><p style="font-size:14px;margin-top:8px">面单模板预览区</p><p style="font-size:10px;color:#999">快递单号: SF1234567890<br>收件人: 王仁照<br>电话: 886912345678</p></div>`)
 		}
-		fmt.Fprint(w, `</div><p style="margin-top:12px"><a href="/admin/print-templates" class="btn btn-sm">&larr; 返回</a></p></body></html>`)
+		fmt.Fprint(w, `</div><p style="margin-top:12px"><a href="/admin/print-templates" class="i56-btn i56-btn-sm">&larr; 返回</a></p></body></html>`)
 	}))
 
 	r.GET("/admin/print-templates/add-form", a(func(w http.ResponseWriter, req *http.Request) {

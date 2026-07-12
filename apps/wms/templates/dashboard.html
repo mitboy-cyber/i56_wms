@@ -152,13 +152,13 @@
   <div class="data-table-wrapper w-full">
     <div class="data-table-header">
       <span>📋 最近订单</span>
-      <a href="/admin/orders" class="btn btn-sm btn-ghost">查看全部 →</a>
+      <a href="/admin/orders" class="i56-btn i56-btn-sm i56-btn-ghost">查看全部 →</a>
     </div>
     <table class="data-table">
       <thead><tr><th>订单号</th><th>客户</th><th>包裹</th><th>状态</th><th>金额</th></tr></thead>
       <tbody>
       {{if .RecentOrders}}{{range .RecentOrders}}
-      <tr><td>{{.OrderNo}}</td><td>{{.ClientName}}</td><td>{{.ParcelCount}}</td><td><span class="badge badge-primary">{{.Status}}</span></td><td>¥{{printf "%.2f" .TotalPrice}}</td></tr>
+      <tr><td>{{.OrderNo}}</td><td>{{.ClientName}}</td><td>{{.ParcelCount}}</td><td><span class="i56-badge i56-badge-primary">{{.Status}}</span></td><td>¥{{printf "%.2f" .TotalPrice}}</td></tr>
       {{end}}{{else}}
       <tr><td colspan="5" class="empty-state">暂无订单</td></tr>{{end}}
       </tbody>
@@ -173,7 +173,7 @@
       <thead><tr><th>快递单号</th><th>品名</th><th>状态</th><th>重量</th></tr></thead>
       <tbody>
       {{if .RecentParcels}}{{range .RecentParcels}}
-      <tr><td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td><td><span class="badge badge-default">{{.Status}}</span></td><td>{{printf "%.2f" .ActualWeight}}kg</td></tr>
+      <tr><td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td><td><span class="i56-badge i56-badge-default">{{.Status}}</span></td><td>{{printf "%.2f" .ActualWeight}}kg</td></tr>
       {{end}}{{else}}
       <tr><td colspan="4" class="empty-state">暂无包裹</td></tr>{{end}}
       </tbody>

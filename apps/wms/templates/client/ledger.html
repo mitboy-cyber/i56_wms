@@ -25,9 +25,9 @@
 {{if .Months}}
 <div class="mb-3 flex" style="align-items:center;gap:8px;flex-wrap:wrap">
   <span style="font-size:11px;color:var(--i56-text-secondary)">按月筛选：</span>
-  <a href="/client/ledger" class="btn btn-sm{{if eq .MonthFilter ""}} btn-primary{{end}}">全部</a>
+  <a href="/client/ledger" class="i56-btn i56-btn-sm{{if eq .MonthFilter ""}} btn-primary{{end}}">全部</a>
   {{range .Months}}
-  <a href="/client/ledger?month={{.}}" class="btn btn-sm{{if eq $.MonthFilter .}} btn-primary{{end}}">{{.}}</a>
+  <a href="/client/ledger?month={{.}}" class="i56-btn i56-btn-sm{{if eq $.MonthFilter .}} btn-primary{{end}}">{{.}}</a>
   {{end}}
 </div>
 {{end}}
@@ -36,7 +36,7 @@
 <div class="data-table-wrapper">
   <div class="data-table-header">
     <span>交易记录</span>
-    <button class="btn btn-sm" onclick="location.reload()">🔄 刷新</button>
+    <button class="i56-btn i56-btn-sm" onclick="location.reload()">🔄 刷新</button>
   </div>
   <table>
     <thead>
@@ -54,17 +54,17 @@
       <td style="font-family:monospace;font-size:10px">{{.Time}}</td>
       <td>
         {{if eq .Type "recharge"}}
-          <span class="badge badge-success">充值</span>
+          <span class="i56-badge i56-badge-success">充值</span>
         {{else if eq .Type "refund"}}
-          <span class="badge badge-info">退款</span>
+          <span class="i56-badge i56-badge-info">退款</span>
         {{else if eq .Type "adjustment"}}
-          <span class="badge badge-primary">调整</span>
+          <span class="i56-badge i56-badge-primary">调整</span>
         {{else if eq .Type "consumption"}}
-          <span class="badge badge-warning">消费</span>
+          <span class="i56-badge i56-badge-warning">消费</span>
         {{else if eq .Type "fee"}}
-          <span class="badge badge-secondary">服务费</span>
+          <span class="i56-badge i56-badge-secondary">服务费</span>
         {{else}}
-          <span class="badge badge-default">{{.TypeLabel}}</span>
+          <span class="i56-badge i56-badge-default">{{.TypeLabel}}</span>
         {{end}}
       </td>
       <td style="text-align:right;font-family:monospace">

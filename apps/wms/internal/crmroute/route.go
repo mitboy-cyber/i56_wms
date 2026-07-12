@@ -353,19 +353,19 @@ func Register(
 		common.HtmlOK(w)
 		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>客户充值 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><script src="https://unpkg.com/htmx.org@1.9.10"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
-.card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:24px;max-width:480px;margin:40px auto}
-.card h3{font-size:16px;margin-bottom:16px;color:var(--i56-brand)}
+.i56-card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:24px;max-width:480px;margin:40px auto}
+.i56-card h3{font-size:16px;margin-bottom:16px;color:var(--i56-brand)}
 .form-group{margin-bottom:12px}.form-label{display:block;font-size:12px;color:var(--i56-text-secondary);margin-bottom:4px}
 .form-input{width:100%;padding:8px 10px;font-size:13px;background:var(--i56-bg-base);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:6px}
-.btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;cursor:pointer;width:100%}
-.btn-primary:hover{opacity:.9}
-</style></head><body><div class="card"><h3>💰 客户充值</h3>
+.i56-btn.i56-btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;cursor:pointer;width:100%}
+.i56-btn.i56-btn-primary:hover{opacity:.9}
+</style></head><body><div class="i56-card"><h3>💰 客户充值</h3>
 <form hx-post="/admin/client-recharge" hx-swap="none">
 <div class="form-group"><label class="form-label">客户</label><select name="client_id" class="form-input">`+clientOpts+`</select></div>
 <div class="form-group"><label class="form-label">充值金额 (元)</label><input name="amount" class="form-input" type="number" step="0.01" placeholder="充值金额"></div>
 <div class="form-group"><label class="form-label">支付方式</label><select name="method" class="form-input"><option value="bank_transfer">银行转账</option><option value="wechat">微信支付</option><option value="alipay">支付宝</option><option value="cash">现金</option></select></div>
 <div class="form-group"><label class="form-label">备注</label><input name="description" class="form-input" placeholder="备注信息"></div>
-<button type="submit" class="btn-primary">确认充值</button>
+<button type="submit" class="i56-btn i56-btn-primary">确认充值</button>
 </form></div></body></html>`)
 	}))
 	r.POST("/admin/client-recharge", a(func(w http.ResponseWriter, req *http.Request) {

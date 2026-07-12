@@ -161,20 +161,20 @@ table.data-table{width:100%;border-collapse:collapse;font-size:12px}
 table.data-table th{padding:8px 10px;text-align:left;font-weight:600;color:var(--i56-text-secondary);border-bottom:1px solid var(--i56-border);background:var(--i56-bg-base);font-size:11px}
 table.data-table td{padding:8px 10px;border-bottom:1px solid var(--i56-border);color:var(--i56-text-primary)}
 table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
-.cost-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--i56-border)}
-.cost-row:last-child{border-bottom:none;font-weight:600;color:var(--i56-brand)}
-.btn-back{display:inline-block;padding:6px 12px;font-size:12px;background:var(--i56-bg-surface);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:4px;text-decoration:none;margin-bottom:12px;cursor:pointer}
-.btn-back:hover{background:var(--i56-bg-surface-hover)}
+.i56-cost-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--i56-border)}
+.i56-cost-row:last-child{border-bottom:none;font-weight:600;color:var(--i56-brand)}
+.i56-btn-back{display:inline-block;padding:6px 12px;font-size:12px;background:var(--i56-bg-surface);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:4px;text-decoration:none;margin-bottom:12px;cursor:pointer}
+.i56-btn-back:hover{background:var(--i56-bg-surface-hover)}
 </style></head><body>`)
-		fmt.Fprint(w, `<a href="/admin/orders" class="btn-back">&larr; 返回订单列表</a>`)
-		fmt.Fprintf(w, `<div class="card"><div class="card-header">📦 订单详情 — %s</div>`, order.OrderNo)
+		fmt.Fprint(w, `<a href="/admin/orders" class="i56-btn-back">&larr; 返回订单列表</a>`)
+		fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">📦 订单详情 — %s</div>`, order.OrderNo)
 		fmt.Fprint(w, `<div class="tabs">
 <div class="tab active" onclick="switchTab(event,'tab-basic')">基础信息</div>
 <div class="tab" onclick="switchTab(event,'tab-cost')">费用明细</div>
 <div class="tab" onclick="switchTab(event,'tab-parcels')">包裹列表</div>
 <div class="tab" onclick="switchTab(event,'tab-tracking')">单号/状态</div>
 </div>`)
-		fmt.Fprint(w, `<div id="tab-basic" class="tab-content active"><div class="info-grid">`)
+		fmt.Fprint(w, `<div id="tab-basic" class="i56-tab-content active"><div class="info-grid">`)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">订单号</span><span class="info-value">%s</span></div>`, order.OrderNo)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">客户</span><span class="info-value">%s</span></div>`, clientName)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">会员</span><span class="info-value">%s</span></div>`, memberDisplay)
@@ -190,13 +190,13 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">创建时间</span><span class="info-value">%s</span></div>`, order.CreatedAt.Format("2006-01-02 15:04:05"))
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">更新时间</span><span class="info-value">%s</span></div>`, order.UpdatedAt.Format("2006-01-02 15:04:05"))
 		fmt.Fprint(w, `</div></div>`)
-		fmt.Fprint(w, `<div id="tab-cost" class="tab-content"><div class="card" style="margin:0">`)
-		fmt.Fprintf(w, `<div class="cost-row"><span>基础运费 (%.2fkg × ¥%.2f/kg)</span><span>¥%.2f</span></div>`, order.TotalChargeableWeight, func()float64{if route!=nil{return route.BaseWeightPrice};return 0}(), baseFreight)
-		fmt.Fprintf(w, `<div class="cost-row"><span>承运商运输费</span><span>¥%.2f</span></div>`, carrierCost)
-		fmt.Fprintf(w, `<div class="cost-row"><span>附加服务费</span><span>¥%.2f</span></div>`, serviceCost)
-		fmt.Fprintf(w, `<div class="cost-row"><span>合计</span><span>¥%.2f</span></div>`, totalCost)
+		fmt.Fprint(w, `<div id="tab-cost" class="i56-tab-content"><div class="i56-card" style="margin:0">`)
+		fmt.Fprintf(w, `<div class="i56-cost-row"><span>基础运费 (%.2fkg × ¥%.2f/kg)</span><span>¥%.2f</span></div>`, order.TotalChargeableWeight, func()float64{if route!=nil{return route.BaseWeightPrice};return 0}(), baseFreight)
+		fmt.Fprintf(w, `<div class="i56-cost-row"><span>承运商运输费</span><span>¥%.2f</span></div>`, carrierCost)
+		fmt.Fprintf(w, `<div class="i56-cost-row"><span>附加服务费</span><span>¥%.2f</span></div>`, serviceCost)
+		fmt.Fprintf(w, `<div class="i56-cost-row"><span>合计</span><span>¥%.2f</span></div>`, totalCost)
 		fmt.Fprintln(w, `</div></div>`)
-		fmt.Fprint(w, `<div id="tab-parcels" class="tab-content"><table class="data-table"><thead><tr><th>快递单号</th><th>品名</th><th>货类</th><th>实重(kg)</th><th>尺寸(cm)</th><th>数量</th><th>到仓时间</th></tr></thead><tbody>`)
+		fmt.Fprint(w, `<div id="tab-parcels" class="i56-tab-content"><table class="data-table"><thead><tr><th>快递单号</th><th>品名</th><th>货类</th><th>实重(kg)</th><th>尺寸(cm)</th><th>数量</th><th>到仓时间</th></tr></thead><tbody>`)
 		parcelCount := 0
 		for _, p := range allParcels {
 			if p.ClientID == order.ClientID {
@@ -213,7 +213,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 			fmt.Fprint(w, `<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--i56-text-secondary)">暂无包裹数据</td></tr>`)
 		}
 		fmt.Fprint(w, `</tbody></table></div>`)
-		fmt.Fprint(w, `<div id="tab-tracking" class="tab-content"><div class="info-grid">`)
+		fmt.Fprint(w, `<div id="tab-tracking" class="i56-tab-content"><div class="info-grid">`)
 		cn := order.CarrierTrackingNo; if cn == "" { cn = "—" }
 		csn := order.CustomsNumber; if csn == "" { csn = "—" }
 		tn := order.TrackingNumbers; if tn == "" { tn = "—" }
@@ -224,7 +224,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">柜号</span><span class="info-value">%s</span></div>`, containerNo)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">快递单号</span><span class="info-value">%s</span></div>`, tn)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">备注</span><span class="info-value">%s</span></div>`, rm)
-		fmt.Fprint(w, `</div><div class="card" style="margin:0;margin-top:12px"><div class="card-header">📅 状态时间线</div>`)
+		fmt.Fprint(w, `</div><div class="i56-card" style="margin:0;margin-top:12px"><div class="i56-card-header">📅 状态时间线</div>`)
 		fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-brand)">●</span><span>创建订单</span><span style="color:var(--i56-text-muted);margin-left:auto">%s</span></div>`, order.CreatedAt.Format("2006-01-02 15:04"))
 		if order.Status != orderDomain.StatusPendingPicking {
 			fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-success)">●</span><span>状态变更</span><span style="color:var(--i56-text-muted);margin-left:auto">%s → %s</span></div>`, common.OrderStatusCN(string(orderDomain.StatusPendingPicking)), common.OrderStatusCN(string(order.Status)))
@@ -234,7 +234,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		}
 		fmt.Fprint(w, `</div></div>`)
 		fmt.Fprint(w, `</div><script>
-function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');e.target.classList.add('active');var contents=document.querySelectorAll('.tab-content');for(var i=0;i<contents.length;i++)contents[i].classList.remove('active');document.getElementById(id).classList.add('active')}
+function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');e.target.classList.add('active');var contents=document.querySelectorAll('.i56-tab-content');for(var i=0;i<contents.length;i++)contents[i].classList.remove('active');document.getElementById(id).classList.add('active')}
 </script></body></html>`)
 	}))
 

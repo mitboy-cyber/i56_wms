@@ -8,8 +8,6 @@
 }
 .card { background: #1e293b; border-color: #334155; }
 .card-header { background: #1e293b; border-color: #334155; }
-.table { --bs-table-bg: transparent; --bs-table-color: #e2e8f0; }
-.table-dark { --bs-table-bg: #1e293b; }
 .form-control, .form-select { background: #1e293b; border-color: #334155; color: #e2e8f0; }
 .form-control:focus, .form-select:focus { background: #1e293b; border-color: #38bdf8; box-shadow: 0 0 0 0.2rem rgba(56,189,248,0.25); color: #e2e8f0; }
 .btn-info { background: #38bdf8; border-color: #38bdf8; color: #0f172a; font-weight: 600; }

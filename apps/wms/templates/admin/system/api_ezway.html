@@ -11,8 +11,8 @@
 <div class="form-group"><label class="form-label">Base URL</label><input name="base_url" value="{{.BaseURL}}" class="form-input" placeholder="https://ezway.tradevan.com.tw/api/v1"></div>
 <div class="form-group"><label class="form-checkbox"><input type="checkbox" name="is_active" value="true"{{if .IsActive}} checked{{end}}> 启用</label></div>
 <div style="display:flex;gap:8px;margin-top:16px">
-<button type="submit" class="btn btn-primary">💾 保存配置</button>
-<button type="button" class="btn" onclick="testConn()">🔌 测试连接</button></div></form>
+<button type="submit" class="i56-btn i56-btn-primary">💾 保存配置</button>
+<button type="button" class="i56-btn" onclick="testConn()">🔌 测试连接</button></div></form>
 <div id="test-result" style="margin-top:8px"></div>
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--i56-border)">
 <div style="font-size:12px"><div style="color:var(--i56-text-secondary)">API 文档</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">https://ezway.tradevan.com.tw</div></div>

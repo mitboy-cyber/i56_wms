@@ -348,14 +348,14 @@ func Register(
 .info-label{color:var(--i56-text-secondary);min-width:80px;flex-shrink:0}
 .info-value{color:var(--i56-text-primary);font-weight:500}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:12px}
-.stat-card{background:var(--i56-bg-base);border:1px solid var(--i56-border);border-radius:6px;padding:12px;text-align:center}
-.stat-value{font-size:24px;font-weight:700;color:var(--i56-brand)}
-.stat-label{font-size:11px;color:var(--i56-text-secondary);margin-top:4px}
-.btn-back{display:inline-block;padding:6px 12px;font-size:12px;background:var(--i56-bg-surface);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:4px;text-decoration:none;margin-bottom:12px;cursor:pointer}
-.btn-back:hover{background:var(--i56-bg-surface-hover)}
+.i56-stat-card{background:var(--i56-bg-base);border:1px solid var(--i56-border);border-radius:6px;padding:12px;text-align:center}
+.i56-stat-value{font-size:24px;font-weight:700;color:var(--i56-brand)}
+.i56-stat-label{font-size:11px;color:var(--i56-text-secondary);margin-top:4px}
+.i56-btn-back{display:inline-block;padding:6px 12px;font-size:12px;background:var(--i56-bg-surface);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:4px;text-decoration:none;margin-bottom:12px;cursor:pointer}
+.i56-btn-back:hover{background:var(--i56-bg-surface-hover)}
 </style></head><body>`)
-		fmt.Fprint(w, `<a href="/admin/warehouses" class="btn-back">&larr; 返回仓库列表</a>`)
-		fmt.Fprintf(w, `<div class="card"><div class="card-header">🏭 仓库详情 — %s</div>`, wh.Name)
+		fmt.Fprint(w, `<a href="/admin/warehouses" class="i56-btn-back">&larr; 返回仓库列表</a>`)
+		fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">🏭 仓库详情 — %s</div>`, wh.Name)
 		fmt.Fprint(w, `<div class="section"><div class="section-title">📋 基本信息</div><div class="info-grid">`)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">仓库名</span><span class="info-value">%s</span></div>`, wh.Name)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">编码</span><span class="info-value">%s</span></div>`, wh.Code)
@@ -365,11 +365,11 @@ func Register(
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, common.StatusLabelText(wh.IsActive))
 		fmt.Fprint(w, `</div></div>`)
 		fmt.Fprint(w, `<div class="section"><div class="section-title">📦 包裹统计</div><div class="stat-grid">`)
-		fmt.Fprintf(w, `<div class="stat-card"><div class="stat-value">%d</div><div class="stat-label">库存总量</div></div>`, whParcels)
-		fmt.Fprintf(w, `<div class="stat-card"><div class="stat-value">%d</div><div class="stat-label">已上架</div></div>`, stored)
-		fmt.Fprintf(w, `<div class="stat-card"><div class="stat-value">%d</div><div class="stat-label">已拣货</div></div>`, picked)
-		fmt.Fprintf(w, `<div class="stat-card"><div class="stat-value">%d</div><div class="stat-label">已打包</div></div>`, packed)
-		fmt.Fprintf(w, `<div class="stat-card"><div class="stat-value">%d</div><div class="stat-label">已出库</div></div>`, shipped)
+		fmt.Fprintf(w, `<div class="i56-stat-card"><div class="i56-stat-value">%d</div><div class="i56-stat-label">库存总量</div></div>`, whParcels)
+		fmt.Fprintf(w, `<div class="i56-stat-card"><div class="i56-stat-value">%d</div><div class="i56-stat-label">已上架</div></div>`, stored)
+		fmt.Fprintf(w, `<div class="i56-stat-card"><div class="i56-stat-value">%d</div><div class="i56-stat-label">已拣货</div></div>`, picked)
+		fmt.Fprintf(w, `<div class="i56-stat-card"><div class="i56-stat-value">%d</div><div class="i56-stat-label">已打包</div></div>`, packed)
+		fmt.Fprintf(w, `<div class="i56-stat-card"><div class="i56-stat-value">%d</div><div class="i56-stat-label">已出库</div></div>`, shipped)
 		fmt.Fprint(w, `</div></div>`)
 		fmt.Fprint(w, `</div></body></html>`)
 	}))
@@ -423,7 +423,7 @@ func Register(
 				result := cargoClassifier.Classify(p.ProductName)
 				if result.Category != "" && result.Category != "general" {
 					aiCN := classifier.CategoryCN(result.Category)
-					cargoCN = fmt.Sprintf(`%s <span class="badge badge-brand" title="AI 建议">AI: %s</span>`, cargoCN, aiCN)
+					cargoCN = fmt.Sprintf(`%s <span class="i56-badge i56-badge-brand" title="AI 建议">AI: %s</span>`, cargoCN, aiCN)
 				}
 			}
 			dims := "—"
@@ -1357,34 +1357,34 @@ func formBuild(parts ...string) string {
 func buildConsoleHTML(inbound, outbound, picked, packed, shipped, pendingWOs int, staffFeed string) string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`<div class="console-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">📦 今日入库</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-brand)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">已入库包裹数</div></div>
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">🚛 今日出库</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-success)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">已出库包裹数</div></div>
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">📋 拣货中</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-warning)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">待拣货包裹</div></div>
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">📦 打包中</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-info)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">待打包包裹</div></div>
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">🚢 已发运</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-primary)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">已装柜/出库包裹</div></div>
-<div class="stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
+<div class="i56-stat-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px">
 <div style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:8px">🔧 待处理工单</div>
 <div style="font-size:32px;font-weight:700;color:var(--i56-danger)">%d</div>
 <div style="font-size:11px;color:var(--i56-text-muted);margin-top:4px">进行中工单数</div></div>
 </div>`, inbound, outbound, picked, packed, shipped, pendingWOs))
 
 	// Zone tasks table
-	b.WriteString(`<div class="card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-top:12px">
+	b.WriteString(`<div class="i56-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-top:12px">
 <div style="font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px">🏗️ 区域任务概览</div>
 <table style="width:100%;border-collapse:collapse;font-size:12px">
 <thead><tr style="border-bottom:1px solid var(--i56-border)">
@@ -1403,12 +1403,12 @@ func buildConsoleHTML(inbound, outbound, picked, packed, shipped, pendingWOs int
 		{"D区-出库区", 2, 4},
 	}
 	for _, z := range zones {
-		b.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--i56-border-subtle)"><td style="padding:8px 12px;color:var(--i56-text-primary)">%s</td><td style="text-align:center;padding:8px 12px"><span class="badge badge-warning">%d</span></td><td style="text-align:center;padding:8px 12px"><span class="badge badge-info">%d</span></td></tr>`, z.Name, z.Pending, z.InProgress))
+		b.WriteString(fmt.Sprintf(`<tr style="border-bottom:1px solid var(--i56-border-subtle)"><td style="padding:8px 12px;color:var(--i56-text-primary)">%s</td><td style="text-align:center;padding:8px 12px"><span class="i56-badge i56-badge-warning">%d</span></td><td style="text-align:center;padding:8px 12px"><span class="i56-badge i56-badge-info">%d</span></td></tr>`, z.Name, z.Pending, z.InProgress))
 	}
 	b.WriteString(`</tbody></table></div>`)
 
 	// Staff activity
-	b.WriteString(`<div class="card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-top:12px">
+	b.WriteString(`<div class="i56-card" style="background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-top:12px">
 <div style="font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px">👷 员工动态</div>
 <div style="font-size:12px;color:var(--i56-text-secondary);line-height:1.8">`)
 	b.WriteString(staffFeed)

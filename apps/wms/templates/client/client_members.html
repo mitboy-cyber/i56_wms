@@ -7,7 +7,7 @@
 <thead><tr><th>會員编号</th><th>昵称</th><th>电话</th><th>状态</th></tr></thead>
 <tbody>
 {{if .Members}}{{range .Members}}
-<tr><td>{{.MemberCode}}</td><td>{{.Name}}</td><td>{{.Phone}}</td><td><span class="badge badge-success">{{if .Active}}启用{{else}}停用{{end}}</span></td></tr>
+<tr><td>{{.MemberCode}}</td><td>{{.Name}}</td><td>{{.Phone}}</td><td><span class="i56-badge i56-badge-success">{{if .Active}}启用{{else}}停用{{end}}</span></td></tr>
 {{end}}{{else}}<tr><td colspan="4" class="empty-state">暂无会员</td></tr>{{end}}
 </tbody></table></div>
 {{end}}

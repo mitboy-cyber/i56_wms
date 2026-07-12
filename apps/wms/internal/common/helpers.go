@@ -92,7 +92,7 @@ func FormSave(action string) string {
 
 // FormFooter closes a modal form with cancel and submit buttons.
 func FormFooter() string {
-	return `<div class="modal-footer"><button type="button" class="btn" onclick="closeI56Modal()">取消</button><button type="submit" class="btn btn-primary">保存</button></div></form>`
+	return `<div class="modal-footer"><button type="button" class="i56-btn" onclick="closeI56Modal()">取消</button><button type="submit" class="i56-btn i56-btn-primary">保存</button></div></form>`
 }
 
 // ===================================================================
@@ -269,7 +269,7 @@ func RenderAdminPage(w http.ResponseWriter, title, breadcrumb, content string) {
       I56 Admin <span style="color:var(--i56-text-muted);margin:0 4px">/</span> <span>`+breadcrumb+`</span>
     </div>
     <div class="header-actions">
-      <button class="btn btn-sm btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
+      <button class="i56-btn i56-btn-sm i56-btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
     </div>
   </header>
   <main class="app-content">

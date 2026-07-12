@@ -137,7 +137,7 @@ func registerBFT56Modules(
 		return fmt.Sprintf(`<form hx-post="%s" hx-swap="none">`, action)
 	}
 	formFooter := func() string {
-		return `<div class="modal-footer"><button type="button" class="btn" onclick="this.closest('.modal-overlay').remove()">取消</button><button type="submit" class="btn btn-primary">保存</button></div></form>`
+		return `<div class="modal-footer"><button type="button" class="i56-btn" onclick="this.closest('.modal-overlay').remove()">取消</button><button type="submit" class="i56-btn i56-btn-primary">保存</button></div></form>`
 	}
 	htmlOK := func(w http.ResponseWriter) { w.Header().Set("Content-Type", "text/html; charset=utf-8") }
 	redirect := func(w http.ResponseWriter, url string) { w.Header().Set("HX-Redirect", url); w.WriteHeader(200) }
@@ -496,13 +496,13 @@ func registerBFT56Modules(
 .form-input{width:100%%;padding:8px 10px;font-size:13px;background:var(--i56-bg-base);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:6px}
 .btn-primary{background:var(--i56-brand);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;cursor:pointer;width:100%}
 .btn-primary:hover{opacity:.9}
-</style></head><body><div class="card"><h3>💰 客户充值</h3>
+</style></head><body><div class="i56-card"><h3>💰 客户充值</h3>
 <form hx-post="/admin/client-recharge" hx-swap="none">
 <div class="form-group"><label class="form-label">客户</label><select name="client_id" class="form-input">`+clientOpts+`</select></div>
 <div class="form-group"><label class="form-label">充值金额 (元)</label><input name="amount" class="form-input" type="number" step="0.01" placeholder="充值金额"></div>
 <div class="form-group"><label class="form-label">支付方式</label><select name="method" class="form-input"><option value="bank_transfer">银行转账</option><option value="wechat">微信支付</option><option value="alipay">支付宝</option><option value="cash">现金</option></select></div>
 <div class="form-group"><label class="form-label">备注</label><input name="description" class="form-input" placeholder="备注信息"></div>
-<button type="submit" class="btn-primary">确认充值</button>
+<button type="submit" class="i56-btn i56-btn-primary">确认充值</button>
 </form></div></body></html>`)
 	}))
 	r.POST("/admin/client-recharge", a(func(w http.ResponseWriter, req *http.Request) {
@@ -1627,7 +1627,7 @@ func bftParcelTable(parcels []parcelDomain.Parcel, maxRows int) string {
 		if i >= maxRows { break }
 		dims := fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height)
 		if p.Length == 0 { dims = "—" }
-		h += fmt.Sprintf(`<tr><td>%s</td><td>%s</td><td><span class="badge badge-brand">%s</span></td><td>%.2f</td><td>%s</td></tr>`,
+		h += fmt.Sprintf(`<tr><td>%s</td><td>%s</td><td><span class="i56-badge i56-badge-brand">%s</span></td><td>%.2f</td><td>%s</td></tr>`,
 			p.TrackingNumber, p.ProductName, bftParcelStatus(string(p.Status)), p.ActualWeight, dims)
 	}
 	if len(parcels) == 0 {
@@ -1665,7 +1665,7 @@ func bftOrderFormHTML(id int64, orderNo, recipient string, routeID int, remark, 
 		fmt.Sprintf(`<form hx-post="/admin/orders/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       <input type="hidden" name="id" value="%d">
       %s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`, id,
 			bftFormField("收件人", "recipient_name", recipient, "收件人姓名"),
 			bftFormField("路线ID", "route_id", fmt.Sprintf("%d", routeID), "路线编号"),
@@ -1679,7 +1679,7 @@ func bftWarehouseFormHTML(name, code, address, contact, phone, mode string) stri
 	return bftFormCard(title, "building",
 		fmt.Sprintf(`<form hx-post="/admin/warehouses/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("仓库名", "name", name, "仓库名称"),
 			bftFormField("编码", "code", code, "仓库编码"),
@@ -1695,7 +1695,7 @@ func bftCarrierFormHTML(name, code, customsPoint, deliveryMethod, deliveryPrice,
 	return bftFormCard(title, "truck-flatbed",
 		fmt.Sprintf(`<form hx-post="/admin/carriers/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("承运商名称", "name", name, ""),
 			bftFormField("编码", "code", code, ""),
@@ -1712,7 +1712,7 @@ func bftCourierFormHTML(name, code, region, mode string) string {
 	return bftFormCard(title, "truck",
 		fmt.Sprintf(`<form hx-post="/admin/couriers/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("名称", "name", name, "快递公司名称"),
 			bftFormField("代码", "code", code, "快递公司代码"),
@@ -1726,7 +1726,7 @@ func bftShippingFormHTML(name, code, transportType, contact, phone, mode string)
 	return bftFormCard(title, "truck",
 		fmt.Sprintf(`<form hx-post="/admin/shipping-providers/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("名称", "name", name, ""),
 			bftFormField("编码", "code", code, ""),
@@ -1742,7 +1742,7 @@ func bftClientFormHTML(name, code, clientType, contactName, contactPhone, contac
 	return bftFormCard(title, "people",
 		fmt.Sprintf(`<form hx-post="/admin/clients/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("客户名称", "name", name, ""),
 			bftFormField("编码", "code", code, ""),
@@ -1759,7 +1759,7 @@ func bftClientUserFormHTML(clientID, username, role, email, mode string) string 
 	return bftFormCard(title, "person-lock",
 		fmt.Sprintf(`<form hx-post="/admin/client-users/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("客户ID", "client_id", clientID, ""),
 			bftFormField("账号", "username", username, ""),
@@ -1775,7 +1775,7 @@ func bftMemberFormHTML(name, phone, email, memberCode string, clientID int64, mo
 		fmt.Sprintf(`<form hx-post="/admin/client-members/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       <input type="hidden" name="client_id" value="%d">
       %s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`, clientID,
 			bftFormField("姓名", "name", name, ""),
 			bftFormField("手机", "phone", phone, ""),
@@ -1790,7 +1790,7 @@ func bftPricingFormHTML(client, route, cargoType, taxType, weightPrice, volumePr
 	return bftFormCard(title, "currency-exchange",
 		fmt.Sprintf(`<form hx-post="/admin/client-pricing/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("客户", "client", client, ""),
 			bftFormField("线路", "route", route, ""),
@@ -1808,7 +1808,7 @@ func bftNotificationFormHTML(chanType, name, config, mode string) string {
 	return bftFormCard(title, "bell",
 		fmt.Sprintf(`<form hx-post="/admin/notifications/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("渠道类型", "type", chanType, "email/sms/webhook"),
 			bftFormField("名称", "name", name, "渠道名称"),
@@ -1823,7 +1823,7 @@ func bftPrintFormHTML(name, templateType, mode string) string {
 		fmt.Sprintf(`<form hx-post="/admin/print-templates/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s
       <div style="width:100%%;margin:4px"><label style="display:block;font-size:11px;color:var(--i56-text-secondary);margin-bottom:4px">模板内容</label><textarea name="content" style="width:100%%;padding:6px 8px;font-size:12px;background:var(--i56-bg-base);color:var(--i56-text-primary);border:1px solid var(--i56-border);border-radius:4px" rows="4"></textarea></div>
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("模板名", "name", name, "模板名称"),
 			bftFormField("类型", "type", templateType, "waybill/customs/carrier"),
@@ -1836,7 +1836,7 @@ func bftDispatchFormHTML(warehouse, taskType, dispatchMethod, batchSize, trigger
 	return bftFormCard(title, "sliders",
 		fmt.Sprintf(`<form hx-post="/admin/task-dispatch/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("仓库", "warehouse", warehouse, "厦门仓"),
 			bftFormField("任务类型", "task_type", taskType, "收货/拣货"),
@@ -1852,7 +1852,7 @@ func bftBrokerFormHTML(name string, code, brokerNum, prefix, country, points, co
 	return bftFormCard(title, "shield-check",
 		fmt.Sprintf(`<form hx-post="/admin/customs-brokers/save" hx-swap="none" style="display:flex;flex-wrap:wrap\u003b margin:-4px">
       %s%s%s%s%s%s%s
-      <div style="width:100%%;margin-top:8px"><button type="submit" class="btn btn-primary">保存</button></div>
+      <div style="width:100%%;margin-top:8px"><button type="submit" class="i56-btn i56-btn-primary">保存</button></div>
     </form>`,
 			bftFormField("名称", "name", name, ""),
 			bftFormField("代码", "code", code, ""),

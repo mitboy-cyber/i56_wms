@@ -93,7 +93,7 @@ func registerAdminCRUD(
 		return fmt.Sprintf(`<form hx-post="%s" hx-swap="none">`, action)
 	}
 	formFooter := func() string {
-		return `<div class="modal-footer"><button type="button" class="btn" onclick="this.closest('.modal-overlay').remove()">取消</button><button type="submit" class="btn btn-primary">保存</button></div></form>`
+		return `<div class="modal-footer"><button type="button" class="i56-btn" onclick="this.closest('.modal-overlay').remove()">取消</button><button type="submit" class="i56-btn i56-btn-primary">保存</button></div></form>`
 	}
 	htmlOK := func(w http.ResponseWriter) { w.Header().Set("Content-Type", "text/html; charset=utf-8") }
 	redirect := func(w http.ResponseWriter, url string) { w.Header().Set("HX-Redirect", url); w.WriteHeader(200) }

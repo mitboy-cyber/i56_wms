@@ -7,36 +7,36 @@
 {{if .Periods}}
 <div class="mb-3 flex" style="align-items:center;gap:8px;flex-wrap:wrap">
   <span style="font-size:11px;color:var(--i56-text-secondary)">选择账期：</span>
-  <a href="/client/monthly-statements" class="btn btn-sm{{if eq .PeriodFilter ""}} btn-primary{{end}}">全部</a>
+  <a href="/client/monthly-statements" class="i56-btn i56-btn-sm{{if eq .PeriodFilter ""}} i56-btn-primary{{end}}">全部</a>
   {{range .Periods}}
-  <a href="/client/monthly-statements?period={{.}}" class="btn btn-sm{{if eq $.PeriodFilter .}} btn-primary{{end}}">{{.}}</a>
+  <a href="/client/monthly-statements?period={{.}}" class="i56-btn i56-btn-sm{{if eq $.PeriodFilter .}} i56-btn-primary{{end}}">{{.}}</a>
   {{end}}
 </div>
 {{end}}
 
 {{if .Statements}}
 {{range .Statements}}
-<div class="section-card mb-3">
+<div class="i56-card">
   <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:12px">
     <div>
       <span style="font-size:15px;font-weight:700">{{.Period}}</span>
       <span style="font-size:11px;color:var(--i56-text-secondary);margin-left:8px">账单</span>
     </div>
     <div class="btn-group">
-      <button class="btn btn-sm" onclick="alert('PDF 下载功能即将上线')">📥 下载PDF</button>
+      <button class="i56-btn i56-btn-sm" onclick="alert('PDF 下载功能即将上线')">📥 下载PDF</button>
     </div>
   </div>
 
   <div class="stat-grid mb-3">
-    <div class="stat-card">
+    <div class="i56-card">
       <div class="stat-label">运费合计</div>
       <div class="stat-value" style="font-size:18px">¥{{.Freight}}</div>
     </div>
-    <div class="stat-card">
+    <div class="i56-card">
       <div class="stat-label">服务费</div>
       <div class="stat-value" style="font-size:18px">¥{{.ServiceFee}}</div>
     </div>
-    <div class="stat-card">
+    <div class="i56-card">
       <div class="stat-label">应付合计</div>
       <div class="stat-value" style="font-size:18px;color:var(--i56-brand)">¥{{.Total}}</div>
       <div class="stat-delta">{{.OrderCount}}笔订单 · {{.ParcelCount}}个包裹</div>
@@ -62,7 +62,7 @@
         <td class="inline-code">{{.OrderNo}}</td>
         <td>{{.Date}}</td>
         <td>{{.Weight}}</td>
-        <td><span class="badge badge-info">{{.Type}}</span></td>
+        <td><span class="i56-badge i56-badge-info">{{.Type}}</span></td>
         <td style="text-align:right;font-weight:600">{{.Amount}}</td>
       </tr>
       {{end}}

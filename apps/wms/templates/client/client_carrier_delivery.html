@@ -5,7 +5,7 @@
 <div class="page-subtitle">按清关点×区域×派送方式分组的承运商派送价格矩阵</div>
 
 {{if .DeliveryFees}}
-<div class="section-card">
+<div class="i56-card">
   <table class="data-table">
     <thead><tr><th>承运商</th><th>清关点</th><th>区域</th><th>派送方式</th><th>条件</th><th>价格 (¥)</th><th>免运费门槛</th></tr></thead>
     <tbody>
@@ -14,10 +14,10 @@
       <td><strong>{{.Carrier}}</strong></td>
       <td>{{.CustomsPoint}}</td>
       <td>{{.Area}}</td>
-      <td><span class="badge badge-{{if eq .DeliveryType "專車"}}warning{{else}}primary{{end}}">{{.DeliveryType}}</span></td>
+      <td><span class="i56-badge i56-badge-{{if eq .DeliveryType "專車"}}warning{{else}}primary{{end}}">{{.DeliveryType}}</span></td>
       <td style="font-size:11px;color:var(--i56-text-secondary)">{{.Condition}}</td>
       <td style="font-weight:600;color:var(--i56-brand)">¥{{.Price}}</td>
-      <td>{{if .FreeThreshold}}<span class="badge badge-success">{{.FreeThreshold}}</span>{{else}}—{{end}}</td>
+      <td>{{if .FreeThreshold}}<span class="i56-badge i56-badge-success">{{.FreeThreshold}}</span>{{else}}—{{end}}</td>
     </tr>
     {{end}}
     </tbody>
@@ -25,7 +25,7 @@
 </div>
 
 <!-- Weight Tier Matrix -->
-<div class="section-card mt-3">
+<div class="i56-card mt-3">
   <h3 style="font-size:13px;font-weight:600;margin-bottom:12px">📊 计重阶梯参考</h3>
   <div class="code-block" style="font-size:10px">
 ┌────────────┬──────────────────────────────────────┐
@@ -42,7 +42,7 @@
   </div>
 </div>
 
-<div class="section-card mt-3">
+<div class="i56-card mt-3">
   <h3 style="font-size:13px;font-weight:600;margin-bottom:8px">💡 说明</h3>
   <ul style="font-size:11px;color:var(--i56-text-secondary);padding-left:16px;line-height:1.8">
     <li>派送价按清关点、区域和派送方式三个维度确定</li>

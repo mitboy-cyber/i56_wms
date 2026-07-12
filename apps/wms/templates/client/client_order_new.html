@@ -16,7 +16,7 @@
   <td><input type="checkbox" name="parcel_ids" value="{{.ID}}" class="form-input" style="width:18px;height:18px"></td>
   <td>{{.TrackingNumber}}</td><td>{{.ProductName}}</td>
   <td>{{printf "%.2f" .ActualWeight}}kg</td>
-  <td><span class="badge badge-success">已上架</span></td>
+  <td><span class="i56-badge i56-badge-success">已上架</span></td>
   <td>{{.LocationCode}}</td>
 </tr>
 {{end}}{{else}}
@@ -50,8 +50,8 @@
 </div>
 
 <div style="display:flex;gap:12px">
-<button type="submit" class="btn btn-primary" style="padding:12px 32px">📋 提交订单</button>
-<a href="/client/orders" class="btn" style="padding:12px 32px">取消</a>
+<button type="submit" class="i56-btn i56-btn-primary" style="padding:12px 32px">📋 提交订单</button>
+<a href="/client/orders" class="i56-btn" style="padding:12px 32px">取消</a>
 </div>
 </form>
 {{end}}
