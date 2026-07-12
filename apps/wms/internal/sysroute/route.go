@@ -709,9 +709,13 @@ func Register(
 		}
 		if len(rows) == 0 {
 			rows = [][]string{
-				{"1", "company_name", "I56集运通", "string", "general", "公司名称", "07-01 10:00"},
-				{"2", "max_parcel_weight", "30", "number", "parcel", "最大包裹重量(kg)", "07-01 10:00"},
-				{"3", "default_currency", "CNY", "string", "general", "默认货币", "07-01 10:00"},
+				{"1", "company_name", "I56集运通", "string", "branding", "公司名称", "07-01 10:00"},
+				{"2", "company_logo", "I", "string", "branding", "Logo文字", "07-01 10:00"},
+				{"3", "footer_text", "© 2026 I56 Framework. All rights reserved.", "string", "branding", "页脚版权", "07-01 10:00"},
+				{"4", "primary_color", "#1D4ED8", "string", "branding", "主题色", "07-01 10:00"},
+				{"5", "max_parcel_weight", "30", "number", "parcel", "最大包裹重量(kg)", "07-01 10:00"},
+				{"6", "default_currency", "CNY", "string", "general", "默认货币", "07-01 10:00"},
+				{"7", "app_version", "2.4.0", "string", "general", "系统版本", "07-12 15:00"},
 			}
 		}
 		gp(w, "sys_params", "系统参数", len(rows),

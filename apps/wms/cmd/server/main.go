@@ -64,6 +64,12 @@ import (
 	wmsroute "github.com/i56/i56-apps/i56-wms/internal/wmsroute"
 )
 
+
+// ─── Framework Version ───
+const I56Version = "2.4.0"
+const I56Name = "I56 Framework"
+const I56Copyright = "© 2026 I56 Framework. All rights reserved."
+
 func main() {
 	// JWT service with Ed25519
 	jwtSvc, err := jpkg.NewService("i56-framework")
@@ -156,7 +162,7 @@ func main() {
 	// ★ OpenAPI Generator
 	openapiGen := router.NewOpenAPIGenerator(router.OpenAPIInfo{
 	Title:   "I56 Framework API",
-	Version: "2.3.0",
+	Version: I56Version,
 	Description: "I56 WMS Framework — Warehouse Management System API",
 	})
 
@@ -284,7 +290,7 @@ func main() {
 		deps := "in-memory"
 		if dbAvailable { deps = "postgres" }
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"data":{"name":"I56 Framework","version":"2.0.0","status":"ok","ai":"active","deps":"` + deps + `"}}`))
+		w.Write([]byte(`{"data":{"name":"I56 Framework","version":"2.4.0","status":"ok","ai":"active","deps":"` + deps + `"}}`))
 	})
 
 	// SSE endpoint (real-time events)
@@ -370,7 +376,7 @@ func main() {
 	}))
 
 	// Start
-	log.Println("I56 Framework 2.0.0 listening on :8080")
+	log.Println("I56 Framework 2.4.0 listening on :8080")
 	srv := &http.Server{Addr: ":8080", Handler: r}
 	go func() {
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
