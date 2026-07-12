@@ -226,17 +226,17 @@ func registerClientP01Routes(
 		declarants, _, _ := dr.List(req.Context(), 1, 0, 50)
 		declMaps := make([]map[string]any, 0, len(declarants))
 		for _, d := range declarants {
-			typeStr := "個人"
+			typeStr := "个人"
 			if d.Type == custDomain.DeclarantCompany {
 				typeStr = "公司"
 			}
-			authStr := "等待認證"
+			authStr := "等待认证"
 			if d.AuthStatus == custDomain.AuthVerified {
-				authStr = "認證成功"
+				authStr = "认证成功"
 			} else if d.AuthStatus == custDomain.AuthFailed {
-				authStr = "認證失敗"
+				authStr = "认证失败"
 			} else if d.AuthStatus == custDomain.AuthVerifying {
-				authStr = "認證中"
+				authStr = "认证中"
 			}
 			declMaps = append(declMaps, map[string]any{
 				"ID":         d.ID,
@@ -312,7 +312,7 @@ func registerClientP01Routes(
 			addrMaps = append(addrMaps, map[string]any{
 				"Name":      a.RecipientName,
 				"Phone":     a.Phone,
-				"Country":   "台灣",
+				"Country":   "台湾",
 				"City":      a.City,
 				"Address":   a.Address,
 				"IsDefault": a.IsDefault,

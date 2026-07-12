@@ -1,0 +1,161 @@
+version: "3.8"
+
+# I56 Framework v2.3 — Production-grade Docker Compose
+# All services: PostgreSQL, Redis, MinIO, RabbitMQ, I56 Server, Device Gateway
+
+services:
+  # ─── PostgreSQL 16 — Primary database ───
+  postgres:
+    image: postgres:16-alpine
+    container_name: i56-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: i56
+      POSTGRES_PASSWORD: i56_secret
+      POSTGRES_DB: i56
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../init/01-postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U i56"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - i56-net
+
+  # ─── Redis 7 — Cache & Session Store ───
+  redis:
+    image: redis:7-alpine
+    container_name: i56-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - i56-net
+
+  # ─── MinIO — S3-compatible object storage ───
+  minio:
+    image: minio/minio:latest
+    container_name: i56-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: i56_admin
+      MINIO_ROOT_PASSWORD: i56_minio_secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+      - ../init/02-minio-init.sh:/init.sh:ro
+    entrypoint: >
+      /bin/sh -c "
+        minio server /data --console-address ':9001' &
+        sleep 5
+        mc alias set local http://localhost:9000 i56_admin i56_minio_secret
+        mc mb local/i56-uploads --ignore-existing
+        mc mb local/i56-backups --ignore-existing
+        mc mb local/i56-logs --ignore-existing
+        mc anonymous set download local/i56-uploads
+        wait
+      "
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - i56-net
+
+  # ─── RabbitMQ 3 — Message broker for event bus ───
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: i56-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: i56
+      RABBITMQ_DEFAULT_PASS: i56_rabbit_secret
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ../init/03-rabbitmq-init.sh:/init.sh:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - i56-net
+
+  # ─── I56 WMS Server — Main application ───
+  i56-server:
+    build:
+      context: ../../apps/wms
+      dockerfile: Dockerfile
+    container_name: i56-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://i56:i56_secret@postgres:5432/i56?sslmode=disable
+      REDIS_ADDR: redis:6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: i56_admin
+      MINIO_SECRET_KEY: i56_minio_secret
+      RABBITMQ_URL: amqp://i56:i56_rabbit_secret@rabbitmq:5672/
+      APP_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - i56-net
+
+  # ─── I56 Device Gateway — Hardware device bridge ───
+  i56-device-gateway:
+    build:
+      context: ../../apps/device-gateway
+      dockerfile: Dockerfile
+    container_name: i56-device-gateway
+    restart: unless-stopped
+    ports:
+      - "9080:9080"
+    environment:
+      I56_SERVER_URL: http://i56-server:8080
+      REDIS_ADDR: redis:6379
+      DEVICE_PORT: "9080"
+    depends_on:
+      - i56-server
+      - redis
+    networks:
+      - i56-net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  i56-net:
+    driver: bridge

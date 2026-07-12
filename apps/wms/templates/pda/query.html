@@ -11,9 +11,10 @@
   </div>
 
   <div class="pda-card">
-    <form method="POST" action="/pda/query" id="query-form">
-      <input type="text" name="tracking_no" class="pda-input scanning" placeholder="输入或扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
+    <form id="scan-form" onsubmit="return false">
+      <input type="text" name="scan" class="pda-input scanning" placeholder="输入或扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
     </form>
+    <div id="scan-result" style="display:none;margin-top:8px;text-align:center"></div>
   </div>
 
   {{if .Error}}
@@ -21,6 +22,9 @@
     <div style="font-size:13px;color:var(--pda-danger);text-align:center">{{.Error}}</div>
   </div>
   {{end}}
+
+  <!-- JS-rendered results container -->
+  <div id="query-results"></div>
 
   {{if .Parcel}}
   <div class="pda-card" style="border-color:var(--pda-brand)">
@@ -83,4 +87,48 @@
 
   {{end}}
 </div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var scanForm=document.querySelector('#scan-form');
+  if(scanForm){
+    scanForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var inp=scanForm.querySelector('input');
+      var val=inp.value.trim();
+      if(!val)return;
+      inp.disabled=true;
+      var rDiv=document.getElementById('scan-result');
+      if(rDiv){rDiv.style.display='block';rDiv.innerHTML='<span style="color:var(--pda-warning)">查询中...</span>';}
+      var res=await pdaApi('/api/v1/pda/query?tracking_no='+encodeURIComponent(val));
+      inp.disabled=false;
+      var qDiv=document.getElementById('query-results');
+      if(res&&!res._error&&res.data&&res.data.parcel){
+        scanFeedback(inp,true);
+        var p=res.data.parcel;
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-success);font-weight:600">✓ '+p.ProductName+' ('+p.TrackingNumber+') - '+p.Status+'</span>';
+        // Render parcel info
+        var html='<div class="pda-card" style="border-color:var(--pda-brand)">';
+        html+='<div class="pda-parcel-header"><span>'+(p.ProductName||'包裹')+'</span><span class="pda-status" style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:11px;padding:3px 10px;border-radius:10px">'+p.Status+'</span></div>';
+        html+='<div class="pda-parcel-tn" style="font-size:14px;margin-top:4px">'+p.TrackingNumber+'</div></div>';
+        html+='<div class="pda-card"><div class="pda-card-header">📦 包裹信息</div>';
+        html+='<div class="pda-info-row"><span class="key">产品名称</span><span class="val">'+(p.ProductName||'—')+'</span></div>';
+        html+='<div class="pda-info-row"><span class="key">快递公司</span><span class="val">'+(p.CourierCode||'—')+'</span></div>';
+        html+='<div class="pda-info-row"><span class="key">实际重量</span><span class="val">'+(p.ActualWeight||0).toFixed(2)+' kg</span></div>';
+        html+='<div class="pda-info-row"><span class="key">尺寸</span><span class="val">'+Math.round(p.Length||0)+' × '+Math.round(p.Width||0)+' × '+Math.round(p.Height||0)+' cm</span></div>';
+        if(p.LocationCode) html+='<div class="pda-info-row"><span class="key">库位</span><span class="val pda-highlight">'+p.LocationCode+'</span></div>';
+        html+='<div class="pda-info-row"><span class="key">状态</span><span class="val"><span class="pda-status" style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:11px">'+p.Status+'</span></span></div>';
+        html+='</div></div>';
+        if(qDiv)qDiv.innerHTML=html;
+        setTimeout(function(){inp.value='';inp.focus();},500);
+      }else{
+        scanFeedback(inp,false);
+        var errMsg=res?res._error:'未找到包裹';
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-danger)">✗ '+errMsg+'</span>';
+        if(qDiv)qDiv.innerHTML='';
+        setTimeout(function(){inp.value='';inp.focus();},1500);
+      }
+    });
+  }
+});
+</script>
 {{end}}

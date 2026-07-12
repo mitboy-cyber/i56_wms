@@ -26,7 +26,7 @@ func (s *PDAService) Login(code,pin,deviceID string)(*domain.Session,error){
 func (s *PDAService) ReceiveParcel(ctx context.Context,sessionToken,trackingNo string,weight,length,width,height float64)(*parcelDomain.Parcel,error){
 	sess:=s.pdaRepo.ValidateSession(sessionToken)
 	if sess==nil{return nil,fmt.Errorf("会话已过期")}
-	op:=s.pdaRepo.GetOperatorByCode("OP001") // simplified
+	op:=s.pdaRepo.GetOperatorByID(sess.OperatorID)
 	p,err:=s.parcelRepo.GetByTrackingNo(ctx,1,trackingNo)
 	if err!=nil||p==nil{return nil,fmt.Errorf("包裹不存在: %s",trackingNo)}
 	if p.Status!=parcelDomain.StatusPreDeclared{return nil,fmt.Errorf("包裹状态为%s，无法入库",p.Status)}

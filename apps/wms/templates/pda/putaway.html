@@ -54,9 +54,15 @@
   <div class="pda-card">
     <div style="text-align:center;font-size:48px;margin-bottom:12px">📍</div>
     <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描已收货包裹进行上架</div>
-    <form method="GET" action="/pda/putaway" id="scan-form">
+    <form id="scan-form" onsubmit="return false">
       <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
     </form>
+    <div id="putaway-section" style="display:none;margin-top:12px">
+      <div class="text-sm text-muted mb-2" style="font-weight:600;text-align:center">扫描目标库位条码</div>
+      <input type="text" id="location-input" class="pda-input scanning" placeholder="扫描或输入库位编号..." style="font-size:18px;text-align:center">
+      <button id="putaway-confirm-btn" class="pda-btn pda-btn-success pda-btn-lg mt-2">✅ 确认上架</button>
+    </div>
+    <div id="scan-result" style="display:none;margin-top:8px;text-align:center"></div>
   </div>
   {{end}}
 
@@ -77,4 +83,64 @@
   </div>
   {{end}}
 </div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var scanForm=document.querySelector('#scan-form');
+  if(scanForm){
+    var currentTn='';
+    scanForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var inp=scanForm.querySelector('input');
+      var val=inp.value.trim();
+      if(!val)return;
+      inp.disabled=true;
+      var rDiv=document.getElementById('scan-result');
+      if(rDiv){rDiv.style.display='block';rDiv.innerHTML='<span style="color:var(--pda-warning)">查询中...</span>';}
+      var res=await pdaApi('/api/v1/pda/query?tracking_no='+encodeURIComponent(val));
+      inp.disabled=false;
+      if(res&&!res._error&&res.data&&res.data.parcel){
+        currentTn=val;
+        scanFeedback(inp,true);
+        var p=res.data.parcel;
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-success);font-weight:600">✓ '+p.ProductName+' ('+p.TrackingNumber+')</span>';
+        var ps=document.getElementById('putaway-section');
+        if(ps)ps.style.display='block';
+        var li=document.getElementById('location-input');
+        if(li){li.value='';setTimeout(function(){li.focus();},200);}
+      }else{
+        scanFeedback(inp,false);
+        var errMsg=res?res._error:'未找到包裹';
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-danger)">✗ '+errMsg+'</span>';
+        setTimeout(function(){inp.value='';inp.focus();},1500);
+      }
+    });
+    var confirmBtn=document.getElementById('putaway-confirm-btn');
+    if(confirmBtn){
+      confirmBtn.addEventListener('click',async function(){
+        var li=document.getElementById('location-input');
+        var loc=li.value.trim();
+        if(!loc){alert('请输入库位编号');li.focus();return;}
+        confirmBtn.disabled=true;
+        confirmBtn.textContent='处理中...';
+        var res=await pdaApi('/api/v1/pda/putaway','POST',{tracking_no:currentTn,location_barcode:loc});
+        confirmBtn.disabled=false;
+        confirmBtn.textContent='✅ 确认上架';
+        if(res&&!res._error){
+          alert('上架成功: '+(res.data.message||'上架完成'));
+          location.reload();
+        }else{
+          alert('上架失败: '+(res?res._error:'请求失败'));
+        }
+      });
+    }
+    // Also handle Enter on location input
+    var li=document.getElementById('location-input');
+    if(li&&confirmBtn){
+      li.addEventListener('keydown',function(e){
+        if(e.key==='Enter'){e.preventDefault();confirmBtn.click();}
+      });
+    }
+  }
+});
+</script>
 {{end}}

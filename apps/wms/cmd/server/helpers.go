@@ -1,6 +1,6 @@
 package main
 import (
-	"context";"html/template";"net/http";"strconv";"time"
+	"context";"fmt";"html/template";"net/http";"strconv";"time"
 	"github.com/i56/framework/core/auth";"github.com/i56/framework/core/router"
 	custDomain "github.com/i56/modules/customer/domain";custRepo "github.com/i56/modules/customer/repository"
 	parcelDomain "github.com/i56/modules/parcel/domain";parcelRepo "github.com/i56/modules/parcel/repository"
@@ -84,12 +84,68 @@ func clientPg(tm *auth.TokenManager,cTmpl map[string]*template.Template,r *route
 		ctx:=req.Context()
 		parcels,pt,_:=ps.List(ctx,1,0,8)
 		_,rc,_:=rr.List(ctx,1,0,50)
-		_,oc,_:=osvc.List(ctx,1,0,100)
-		balance:=0.0
+		orders,oc,_:=osvc.List(ctx,1,0,100)
+		balance:=0.0;creditLimit:=5000.0
 		if entries:=lr.GetByClient(ctx,1,1);len(entries)>0{balance=entries[len(entries)-1].BalanceAfter}
+		// Build orders for dashboard display
+		orderMaps:=make([]map[string]any,0,len(orders))
+		activeCount:=0
+		statusCN:=map[orderDomain.OrderStatus]string{
+			orderDomain.StatusPendingPicking:"待拣货",orderDomain.StatusPicking:"拣货中",
+			orderDomain.StatusPendingPacking:"待打包",
+			orderDomain.StatusPendingLoading:"待装柜",orderDomain.StatusLoaded:"已装柜",
+			orderDomain.StatusInTransit:"运输中",orderDomain.StatusCustomsClearance:"清关中",
+			orderDomain.StatusOutForDelivery:"派送中",orderDomain.StatusCompleted:"已完成",
+			orderDomain.StatusCancelled:"已取消",orderDomain.StatusShipped:"已发货",
+		}
+		for _,o:=range orders{
+			s:=statusCN[o.Status];if s==""{s=string(o.Status)}
+			orderMaps=append(orderMaps,map[string]any{
+				"OrderNo":o.OrderNo,"ReceiverName":o.RecipientName,
+				"ParcelCount":o.ParcelCount,"Weight":fmt.Sprintf("%.2f",o.TotalActualWeight),
+				"Amount":fmt.Sprintf("%.2f",o.TotalPrice),"Status":s,
+			})
+			if o.Status!=orderDomain.StatusCompleted&&o.Status!=orderDomain.StatusCancelled{activeCount++}
+		}
+		// Build parcels for dashboard display
+		type parcelDash struct{TrackingNumber,ProductName,StatusLabel,StatusColor string;Weight float64}
+		var pdList []parcelDash
+		statusLabel:=func(s parcelDomain.ParcelStatus)(string,string){
+			switch s{
+			case parcelDomain.StatusPreDeclared:return "预报","secondary"
+			case parcelDomain.StatusReceived:return "已入仓","info"
+			case parcelDomain.StatusWeighed:return "已称重","primary"
+			case parcelDomain.StatusStored:return "已上架","success"
+			case parcelDomain.StatusPicked:return "已拣货","warning"
+			case parcelDomain.StatusPacked:return "已打包","success"
+			case parcelDomain.StatusLoaded:return "已装柜","primary"
+			case parcelDomain.StatusOutbound:return "已出货","dark"
+			default:return string(s),"secondary"
+			}
+		}
+		for _,p:=range parcels{lb,sc:=statusLabel(p.Status);pdList=append(pdList,parcelDash{p.TrackingNumber,p.ProductName,lb,sc,p.ActualWeight})}
+		// Parcel status counts
+		var preDec,recvd,weighed,stored,picked,packed,shipped int
+		allParcels,_,_:=ps.List(ctx,1,0,200)
+		for _,p:=range allParcels{
+			switch p.Status{
+			case parcelDomain.StatusPreDeclared:preDec++
+			case parcelDomain.StatusReceived:recvd++
+			case parcelDomain.StatusWeighed:weighed++
+			case parcelDomain.StatusStored:stored++
+			case parcelDomain.StatusPicked:picked++
+			case parcelDomain.StatusPacked:packed++
+			case parcelDomain.StatusShipped,parcelDomain.StatusLoaded,parcelDomain.StatusOutbound:shipped++
+			}
+		}
 		execTpl(cTmpl,"dashboard",w,"dashboard.html",map[string]any{
-			"TotalParcels":pt,"Balance":balance,"RouteCount":rc,
-			"ActiveOrders":oc,"Parcels":parcels,
+			"Title":"主控台","Balance":balance,"CreditLimit":creditLimit,
+			"AvailableCredit":creditLimit-balance,
+			"TotalParcels":pt,"ParcelCount":pt,"OrderCount":oc,"ActiveOrderCount":activeCount,
+			"Parcels":pdList,"Orders":orderMaps,"RouteCount":rc,
+			"PreDeclaredCount":preDec,"ReceivedCount":recvd,"WeighedCount":weighed,
+			"StoredCount":stored,"PickedCount":picked,"PackingCount":0,"PackedCount":packed,
+			"ShippedCount":shipped,
 		})
 	}))
 	r.GET("/client/predeclare",ca(func(w http.ResponseWriter,req *http.Request){
@@ -115,7 +171,7 @@ func clientPg(tm *auth.TokenManager,cTmpl map[string]*template.Template,r *route
 		execTpl(cTmpl,"predeclare",w,"predeclare.html",map[string]any{
 			"Warehouses":warehouses,"Members":[]member{{1,"王仁照"},{2,"吴欣如"},{3,"张致廷"}},
 			"Stats":[]stat{
-				{"全部包裹",pt},{"预報",preDeclared},{"已入倉",received},
+				{"全部包裹",pt},{"预报",preDeclared},{"已入仓",received},
 				{"已上架",stored},{"待打包",picked},{"打包中",0},{"已打包",packed},
 			},
 			"Recent":recentList,
@@ -152,9 +208,9 @@ func seed(cr *custRepo.MemClientRepo,wr *whRepo.MemWarehouseRepo,rr *tmsRepo.Mem
 	rr.Create(ctx,&tmsDomain.Route{TenantID:1,WarehouseID:1,Name:"厦门→台湾(空运)",TransportType:"air",MinWeight:0.5,VolumeCoeff:6000,BaseWeightPrice:20.0,BaseVolumePrice:20.0,MinAmount:50,MinDays:1,MaxDays:3,IsActive:true})
 	rr.Create(ctx,&tmsDomain.Route{TenantID:1,WarehouseID:1,Name:"厦门→台湾(海快)",TransportType:"sea_express",MinWeight:1.0,VolumeCoeff:6000,BaseWeightPrice:8.30,BaseVolumePrice:15.0,MinAmount:50,MinDays:3,MaxDays:7,IsActive:true})
 	rr.Create(ctx,&tmsDomain.Route{TenantID:1,WarehouseID:1,Name:"厦门→台湾(海运)",TransportType:"sea",MinWeight:10.0,VolumeCoeff:6000,BaseWeightPrice:3.20,BaseVolumePrice:10.0,MinAmount:50,MinDays:5,MaxDays:14,IsActive:true})
-	for i,pd:=range[]struct{tn,pn string;s parcelDomain.ParcelStatus}{{"SF1234567890","手机壳","pre_declared"},{"ZTO9876543210","运动鞋","received"},{"YTO1111222233","T恤","weighed"},{"STO4444555566","蓝牙耳机","stored"},{"HTKY7777888899","数据线","stored"},{"JD9999000011","充电宝","stored"},{"EMS1213141516","化妆品套装","stored"}}{
+	for i,pd:=range[]struct{tn,pn string;s parcelDomain.ParcelStatus;w float64}{{"SF1234567890","手机壳","pre_declared",0.12},{"ZTO9876543210","运动鞋","received",0.80},{"YTO1111222233","T恤","weighed",0.25},{"STO4444555566","蓝牙耳机","stored",0.15},{"HTKY7777888899","数据线","stored",0.08},{"JD9999000011","充电宝","stored",0.30},{"EMS1213141516","化妆品套装","stored",1.20}}{
 		tn:=now.Add(-time.Duration(10-i)*24*time.Hour)
-		pr.Create(ctx,&parcelDomain.Parcel{TenantID:1,WarehouseID:1,ClientID:c.ID,TrackingNumber:pd.tn,ProductName:pd.pn,ParcelName:pd.pn,Status:parcelDomain.ParcelStatus(pd.s),CourierCode:"SF",CargoType:"general",CreatedAt:tn,UpdatedAt:tn})
+		pr.Create(ctx,&parcelDomain.Parcel{TenantID:1,WarehouseID:1,ClientID:c.ID,TrackingNumber:pd.tn,ProductName:pd.pn,ParcelName:pd.pn,Status:parcelDomain.ParcelStatus(pd.s),CourierCode:"SF",CargoType:"general",ActualWeight:pd.w,CreatedAt:tn,UpdatedAt:tn})
 	}
 	// Seed 8 orders spread across last 7 days with real OrderNo, weights, prices
 	type orderSeed struct {

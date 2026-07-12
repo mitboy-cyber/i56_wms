@@ -7,6 +7,7 @@
 <script src="/static/js/i56-theme.js"></script>
 </head>
 <body>
+<button class="mobile-menu-btn" onclick="document.querySelector('.app-sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:1001;background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:18px;display:none">☰</button>
 <div class="app-layout">
 <aside class="app-sidebar">
   <div class="sidebar-header">
@@ -132,7 +133,14 @@
         <a href="/admin/system/api-notifications" class="nav-item nav-sub-item">通知渠道配置</a>
         <a href="/admin/system/api-storage" class="nav-item nav-sub-item">存储配置</a>
         <a href="/admin/system/api-printers" class="nav-item nav-sub-item">打印机设置</a>
-      </div>
+        <a href="/admin/system/api-devices" class="nav-item nav-sub-item">🔌 设备管理</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/api-ezway" class="nav-item nav-sub-item">🏛️ EZ Way实名认证</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/scheduler" class="nav-item nav-sub-item">⏰ 定时任务</a>
+        <a href="/admin/system/audit-logs" class="nav-item nav-sub-item">📋 审计日志</a>
+        <a href="/admin/system/reports" class="nav-item nav-sub-item">📊 内置报表</a>
+        
     </div>
 
     <div class="sidebar-footer">
@@ -235,7 +243,7 @@ function toggleNavGroup(header) {
         'fin': ['report/order-profit', 'report/service-profit', 'report/client-profit', 'report/route-profit'],
         'tms': ['area-groups', 'cargo-types', 'carriers', 'container-loadings', 'couriers', 'customs-brokers', 'customs-points', 'route-templates', 'shipping-providers', 'transport-modes', 'logistics-tracking'],
         'crm': ['customer-addresses', 'customer-declarants', 'clients', 'client-accounts', 'client-members', 'client-recharge', 'balance-logs', 'recharge-records', 'client-pricing', 'monthly-statements', 'client-permissions'],
-        'sys': ['notifications', 'print-templates', 'roles', 'employees', 'system-params', 'system/api-couriers', 'system/api-customs', 'system/api-notifications', 'system/api-storage', 'system/api-printers']
+        'sys': ['notifications', 'print-templates', 'roles', 'employees', 'system-params', 'system/api-couriers', 'system/api-customs', 'system/api-ezway', 'system/api-notifications', 'system/api-storage', 'system/api-printers', 'system/api-devices', 'system/scheduler', 'system/audit-logs', 'system/reports']
       };
       var pages = groupPages[dp] || [];
       for (var i = 0; i < pages.length; i++) {

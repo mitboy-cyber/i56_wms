@@ -12,9 +12,12 @@ import (
 	"syscall"
 
 	"github.com/i56/framework/core/auth"
+	"github.com/i56/framework/core/audit"
 	"github.com/i56/framework/core/config"
 	"github.com/i56/framework/core/middleware"
+	"github.com/i56/framework/core/report"
 	"github.com/i56/framework/core/router"
+	"github.com/i56/framework/core/scheduler"
 	"github.com/i56/framework/core/sse"
 	jpkg "github.com/i56/framework/core/jwt"
 	"github.com/i56/framework/db"
@@ -137,6 +140,25 @@ func main() {
 
 	// SSE Hub for real-time events
 	hub := sse.NewHub()
+
+	// ★ Scheduler — cron-style task scheduler
+	sch := scheduler.New()
+	scheduler.DemoJobs(sch) // pre-register 5 demo jobs
+	sch.Start()
+
+	// ★ Audit Logger — operation audit trail
+	auditRepo := audit.NewMemAuditRepo()
+	auditLogger := audit.New(auditRepo)
+
+	// ★ Built-in Report Engine
+	reportEngine := report.NewBuiltinEngine()
+
+	// ★ OpenAPI Generator
+	openapiGen := router.NewOpenAPIGenerator(router.OpenAPIInfo{
+	Title:   "I56 Framework API",
+	Version: "2.3.0",
+	Description: "I56 WMS Framework — Warehouse Management System API",
+	})
 
 	// Seed data
 	seed(cr, wr, rr, pr, or, cour, lr, sr, wor, ppr, whr, rpt)
@@ -299,6 +321,15 @@ func main() {
 	finroute.Register(r, a, rc, rpt)
 	sysroute.Register(r, a, rc, sysCfg, rbac)
 
+	// ★ New Framework v2.3 routes
+	// OpenAPI spec endpoint
+	router.RegisterOpenAPIEndpoint(r, openapiGen)
+	registerSchedulerRoutes(r, sch, a)
+	registerAuditRoutes(r, auditLogger, a)
+	registerReportRoutes(r, reportEngine, a)
+	// Register some demo routes for OpenAPI documentation
+	registerOpenAPIDemoRoutes(r, openapiGen, a)
+
 	// PDA API routes (direct on main router)
 	registerPDAAPIRoutesOnRouter(r, pdaOps)
 	registerPDARoutes(r, pdaR, pdaOps)
@@ -309,7 +340,7 @@ func main() {
 
 	// Client portal
 	r.GET("/client/login", func(w http.ResponseWriter, req *http.Request) {
-		cTmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{})
+		cTmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{"HideSidebar":true})
 	})
 	r.POST("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")

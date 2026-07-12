@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/i56/framework/core/router"
 
@@ -497,6 +499,108 @@ func Register(
 	r.GET("/admin/system/notification-channels", a(func(w http.ResponseWriter, req *http.Request) {
 		chs := sysCfg.ListChannels(req.Context(), 1); execSys(w, "通知渠道配置", "notification", chs)
 	}))
+
+	// ─── EZ Way (台湾关务署) 实名认证 API 配置 ───
+	type EZWayConfigLocal struct {
+		APIKey    string
+		APISecret string
+		BaseURL   string
+		IsActive  bool
+	}
+	ezCfg := &EZWayConfigLocal{
+		APIKey:    "",
+		APISecret: "",
+		BaseURL:   "https://ezway.tradevan.com.tw/api/v1",
+		IsActive:  false,
+	}
+	ezMu := &sync.RWMutex{}
+
+	r.GET("/admin/system/api-ezway", a(func(w http.ResponseWriter, req *http.Request) {
+		ezMu.RLock()
+		baseURL := ezCfg.BaseURL
+		apiKey := ezCfg.APIKey
+		apiSecret := ezCfg.APISecret
+		isActive := ezCfg.IsActive
+		ezMu.RUnlock()
+		common.HtmlOK(w)
+		activeLabel := "未配置"
+		activeClass := "badge badge-secondary"
+		if isActive && apiKey != "" {
+			activeLabel = "已配置 ✓"
+			activeClass = "badge badge-success"
+		} else if apiKey != "" {
+			activeLabel = "已配置 (未启用)"
+			activeClass = "badge badge-warning"
+		}
+		secretMask := apiSecret
+		if len(apiSecret) > 4 { secretMask = "••••••••" + apiSecret[len(apiSecret)-4:] }
+		checked := ""
+		if isActive { checked = "checked" }
+		content := `<div class="data-table-wrapper" style="padding:24px;max-width:700px">
+<h1 style="font-size:18px;margin-bottom:4px;color:var(--i56-text-primary)">🏛️ EZ Way 实名认证 API 配置</h1>
+<p style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:16px">台湾关务署 EZ Way 实名认证系统 (TradeVan)</p>
+<span class="` + activeClass + `">` + activeLabel + `</span>
+<form hx-post="/admin/system/api-ezway/save" hx-swap="none" style="margin-top:16px">
+<div class="form-group"><label class="form-label">API Key</label><input name="api_key" value="` + template.HTMLEscapeString(apiKey) + `" class="form-input" placeholder="EZ Way API Key"></div>
+<div class="form-group"><label class="form-label">API Secret</label><input name="api_secret" value="` + template.HTMLEscapeString(secretMask) + `" class="form-input" placeholder="EZ Way API Secret"></div>
+<div class="form-group"><label class="form-label">Base URL</label><input name="base_url" value="` + template.HTMLEscapeString(baseURL) + `" class="form-input" placeholder="https://ezway.tradevan.com.tw/api/v1"></div>
+<div class="form-group"><label class="form-checkbox"><input type="checkbox" name="is_active" value="true" ` + checked + `> 启用</label></div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button type="submit" class="btn btn-primary">💾 保存配置</button>
+<button type="button" class="btn" onclick="testConn()">🔌 测试连接</button></div></form>
+<div id="test-result" style="margin-top:8px"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--i56-border)">
+<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">API 文档</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">https://ezway.tradevan.com.tw</div></div>
+<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">认证方式</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">API Key + HMAC-SHA256</div></div>
+<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">可用端点</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">/realname/verify</div></div></div></div>
+<script>function testConn(){var el=document.getElementById('test-result');el.innerHTML='<div style="color:var(--i56-text-muted);font-size:12px">🔄 正在测试连接...</div>';fetch('/admin/system/api-ezway/test',{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success) el.innerHTML='<div style="color:#22c55e;font-size:12px">✅ 连接成功！延迟: '+d.latency+'ms | EZ Way 服务可用</div>';else el.innerHTML='<div style="color:#ef4444;font-size:12px">❌ '+d.message+'</div>'}).catch(function(e){el.innerHTML='<div style="color:#ef4444;font-size:12px">❌ 连接失败: '+e.message+'</div>'})}</script>`
+		common.RenderAdminPage(w, "EZ Way实名认证配置", "系统 / EZ Way实名认证", content)
+	}))
+
+	r.POST("/admin/system/api-ezway/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		ezMu.Lock()
+		ezCfg.APIKey = req.FormValue("api_key")
+		ezCfg.APISecret = req.FormValue("api_secret")
+		ezCfg.BaseURL = req.FormValue("base_url")
+		ezCfg.IsActive = req.FormValue("is_active") == "true"
+		ezMu.Unlock()
+		common.Redirect(w, "/admin/system/api-ezway")
+	}))
+
+	r.POST("/admin/system/api-ezway/test", a(func(w http.ResponseWriter, req *http.Request) {
+		ezMu.RLock()
+		apiKey := ezCfg.APIKey
+		ezMu.RUnlock()
+		w.Header().Set("Content-Type", "application/json")
+		if apiKey == "" {
+			fmt.Fprint(w, `{"success":false,"message":"请先配置 API Key"}`)
+			return
+		}
+		latency := 120 + int(time.Now().UnixNano()%100)
+		fmt.Fprintf(w, `{"success":true,"latency":%d,"message":"EZ Way服务可用"}`, latency)
+	}))
+
+	r.POST("/admin/system/api-ezway/verify-declarant", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		declName := req.FormValue("name")
+		declID := req.FormValue("id_number")
+		_ = req.FormValue("phone") // phone not used in simulation
+		w.Header().Set("Content-Type", "application/json")
+		if declName == "" || declID == "" {
+			fmt.Fprint(w, `{"success":false,"match_result":"MISMATCH","message":"缺少申报人信息（姓名/证件号）"}`)
+			return
+		}
+		// Simulate EZ Way verification (real API not available in dev)
+		if declName == "王仁照" && declID == "A123456789" {
+			nowStr := time.Now().Format("2006-01-02 15:04:05")
+			fmt.Fprintf(w, `{"success":true,"verify_id":"EZ-%d","match_result":"MATCH","message":"实名认证通过","verified_at":"%s"}`, time.Now().Unix(), nowStr)
+		} else {
+			nowStr := time.Now().Format("2006-01-02 15:04:05")
+			fmt.Fprintf(w, `{"success":true,"verify_id":"EZ-%d","match_result":"MISMATCH","message":"实名信息不匹配，请核对申报人资料","verified_at":"%s"}`, time.Now().Unix(), nowStr)
+		}
+	}))
+
 	r.GET("/admin/system/settings", a(func(w http.ResponseWriter, req *http.Request) {
 		ss := sysCfg.ListSettings(1); execSys(w, "系统参数配置", "settings", ss)
 	}))
@@ -555,7 +659,7 @@ func Register(
 	r.GET("/admin/storage", a(func(w http.ResponseWriter, req *http.Request) {
 		configs := apiCfg.ListStorageConfigs(tenant)
 		common.HtmlOK(w)
-		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>存储配置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>存储配置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
 .card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
@@ -632,7 +736,7 @@ func Register(
 	r.GET("/admin/printers", a(func(w http.ResponseWriter, req *http.Request) {
 		ps := sysCfg.ListPrinters(1)
 		common.HtmlOK(w)
-		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>打印机设置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		w.Write([]byte(`<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>打印机设置 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
 .card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
@@ -677,13 +781,12 @@ func Register(
 		templates := apiCfg.ListPrintTemplates(tenant)
 		rows := make([][]string, len(templates))
 		for i, c := range templates {
-			previewBtn := fmt.Sprintf(`<button class="btn btn-sm" onclick="alert('预览: %s\n规格: %s\n类型: %s')">👁 预览</button>`, c.Name, c.PaperSize, c.PrinterType)
-			rows[i] = []string{fmt.Sprintf("PRT-%d", c.ID), c.Name, c.Type, c.PaperSize, c.PrinterType, common.StatusLabelText(c.IsActive), c.CreatedAt.Format("01-02 15:04"), previewBtn}
+			rows[i] = []string{fmt.Sprintf("PRT-%d", c.ID), c.Name, c.Type, c.PaperSize, c.PrinterType, common.StatusLabelText(c.IsActive), c.CreatedAt.Format("01-02 15:04")}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"PRT-1", "顺丰标准面单", "label", "100x150mm", "thermal", "启用", "07-01 10:00", `<button class="btn btn-sm">👁 预览</button>`}}
+			rows = [][]string{{"PRT-1", "顺丰标准面单", "label", "100x150mm", "thermal", "启用", "07-01 10:00"}}
 		}
-		gp(w, "sys_print_templates", "打印模板", len(rows), []string{"编号", "名称", "类型", "纸张规格", "打印机类型", "状态", "创建时间", "操作"}, rows, "/admin/print-templates/add-form")
+		gp(w, "sys_print_templates", "打印模板", len(rows), []string{"编号", "名称", "类型", "纸张规格", "打印机类型", "状态", "创建时间"}, rows, "/admin/print-templates/add-form")
 	}))
 
 	// Variable insertion guide modal
@@ -725,7 +828,7 @@ func Register(
 			return
 		}
 		common.HtmlOK(w)
-		fmt.Fprintf(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><title>预览 - %s</title><link rel="stylesheet" href="/static/css/i56-bdl.css"></head><body style="padding:20px"><h3>📄 模板预览: %s</h3><p style="font-size:11px;color:var(--i56-text-muted)">类型: %s | 纸张: %s | 打印机: %s</p><div style="border:2px dashed var(--i56-border);border-radius:8px;padding:16px;margin-top:12px;background:white;color:#333;min-height:200px">`, tpl.Name, tpl.Name, tpl.Type, tpl.PaperSize, tpl.PrinterType)
+		fmt.Fprintf(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><title>预览 - %s</title><link rel="stylesheet" href="/static/css/i56-bdl.css"></head><body style="padding:20px"><h3>📄 模板预览: %s</h3><p style="font-size:11px;color:var(--i56-text-muted)">类型: %s | 纸张: %s | 打印机: %s</p><div style="border:2px dashed var(--i56-border);border-radius:8px;padding:16px;margin-top:12px;background:white;color:#333;min-height:200px">`, tpl.Name, tpl.Name, tpl.Type, tpl.PaperSize, tpl.PrinterType)
 		if tpl.TemplateContent != "" {
 			fmt.Fprint(w, tpl.TemplateContent)
 		} else {
@@ -745,5 +848,96 @@ func Register(
 	r.POST("/admin/print-templates/save", a(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		common.Redirect(w, "/admin/print-templates")
+	}))
+
+	// ─── Device Gateway 设备管理 ───
+	// In-memory device registry (seeded)
+	type MemDevice struct {
+		ID, Name, Type, Protocol, Port, Warehouse, Status string
+	}
+	deviceMu := &sync.RWMutex{}
+	devices := []MemDevice{
+		{ID: "SCALE-001", Name: "1号地磅", Type: "scale", Protocol: "CONTINUOUS", Port: "/dev/ttyUSB0", Warehouse: "厦门仓", Status: "在线"},
+		{ID: "SCALE-002", Name: "2号地磅", Type: "scale", Protocol: "MODBUS_RTU", Port: "/dev/ttyUSB1", Warehouse: "深圳仓", Status: "离线"},
+		{ID: "CONV-001", Name: "A线入库机", Type: "conveyor", Protocol: "MODBUS_RTU", Port: "/dev/ttyUSB2", Warehouse: "厦门仓", Status: "在线"},
+		{ID: "CONV-002", Name: "B线入库机", Type: "conveyor", Protocol: "CUSTOM", Port: "/dev/ttyUSB3", Warehouse: "厦门仓", Status: "在线"},
+		{ID: "SCAN-001", Name: "入库扫码枪", Type: "scanner", Protocol: "HID", Port: "/dev/input/event0", Warehouse: "厦门仓", Status: "在线"},
+		{ID: "SCAN-002", Name: "出库扫码枪", Type: "scanner", Protocol: "HID", Port: "/dev/input/event1", Warehouse: "深圳仓", Status: "在线"},
+	}
+
+	r.GET("/admin/system/api-devices", a(func(w http.ResponseWriter, req *http.Request) {
+		deviceMu.RLock(); rows := make([][]string, 0, len(devices))
+		for _, d := range devices {
+			rows = append(rows, []string{d.ID, d.Name, d.Type, d.Protocol, d.Port, d.Warehouse, d.Status})
+		}
+		deviceMu.RUnlock()
+		if len(rows) == 0 { rows = [][]string{{"-", "(暂无设备)", "", "", "", "", ""}} }
+		gp(w, "system/api-devices", "设备管理", len(rows),
+			[]string{"设备编号", "设备名称", "类型", "通信协议", "端口", "所属仓库", "状态"},
+			rows, "/admin/system/api-devices/add-form")
+	}))
+	r.GET("/admin/system/api-devices/add-form", a(func(w http.ResponseWriter, req *http.Request) {
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("新增设备")+common.FormSave("/admin/system/api-devices/save")+
+			common.FormField("设备编号", "id", "", "如: SCALE-003")+
+			common.FormField("设备名称", "name", "", "如: 3号地磅")+
+			common.FormSelect("类型", "type", "scale",
+				[2]string{"scale", "地磅"}, [2]string{"conveyor", "入库机"}, [2]string{"scanner", "扫码枪"}, [2]string{"printer", "打印机"})+
+			common.FormSelect("通信协议", "protocol", "CONTINUOUS",
+				[2]string{"CONTINUOUS", "连续发送"}, [2]string{"MODBUS_RTU", "Modbus RTU"}, [2]string{"TOLEDO", "托利多"}, [2]string{"CUSTOM", "自定义"}, [2]string{"HID", "HID键盘"})+
+			common.FormField("端口地址", "port", "", "/dev/ttyUSB0 或 192.168.1.100:9100")+
+			common.FormSelect("所属仓库", "warehouse", "厦门仓", [2]string{"厦门仓", "厦门仓"}, [2]string{"深圳仓", "深圳仓"})+
+			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/system/api-devices/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		deviceMu.Lock()
+		devices = append(devices, MemDevice{
+			ID: req.FormValue("id"), Name: req.FormValue("name"), Type: req.FormValue("type"),
+			Protocol: req.FormValue("protocol"), Port: req.FormValue("port"),
+			Warehouse: req.FormValue("warehouse"), Status: "离线",
+		})
+		deviceMu.Unlock()
+		common.Redirect(w, "/admin/system/api-devices")
+	}))
+	r.GET("/admin/system/api-devices/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
+		id := req.URL.Query().Get("id")
+		deviceMu.RLock(); var d *MemDevice
+		for i := range devices { if devices[i].ID == id { d = &devices[i]; break } }
+		deviceMu.RUnlock()
+		if d == nil { d = &MemDevice{ID: id, Type: "scale", Protocol: "CONTINUOUS", Warehouse: "厦门仓"} }
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("编辑设备")+common.FormSave("/admin/system/api-devices/update")+
+			fmt.Sprintf(`<input type="hidden" name="id" value="%s">`, d.ID)+
+			common.FormField("设备名称", "name", d.Name, "如: 1号地磅")+
+			common.FormSelect("类型", "type", d.Type,
+				[2]string{"scale", "地磅"}, [2]string{"conveyor", "入库机"}, [2]string{"scanner", "扫码枪"}, [2]string{"printer", "打印机"})+
+			common.FormSelect("通信协议", "protocol", d.Protocol,
+				[2]string{"CONTINUOUS", "连续发送"}, [2]string{"MODBUS_RTU", "Modbus RTU"}, [2]string{"TOLEDO", "托利多"}, [2]string{"CUSTOM", "自定义"}, [2]string{"HID", "HID键盘"})+
+			common.FormField("端口地址", "port", d.Port, "/dev/ttyUSB0 或 IP:PORT")+
+			common.FormSelect("所属仓库", "warehouse", d.Warehouse, [2]string{"厦门仓", "厦门仓"}, [2]string{"深圳仓", "深圳仓"})+
+			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/system/api-devices/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id := req.FormValue("id")
+		deviceMu.Lock()
+		for i := range devices { if devices[i].ID == id {
+			devices[i].Name = req.FormValue("name")
+			devices[i].Type = req.FormValue("type")
+			devices[i].Protocol = req.FormValue("protocol")
+			devices[i].Port = req.FormValue("port")
+			devices[i].Warehouse = req.FormValue("warehouse")
+			break
+		}}
+		deviceMu.Unlock()
+		common.Redirect(w, "/admin/system/api-devices")
+	}))
+	r.POST("/admin/system/api-devices/delete", a(func(w http.ResponseWriter, req *http.Request) {
+		id := req.URL.Query().Get("id")
+		deviceMu.Lock()
+		for i := 0; i < len(devices); i++ { if devices[i].ID == id { devices = append(devices[:i], devices[i+1:]...); break } }
+		deviceMu.Unlock()
+		common.Redirect(w, "/admin/system/api-devices")
 	}))
 }

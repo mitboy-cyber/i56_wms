@@ -57,9 +57,16 @@
   <div class="pda-card">
     <div style="text-align:center;font-size:48px;margin-bottom:12px">⚖️</div>
     <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描已收货包裹进行核重</div>
-    <form method="GET" action="/pda/weigh" id="scan-form">
+    <form id="scan-form" onsubmit="return false">
       <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
     </form>
+    <div id="weigh-section" style="display:none;margin-top:12px">
+      <div class="pda-input-row">
+        <input type="number" step="0.01" name="weight" id="weight-input" class="pda-input" placeholder="输入实际重量(kg)" style="font-size:18px;text-align:center">
+      </div>
+      <button id="weigh-confirm-btn" class="pda-btn pda-btn-warning pda-btn-lg mt-2">⚖️ 确认核重</button>
+    </div>
+    <div id="scan-result" style="display:none;margin-top:8px;text-align:center"></div>
   </div>
   {{end}}
 
@@ -80,4 +87,61 @@
   </div>
   {{end}}
 </div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var scanInput=document.querySelector('#scan-form input[autofocus]');
+  if(scanInput)setTimeout(function(){scanInput.focus();},150);
+
+  var scanForm=document.querySelector('#scan-form');
+  if(scanForm){
+    var currentTn='';
+    scanForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var inp=scanForm.querySelector('input');
+      var val=inp.value.trim();
+      if(!val)return;
+      inp.disabled=true;
+      var rDiv=document.getElementById('scan-result');
+      if(rDiv){rDiv.style.display='block';rDiv.innerHTML='<span style="color:var(--pda-warning)">查询中...</span>';}
+      // First query the parcel to verify it exists and can be weighed
+      var res=await pdaApi('/api/v1/pda/query?tracking_no='+encodeURIComponent(val));
+      inp.disabled=false;
+      if(res&&!res._error&&res.data&&res.data.parcel){
+        currentTn=val;
+        scanFeedback(inp,true);
+        var p=res.data.parcel;
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-success);font-weight:600">✓ '+p.ProductName+' ('+p.TrackingNumber+')</span>';
+        var ws=document.getElementById('weigh-section');
+        if(ws)ws.style.display='block';
+        var wi=document.getElementById('weight-input');
+        if(wi){wi.value='';setTimeout(function(){wi.focus();},200);}
+      }else{
+        scanFeedback(inp,false);
+        var errMsg=res?res._error:'未找到包裹';
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-danger)">✗ '+errMsg+'</span>';
+        setTimeout(function(){inp.value='';inp.focus();},1500);
+      }
+    });
+    var confirmBtn=document.getElementById('weigh-confirm-btn');
+    if(confirmBtn){
+      confirmBtn.addEventListener('click',async function(){
+        var wi=document.getElementById('weight-input');
+        var w=parseFloat(wi.value);
+        if(!w||w<=0){alert('请输入有效的重量');wi.focus();return;}
+        confirmBtn.disabled=true;
+        confirmBtn.textContent='处理中...';
+        var res=await pdaApi('/api/v1/pda/weigh','POST',{tracking_no:currentTn,weight:w});
+        confirmBtn.disabled=false;
+        confirmBtn.textContent='⚖️ 确认核重';
+        if(res&&!res._error){
+          alert('核重成功: '+res.data.message||'核重完成');
+          location.reload();
+        }else{
+          alert('核重失败: '+(res?res._error:'请求失败'));
+        }
+      });
+    }
+  }
+});
+</script>
 {{end}}

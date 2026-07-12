@@ -122,6 +122,11 @@
      I56 Table Component — BFT56 Interaction Patterns
      All features work client-side without Go backend changes.
      ══════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Page Loading Bar ── */
+.page-loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 9999; background: linear-gradient(90deg, var(--i56-brand), #60a5fa); animation: loading-bar 1s ease-in-out infinite; }
+@keyframes loading-bar { 0% { width: 0; } 50% { width: 70%; } 100% { width: 100%; } }
+</style>
 <script>
 (function() {
   // Read page identifier from URL path: /admin/<page> or /admin/<group>/<page>
@@ -149,6 +154,28 @@
       modal.innerHTML = '<div class="modal-overlay"><div class="modal-content"><div class="modal-body" style="text-align:center;padding:40px"><p>⚡ 加载中...</p></div></div></div>';
       fetch(url).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function(html) {
         modal.innerHTML = html;
+        // Add submit handler validation
+        setTimeout(function() {
+          var form = modal.querySelector('form');
+          if (form) {
+            form.addEventListener('submit', function(e) {
+              var required = form.querySelectorAll('[required]');
+              var valid = true;
+              required.forEach(function(field) {
+                if (!field.value.trim()) {
+                  field.style.borderColor = 'red';
+                  valid = false;
+                } else {
+                  field.style.borderColor = '';
+                }
+              });
+              if (!valid) {
+                e.preventDefault();
+                alert('请填写所有必填字段');
+              }
+            });
+          }
+        }, 100);
       }).catch(function(e) {
         modal.innerHTML = '<div class="modal-overlay" onclick="this.remove()"><div class="modal-content"><div class="modal-header"><span class="modal-title">错误</span><button class="modal-close" onclick="this.closest(\'div.modal-overlay\').remove()">&times;</button></div><div class="modal-body"><p>加载添加表单失败: ' + e.message + '</p></div></div></div>';
       });

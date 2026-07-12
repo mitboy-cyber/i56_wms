@@ -61,12 +61,13 @@
 
   {{else}}
   <div class="pda-card">
-    <div style="text-align:center;font-size:48px;margin-bottom:12px">📷</div>
+    <div style="text-align:center;font-size:48px;margin-bottom:12px">📦</div>
     <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描包裹运单号或手动输入</div>
-    <form method="GET" action="/pda/receive" id="scan-form">
+    <form id="scan-form" onsubmit="return false">
       <input type="text" name="scan" class="pda-input scanning" placeholder="扫描运单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
     </form>
     <div class="text-center mt-2" style="font-size:11px;color:var(--pda-text-muted)">将扫描枪对准条码，或手动输入后按回车</div>
+    <div id="scan-result" style="display:none;margin-top:8px;text-align:center"></div>
   </div>
   {{end}}
 
@@ -92,6 +93,31 @@ document.addEventListener('DOMContentLoaded',function(){
   var f=document.querySelector('#scan-form input[autofocus]');
   if(!f) f=document.querySelector('#receive-form input[name="weight"]');
   if(f) setTimeout(function(){f.focus()}, 150);
+
+  var scanForm=document.querySelector('#scan-form');
+  if(scanForm){
+    scanForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var inp=scanForm.querySelector('input');
+      var val=inp.value.trim();
+      if(!val)return;
+      inp.disabled=true;
+      var rDiv=document.getElementById('scan-result');
+      if(rDiv){rDiv.style.display='block';rDiv.innerHTML='<span style="color:var(--pda-warning)">处理中...</span>';}
+      var res=await pdaApi('/api/v1/pda/receive','POST',{tracking_no:val});
+      inp.disabled=false;
+      if(res&&!res._error){
+        scanFeedback(inp,true);
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-success);font-weight:600">✓ 收货成功: '+val+'</span>';
+        setTimeout(function(){location.reload();},800);
+      }else{
+        scanFeedback(inp,false);
+        var errMsg=res?res._error:'请求失败';
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-danger)">✗ '+errMsg+'</span>';
+        setTimeout(function(){inp.value='';inp.focus();},1500);
+      }
+    });
+  }
 });
 </script>
 {{end}}

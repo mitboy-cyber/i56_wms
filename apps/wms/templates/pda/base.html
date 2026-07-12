@@ -354,6 +354,30 @@ function selectExceptionType(el) {
     pulling = false; touchStart = 0;
   });
 })();
+
+// Common PDA API helper with auth handling
+async function pdaApi(url, method, body) {
+  try {
+    var opts = { method: method || 'GET' };
+    if (body) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(body);
+    }
+    var r = await fetch(url, opts);
+    if (r.status === 401 || (r.redirected && r.url.indexOf('/pda/login') !== -1)) {
+      window.location.href = '/pda/login';
+      return null;
+    }
+    var data = await r.json();
+    if (!r.ok) {
+      var errMsg = (data.error && data.error.message) || data.message || '操作失败';
+      return { _error: errMsg };
+    }
+    return data;
+  } catch(e) {
+    return { _error: e.message || '网络错误' };
+  }
+}
 </script>
 </head>
 <body>

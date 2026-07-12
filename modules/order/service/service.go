@@ -53,6 +53,13 @@ func (s *OrderService) GetByID(ctx context.Context, tenantID, id int64) (*domain
 	return o, nil
 }
 
+func (s *OrderService) GetByOrderNo(ctx context.Context, tenantID int64, orderNo string) (*domain.Order, error) {
+	o, err := s.repo.GetByOrderNo(ctx, tenantID, orderNo)
+	if err != nil { return nil, err }
+	if o == nil { return nil, errors.NewNotFound("Order") }
+	return o, nil
+}
+
 func (s *OrderService) List(ctx context.Context, tenantID int64, offset, limit int) ([]domain.Order, int64, error) {
 	return s.repo.List(ctx, tenantID, offset, limit)
 }

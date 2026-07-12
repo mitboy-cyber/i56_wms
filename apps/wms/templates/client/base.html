@@ -16,6 +16,7 @@ body{font-family:var(--i56-font-sans);background:var(--i56-bg-base);color:var(--
 .nav-item:hover{background:var(--i56-bg-surface-hover);color:var(--i56-text-primary)}
 .nav-item.active{background:var(--i56-brand-alpha-10);color:var(--i56-brand);font-weight:600}
 .main{margin-left:220px;flex:1}
+.main-full{margin-left:0;flex:1}
 .header{height:44px;background:var(--i56-bg-surface);border-bottom:1px solid var(--i56-border);display:flex;align-items:center;justify-content:space-between;padding:0 16px}
 .content{padding:20px}
 .page-title{font-size:16px;font-weight:700;margin-bottom:14px}
@@ -112,7 +113,7 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 <!-- Mobile sidebar overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
-<aside class="sidebar" id="sidebar">
+{{if not .HideSidebar}}<aside class="sidebar" id="sidebar">
 <a class="sidebar-brand" href="/client">I56 Client</a>
 <nav>
 <a class="nav-item active" href="/client">📊 主控台</a>
@@ -126,24 +127,24 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 
 <div class="nav-section">
 <div class="nav-section-title">业务</div>
-<a class="nav-item" href="/client/orders">📋 我的訂單</a>
+<a class="nav-item" href="/client/orders">📋 我的订单</a>
 <a class="nav-item" href="/client/parcels">📦 我的包裹</a>
-<a class="nav-item" href="/client/predeclare">📝 預報包裹</a>
-<a class="nav-item" href="/client/service-orders">🔧 附加服務訂單</a>
+<a class="nav-item" href="/client/predeclare">📝 预报包裹</a>
+<a class="nav-item" href="/client/service-orders">🔧 附加服务订单</a>
 </div>
 
 <div class="nav-section">
-<div class="nav-section-title">帳務</div>
-<a class="nav-item" href="/client/ledger">💰 餘額明細</a>
-<a class="nav-item" href="/client/monthly-statements">📅 月結對帳單</a>
+<div class="nav-section-title">账务</div>
+<a class="nav-item" href="/client/ledger">💰 余额明细</a>
+<a class="nav-item" href="/client/monthly-statements">📅 月结对账单</a>
 </div>
 
 <div class="nav-section">
-<div class="nav-section-title">價格/承運商</div>
-<a class="nav-item" href="/client/warehouses">🏗️ 倉庫資訊</a>
-<a class="nav-item" href="/client/route-prices">🚛 線路價格</a>
-<a class="nav-item" href="/client/delivery-fees">📬 承運商派送價</a>
-<a class="nav-item" href="/client/carrier-surcharges">➕ 承運商加收價</a>
+<div class="nav-section-title">价格/承运商</div>
+<a class="nav-item" href="/client/warehouses">🏗️ 仓库信息</a>
+<a class="nav-item" href="/client/route-prices">🚛 线路价格</a>
+<a class="nav-item" href="/client/delivery-fees">📬 承运商派送价</a>
+<a class="nav-item" href="/client/carrier-surcharges">➕ 承运商加收价</a>
 </div>
 
 <div class="nav-section">
@@ -153,8 +154,8 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 <a class="nav-item" href="/client/api-credentials">🔑 API凭证</a>
 </div>
 </nav>
-</aside>
-<div class="main">
+</aside>{{end}}
+<div class="main{{if .HideSidebar}} main-full{{end}}">
 <div class="header">
   <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="菜单">☰</button>
   <strong>I56 Client</strong>

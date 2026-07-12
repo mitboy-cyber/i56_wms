@@ -769,13 +769,21 @@ a:hover { color: var(--i56-brand-600); }
 
 /* ===================================================================
    Responsive
-   =================================================================== */
-@media (max-width: 768px) {
-  .app-sidebar { display: none; }
-  .app-main { margin-left: 0; }
-  .stat-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .app-content { padding: 16px; }
-}
+   /* ── Responsive ─────────────────────────────────────────── */
+   @media (max-width: 768px) {
+     .app-sidebar { position: fixed; left: -260px; z-index: 1000; transition: left 0.3s; }
+     .app-sidebar.open { left: 0; }
+     .main-content { margin-left: 0 !important; }
+     .page-header { flex-direction: column; gap: 8px; }
+     .data-table { font-size: 12px; }
+     .data-table th, .data-table td { padding: 6px 8px; }
+     .btn { padding: 6px 12px; font-size: 12px; }
+     .modal-content { width: 95vw; max-width: 95vw; margin: 10px; }
+     .mobile-menu-btn { display: block !important; }
+   }
+   @media (min-width: 769px) {
+     .mobile-menu-btn { display: none; }
+   }
 
 /* ── Table Toolbar ─────────────────────────────────────── */
 .table-toolbar {

@@ -219,9 +219,9 @@ func Register(
 		bftCustomsBrokersMu.Unlock()
 		rows := make([][]string, len(brokers))
 		for i, b := range brokers {
-			rows[i] = []string{b.Name, b.Code, b.Contact, b.Country, "启用", "启用"}
+			rows[i] = []string{b.Name, b.Code, b.BrokerNum, b.Prefix, b.Contact, b.Country, "启用"}
 		}
-		gp(w, "tms_customs_brokers", "清关公司", len(rows), []string{"名称", "代码", "联系人", "国家", "状态", "状态"}, rows, "/admin/customs-brokers/add-form")
+		gp(w, "tms_customs_brokers", "清关公司", len(rows), []string{"名称", "代码", "报关号", "前缀", "联系人", "国家", "状态"}, rows, "/admin/customs-brokers/add-form")
 	}))
 	r.GET("/admin/customs-brokers/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -741,7 +741,16 @@ func Register(
 			{"CT-8837294", "运输中", "基隆港", "顺丰速运", "07-09 18:20"},
 			{"CT-8837295", "已装柜", "厦门仓", "新竹物流", "07-11 08:00"},
 		}
-		gp(w, "tms_tracking", "物流追踪", len(rows), []string{"运单号", "状态", "位置", "承运商", "更新时间"}, rows, "")
+		gp(w, "tms_tracking", "物流追踪", len(rows), []string{"运单号", "状态", "位置", "承运商", "更新时间"}, rows, "/admin/logistics-tracking/add-form")
+	}))
+	r.GET("/admin/logistics-tracking/add-form", a(func(w http.ResponseWriter, req *http.Request) {
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("新增物流追踪")+common.FormSave("/admin/logistics-tracking/save")+
+			common.FormField("运单号", "tracking_no", "", "运单号")+
+			common.FormField("状态", "status", "", "运输中/已签收/清关中")+
+			common.FormField("位置", "location", "", "当前位置")+
+			common.FormField("承运商", "carrier", "", "承运商名称")+
+			common.FormFooter()+common.ModalEnd())
 	}))
 	r.GET("/admin/logistics-tracking/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		id := req.URL.Query().Get("id")

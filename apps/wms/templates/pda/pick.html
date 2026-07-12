@@ -67,9 +67,10 @@
   <div class="pda-card">
     <div style="text-align:center;font-size:48px;margin-bottom:12px">🛒</div>
     <div class="text-center mb-2" style="font-size:14px;color:var(--pda-text-muted)">扫描订单号开始拣货</div>
-    <form method="GET" action="/pda/pick" id="scan-form">
+    <form id="scan-form" onsubmit="return false">
       <input type="text" name="scan" class="pda-input scanning" placeholder="扫描订单号..." autofocus style="font-size:18px;text-align:center" autocomplete="off">
     </form>
+    <div id="scan-result" style="display:none;margin-top:8px;text-align:center"></div>
   </div>
   {{end}}
 
@@ -90,4 +91,32 @@
   </div>
   {{end}}
 </div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var scanForm=document.querySelector('#scan-form');
+  if(scanForm){
+    scanForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var inp=scanForm.querySelector('input');
+      var val=inp.value.trim();
+      if(!val)return;
+      inp.disabled=true;
+      var rDiv=document.getElementById('scan-result');
+      if(rDiv){rDiv.style.display='block';rDiv.innerHTML='<span style="color:var(--pda-warning)">处理中...</span>';}
+      var res=await pdaApi('/api/v1/pda/pick','POST',{order_no:val});
+      inp.disabled=false;
+      if(res&&!res._error){
+        scanFeedback(inp,true);
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-success);font-weight:600">✓ 拣货完成: '+val+'</span>';
+        setTimeout(function(){location.reload();},800);
+      }else{
+        scanFeedback(inp,false);
+        var errMsg=res?res._error:'请求失败';
+        if(rDiv)rDiv.innerHTML='<span style="color:var(--pda-danger)">✗ '+errMsg+'</span>';
+        setTimeout(function(){inp.value='';inp.focus();},1500);
+      }
+    });
+  }
+});
+</script>
 {{end}}

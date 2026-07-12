@@ -120,15 +120,216 @@ func DefaultExecTpl(tmpl map[string]*template.Template, key string, w http.Respo
 func formatCell(v string) string {
 	v = strings.ReplaceAll(v, "%!(EXTRA int64=", "")
 	v = strings.ReplaceAll(v, "%!(EXTRA float64=", "")
-	v = strings.ReplaceAll(v, ") ", ")")
+	// Clean up Sprintf artifacts like ") " that become ")"
 	for strings.Contains(v, "))") {
 		v = strings.ReplaceAll(v, "))", ")")
 	}
-	v = strings.TrimRight(v, ")")
+	// Only strip the trailing ")" if it's a Sprintf artifact (i.e., there's no matching opening paren)
+	// Don't strip closing parens that are part of legitimate parenthetical text (e.g., "厦门→台湾(海快)")
 	v = strings.ReplaceAll(v, "sea_express", "海快")
 	v = strings.ReplaceAll(v, "sea", "海运")
 	v = strings.ReplaceAll(v, "air", "空运")
+	// Cargo type Chinese labels
+	v = strings.ReplaceAll(v, "general", "普货")
+	v = strings.ReplaceAll(v, "sensitive", "特货")
+	v = strings.ReplaceAll(v, "dangerous", "危险品")
+	// Device type Chinese labels
+	v = strings.ReplaceAll(v, "scale", "地磅")
+	v = strings.ReplaceAll(v, "conveyor", "入库机")
+	v = strings.ReplaceAll(v, "scanner", "扫码枪")
 	return v
+}
+
+// ===================================================================
+// RenderAdminPage — wraps content in the BDL light-theme admin layout
+// with sidebar (matching templates/base.html) so all admin pages are
+// visually consistent.  Use this for any standalone admin page instead
+// of writing raw <html> inline.
+// ===================================================================
+func RenderAdminPage(w http.ResponseWriter, title, breadcrumb, content string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, `<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>`+title+` - I56</title>
+<link rel="stylesheet" href="/static/css/i56-bdl.css">
+<script src="/static/js/i56-theme.js"></script>
+</head>
+<body>
+<div class="app-layout">
+<aside class="app-sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">I</div>
+    <a href="/admin" class="sidebar-title">I56 Framework</a>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="/admin" class="nav-item">
+      <span class="nav-icon">🏠</span> 首页
+    </a>
+    <a href="/admin/warehouse-board" class="nav-item">
+      <span class="nav-icon">📊</span> 仓库看板
+    </a>
+    <div class="nav-group" data-page="oms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">📋 订单管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/orders" class="nav-item nav-sub-item">集运订单</a>
+        <a href="/admin/service-orders" class="nav-item nav-sub-item">附加服务订单</a>
+      </div>
+    </div>
+    <div class="nav-group" data-page="wms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🏗️ 仓库管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/parcels" class="nav-item nav-sub-item">包裹列表</a>
+        <a href="/admin/service-workorders" class="nav-item nav-sub-item">附加服务工单</a>
+        <a href="/admin/warehouses" class="nav-item nav-sub-item">仓库列表</a>
+        <a href="/admin/inbound-board" class="nav-item nav-sub-item">入库看板</a>
+        <a href="/admin/warehouse-console" class="nav-item nav-sub-item">仓库作业台</a>
+        <a href="/admin/task-monitor" class="nav-item nav-sub-item">员工任务监控</a>
+        <a href="/admin/exception-reports" class="nav-item nav-sub-item">异常记录</a>
+      </div>
+    </div>
+    <div class="nav-group" data-page="fin">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">💰 财务报表</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/report/order-profit" class="nav-item nav-sub-item">集运订单盈利</a>
+        <a href="/admin/report/service-profit" class="nav-item nav-sub-item">附加服务盈利</a>
+        <a href="/admin/report/client-profit" class="nav-item nav-sub-item">客户盈利</a>
+        <a href="/admin/report/route-profit" class="nav-item nav-sub-item">路线盈利</a>
+      </div>
+    </div>
+    <div class="nav-group" data-page="tms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🚛 物流管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/area-groups" class="nav-item nav-sub-item">区域组管理</a>
+        <a href="/admin/carriers" class="nav-item nav-sub-item">承运商列表</a>
+        <a href="/admin/couriers" class="nav-item nav-sub-item">快递公司</a>
+        <a href="/admin/customs-brokers" class="nav-item nav-sub-item">清关公司</a>
+        <a href="/admin/route-templates" class="nav-item nav-sub-item">线路模板</a>
+        <a href="/admin/shipping-providers" class="nav-item nav-sub-item">运输公司</a>
+      </div>
+    </div>
+    <div class="nav-group" data-page="crm">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">👤 客户管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/clients" class="nav-item nav-sub-item">客户管理</a>
+        <a href="/admin/client-accounts" class="nav-item nav-sub-item">客户账号</a>
+        <a href="/admin/client-members" class="nav-item nav-sub-item">客户会员</a>
+        <a href="/admin/client-recharge" class="nav-item nav-sub-item">客户充值</a>
+        <a href="/admin/balance-logs" class="nav-item nav-sub-item">余额日志</a>
+        <a href="/admin/monthly-statements" class="nav-item nav-sub-item">月结对账单</a>
+      </div>
+    </div>
+    <div class="nav-group" data-page="sys">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">⚙️ 系统</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/roles" class="nav-item nav-sub-item">角色管理</a>
+        <a href="/admin/employees" class="nav-item nav-sub-item">员工管理</a>
+        <a href="/admin/system/api-couriers" class="nav-item nav-sub-item">物流API对接</a>
+        <a href="/admin/system/api-customs" class="nav-item nav-sub-item">清关API对接</a>
+        <a href="/admin/system/api-notifications" class="nav-item nav-sub-item">通知渠道配置</a>
+        <a href="/admin/system/api-storage" class="nav-item nav-sub-item">存储配置</a>
+        <a href="/admin/system/api-printers" class="nav-item nav-sub-item">打印机设置</a>
+        <a href="/admin/system/api-devices" class="nav-item nav-sub-item">🔌 设备管理</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/api-ezway" class="nav-item nav-sub-item">🏛️ EZ Way实名认证</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/scheduler" class="nav-item nav-sub-item">⏰ 定时任务</a>
+        <a href="/admin/system/audit-logs" class="nav-item nav-sub-item">📋 审计日志</a>
+        <a href="/admin/system/reports" class="nav-item nav-sub-item">📊 内置报表</a>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <span class="version">v2.0 LTS</span>
+    </div>
+  </nav>
+</aside>
+<div class="app-main">
+  <header class="app-header">
+    <div class="header-breadcrumb">
+      I56 Admin <span style="color:var(--i56-text-muted);margin:0 4px">/</span> <span>`+breadcrumb+`</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sm btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
+    </div>
+  </header>
+  <main class="app-content">
+`+content+`
+  </main>
+</div>
+</div>
+<script>
+function toggleNavGroup(header) {
+  var group = header.parentElement;
+  var wasOpen = group.classList.contains('open');
+  document.querySelectorAll('.nav-group.open').forEach(function(g) {
+    if (g !== group) g.classList.remove('open');
+  });
+  if (wasOpen) { group.classList.remove('open'); }
+  else { group.classList.add('open'); }
+}
+(function() {
+  var currentUrl = window.location.pathname;
+  var subItems = document.querySelectorAll('.nav-sub-item');
+  var matched = false;
+  subItems.forEach(function(item) {
+    var href = item.getAttribute('href');
+    if (href && currentUrl.startsWith(href.split('?')[0]) && href.split('?')[0] !== '/admin') {
+      item.classList.add('active');
+      var group = item.closest('.nav-group');
+      if (group) group.classList.add('open');
+      matched = true;
+    }
+  });
+  if (!matched) {
+    var groups = document.querySelectorAll('.nav-group[data-page]');
+    groups.forEach(function(group) {
+      var pages = {
+        'oms': ['orders', 'service-orders'],
+        'wms': ['parcels', 'service-workorders', 'warehouses', 'inbound-board', 'warehouse-console', 'task-monitor', 'exception-reports'],
+        'fin': ['report/order-profit', 'report/service-profit', 'report/client-profit', 'report/route-profit'],
+        'tms': ['area-groups', 'carriers', 'couriers', 'customs-brokers', 'route-templates', 'shipping-providers'],
+        'crm': ['clients', 'client-accounts', 'client-members', 'client-recharge', 'balance-logs', 'monthly-statements'],
+        'sys': ['roles', 'employees', 'system/api-couriers', 'system/api-customs', 'system/api-ezway', 'system/api-notifications', 'system/api-storage', 'system/api-printers', 'system/api-devices', 'system/scheduler', 'system/audit-logs', 'system/reports']
+      }[group.getAttribute('data-page')] || [];
+      for (var i = 0; i < pages.length; i++) {
+        if (currentUrl.indexOf('/admin/' + pages[i]) === 0) {
+          group.classList.add('open'); matched = true; break;
+        }
+      }
+    });
+  }
+  var topItems = document.querySelectorAll('a.nav-item:not(.nav-sub-item)');
+  topItems.forEach(function(item) {
+    var href = item.getAttribute('href');
+    if (href && currentUrl === href.split('?')[0]) {
+      item.classList.add('active');
+    } else if (href === '/admin' && currentUrl !== '/admin') {
+      item.classList.remove('active');
+    }
+  });
+})();
+</script>
+</body>
+</html>`)
 }
 
 // NewGenericList creates a genericList closure using the render context.

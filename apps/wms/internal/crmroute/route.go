@@ -2,8 +2,10 @@
 package route
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/i56/framework/core/router"
@@ -172,7 +174,7 @@ func Register(
 
 	// ─── /admin/customer-declarants (from admin_modules.go CRM) ───
 	r.GET("/admin/customer-declarants", a(func(w http.ResponseWriter, req *http.Request) {
-		decls, total, _ := dr.List(req.Context(), 0, 0, 50)
+		decls, _, _ := dr.List(req.Context(), 0, 0, 50)
 		rows := make([][]string, len(decls))
 		for i, d := range decls {
 			rows[i] = []string{d.Name, d.IDNumber, string(d.Type), string(d.AuthStatus), common.StatusLabelText(d.IsActive)}
@@ -180,7 +182,7 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"王仁照", "A123456789", "个人", "认证成功", "启用"}}
 		}
-		gp(w, "crm_declarants", "客户申报人", int(total), []string{"姓名", "证件号", "类型", "认证状态", "状态"}, rows, "/admin/customer-declarants/add-form")
+		gp(w, "crm_declarants", "客户申报人", len(decls), []string{"姓名", "证件号", "类型", "认证状态", "状态"}, rows, "/admin/customer-declarants/add-form")
 	}))
 	r.GET("/admin/customer-declarants/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -264,7 +266,7 @@ func Register(
 
 	// ─── /admin/client-members (from admin_modules.go CRM) ───
 	r.GET("/admin/client-members", a(func(w http.ResponseWriter, req *http.Request) {
-		members, total, _ := mr.List(req.Context(), 0, 0, 50)
+		members, _, _ := mr.List(req.Context(), 0, 0, 50)
 		clientNames := map[int64]string{}
 		if clients, _, _ := cr.List(req.Context(), tenant, 0, 200); len(clients) > 0 {
 			for _, c := range clients { clientNames[c.ID] = c.Name }
@@ -278,7 +280,7 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"王仁照", "127518", "886912345678", "wang@example.com", "EZ集运通", "启用"}}
 		}
-		gp(w, "crm_members", "客户会员", int(total), []string{"姓名", "会员编号", "电话", "邮箱", "客户", "状态"}, rows, "/admin/client-members/add-form")
+		gp(w, "crm_members", "客户会员", len(members), []string{"姓名", "会员编号", "电话", "邮箱", "客户", "状态"}, rows, "/admin/client-members/add-form")
 	}))
 	r.GET("/admin/client-members/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -327,7 +329,7 @@ func Register(
 			clientOpts += fmt.Sprintf(`<option value="%d">%s (余额: ¥%.2f)</option>`, c.ID, c.Name, c.Balance)
 		}
 		common.HtmlOK(w)
-		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>客户充值 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>客户充值 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:24px;max-width:480px;margin:40px auto}
 .card h3{font-size:16px;margin-bottom:16px;color:var(--i56-brand)}
@@ -432,7 +434,15 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"EZ集运通", "¥5,000", "银行转账", "07-01 10:00", "已完成"}}
 		}
-		gp(w, "crm_recharge_records", "充值记录", len(rows), []string{"客户", "金额", "方式", "时间", "状态"}, rows, "")
+		gp(w, "crm_recharge_records", "充值记录", len(rows), []string{"客户", "金额", "方式", "时间", "状态"}, rows, "/admin/recharge-records/add-form")
+	}))
+	r.GET("/admin/recharge-records/add-form", a(func(w http.ResponseWriter, req *http.Request) {
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("新增充值记录")+common.FormSave("/admin/recharge-records/save")+
+			common.FormField("客户ID", "client_id", "1", "")+
+			common.FormField("金额", "amount", "", "充值金额")+
+			common.FormSelect("方式", "method", "bank_transfer", [2]string{"bank_transfer", "银行转账"}, [2]string{"wechat", "微信支付"}, [2]string{"alipay", "支付宝"}, [2]string{"cash", "现金"})+
+			common.FormFooter()+common.ModalEnd())
 	}))
 
 	// ─── /admin/client-pricing (from admin_modules.go CRM) ───
@@ -514,7 +524,16 @@ func Register(
 				{"拼拼侠", now.Format("2006-01"), "¥5,000.00", "¥1,200.00", "未结算"},
 			}
 		}
-		gp(w, "crm_statements", "月结对账单", len(rows), []string{"客户", "账期", "期末余额", "已结算", "状态"}, rows, "")
+		gp(w, "crm_statements", "月结对账单", len(rows), []string{"客户", "账期", "期末余额", "已结算", "状态"}, rows, "/admin/monthly-statements/add-form")
+	}))
+	r.GET("/admin/monthly-statements/add-form", a(func(w http.ResponseWriter, req *http.Request) {
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("新增月结账单")+common.FormSave("/admin/monthly-statements/save")+
+			common.FormField("客户ID", "client_id", "1", "")+
+			common.FormField("账期", "period", "", "如: 2026-07")+
+			common.FormField("期末余额", "ending_balance", "", "")+
+			common.FormField("已结算金额", "settled_amount", "", "")+
+			common.FormFooter()+common.ModalEnd())
 	}))
 
 	// ─── /admin/client-ledgers CRUD (from admin_crud.go) ───
@@ -694,45 +713,176 @@ func Register(
 	}))
 
 	// ─── /admin/client-permissions — 客户端权限 ───
-	r.GET("/admin/client-permissions", a(func(w http.ResponseWriter, req *http.Request) {
-		clients, _, _ := cr.List(req.Context(), tenant, 0, 50)
-		rows := make([][]string, 0, len(clients))
-		for _, c := range clients {
-			permDesc := "包裹查询、订单创建"
-			switch c.ClientType {
-			case custDomain.ClientTypePlatform:
-				permDesc = "全部权限(平台级)"
-			case custDomain.ClientTypeMajor:
-				permDesc = "订单管理、报表查看、批量操作"
-			case custDomain.ClientTypePeer:
-				permDesc = "订单创建、价格查看"
-			case custDomain.ClientTypeNormal:
-				permDesc = "包裹查询、订单创建"
+	// Enhanced BFT56 model: permission types, approval workflow, levels, expiry
+	type ClientPermission struct {
+		ID          int64
+		ClientID    int64
+		ClientName  string
+		Permission  string // type of permission
+		Level       string // "basic" | "pro" | "enterprise"
+		Status      string // "pending" | "approved" | "active" | "expired" | "revoked"
+		RequestedAt string
+		ApprovedAt  string
+		ExpiresAt   string // expiry date
+		ApprovedBy  string
+		Remarks     string
+	}
+	permMu := &sync.RWMutex{}
+	permSeq := int64(0)
+	var permissions []ClientPermission
+	// Seed enhanced permission data for EZ集运通
+	clients, _, _ := cr.List(context.TODO(), tenant, 0, 50)
+	for _, c := range clients {
+		if c.Name == "EZ集运通" {
+			permissions = []ClientPermission{
+				{ID: 1, ClientID: c.ID, ClientName: c.Name, Permission: "报关申报", Level: "enterprise", Status: "active", RequestedAt: "2026-01-15", ApprovedAt: "2026-01-16", ExpiresAt: "2027-01-15", ApprovedBy: "系统管理员", Remarks: ""},
+				{ID: 2, ClientID: c.ID, ClientName: c.Name, Permission: "API数据对接", Level: "pro", Status: "active", RequestedAt: "2026-03-01", ApprovedAt: "2026-03-02", ExpiresAt: "2027-03-01", ApprovedBy: "系统管理员", Remarks: ""},
+				{ID: 3, ClientID: c.ID, ClientName: c.Name, Permission: "仓储服务", Level: "pro", Status: "active", RequestedAt: "2026-06-01", ApprovedAt: "2026-06-02", ExpiresAt: "2027-06-01", ApprovedBy: "运营主管", Remarks: ""},
+				{ID: 4, ClientID: c.ID, ClientName: c.Name, Permission: "物流追踪", Level: "basic", Status: "active", RequestedAt: "2026-06-01", ApprovedAt: "2026-06-01", ExpiresAt: "2027-06-01", ApprovedBy: "系统管理员", Remarks: ""},
+				{ID: 5, ClientID: c.ID, ClientName: c.Name, Permission: "财务结算", Level: "pro", Status: "active", RequestedAt: "2026-06-01", ApprovedAt: "2026-06-02", ExpiresAt: "2027-06-01", ApprovedBy: "财务主管", Remarks: ""},
+				{ID: 6, ClientID: c.ID, ClientName: c.Name, Permission: "海快专线", Level: "pro", Status: "pending", RequestedAt: "2026-07-10", ApprovedAt: "—", ExpiresAt: "—", ApprovedBy: "—", Remarks: "待审核"},
+				{ID: 7, ClientID: c.ID, ClientName: c.Name, Permission: "会员管理", Level: "basic", Status: "active", RequestedAt: "2026-06-01", ApprovedAt: "2026-06-01", ExpiresAt: "2027-06-01", ApprovedBy: "系统管理员", Remarks: ""},
+				{ID: 8, ClientID: c.ID, ClientName: c.Name, Permission: "电子面单", Level: "pro", Status: "active", RequestedAt: "2026-03-01", ApprovedAt: "2026-03-02", ExpiresAt: "2027-03-01", ApprovedBy: "系统管理员", Remarks: ""},
+				{ID: 9, ClientID: c.ID, ClientName: c.Name, Permission: "通知推送", Level: "basic", Status: "revoked", RequestedAt: "2026-01-15", ApprovedAt: "2026-01-16", ExpiresAt: "2026-12-31", ApprovedBy: "系统管理员", Remarks: "客户主动关闭"},
 			}
-			rows = append(rows, []string{c.Name, permDesc, common.StatusLabelText(c.IsActive), c.CreatedAt.Format("2006-01-02")})
+			permSeq = 9
+			break
 		}
+	}
+	permLevelLabel := func(l string) string {
+		switch l {
+		case "basic": return "基础版"
+		case "pro": return "专业版"
+		case "enterprise": return "企业版"
+		default: return "—"
+		}
+	}
+	permStatusLabel := func(s string) string {
+		switch s {
+		case "pending": return "审核中"
+		case "approved": return "已批准"
+		case "active": return "已开通"
+		case "expired": return "已过期"
+		case "revoked": return "已停用"
+		default: return s
+		}
+	}
+	r.GET("/admin/client-permissions", a(func(w http.ResponseWriter, req *http.Request) {
+		permMu.RLock()
+		rows := make([][]string, len(permissions))
+		for i, p := range permissions {
+			rows[i] = []string{
+				p.ClientName, p.Permission, permLevelLabel(p.Level),
+				permStatusLabel(p.Status), p.RequestedAt, p.ApprovedAt, p.ExpiresAt,
+			}
+		}
+		permMu.RUnlock()
 		if len(rows) == 0 {
 			rows = [][]string{
-				{"EZ集运通", "全部权限(平台级)", "启用", "2026-06-01"},
-				{"拼拼侠", "订单管理、报表查看", "启用", "2026-06-15"},
+				{"EZ集运通", "报关申报", "企业版", "已开通", "2026-01-15", "2026-01-16", "2027-01-15"},
 			}
 		}
-		gp(w, "crm_client_permissions", "客户端权限", len(rows), []string{"客户", "权限说明", "状态", "开通时间"}, rows, "/admin/client-permissions/add-form")
+		gp(w, "crm_client_permissions", "客户端权限", len(rows), []string{"客户", "权限类型", "等级", "状态", "申请时间", "批准时间", "到期时间"}, rows, "/admin/client-permissions/add-form")
 	}))
 	r.GET("/admin/client-permissions/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
-		clients, _, _ := cr.List(req.Context(), tenant, 0, 50)
+		cl, _, _ := cr.List(req.Context(), tenant, 0, 50)
 		clientOpts := ""
-		for _, c := range clients {
+		for _, c := range cl {
 			clientOpts += fmt.Sprintf(`<option value="%d">%s</option>`, c.ID, c.Name)
 		}
 		fmt.Fprint(w, common.ModalStart("新增客户端权限")+common.FormSave("/admin/client-permissions/save")+
 			fmt.Sprintf(`<div class="form-group"><label class="form-label">客户</label><select name="client_id" class="form-input">%s</select></div>`, clientOpts)+
-			common.FormSelect("权限类型", "perm_type", "read", [2]string{"read", "只读"}, [2]string{"write", "读写"}, [2]string{"admin", "管理"})+
-			common.FormField("权限说明", "description", "", "如: 包裹查询、订单创建")+
+			common.FormSelect("权限类型", "permission", "报关申报",
+				[2]string{"报关申报", "报关申报"}, [2]string{"API数据对接", "API数据对接"},
+				[2]string{"仓储服务", "仓储服务"}, [2]string{"物流追踪", "物流追踪"},
+				[2]string{"财务结算", "财务结算"}, [2]string{"会员管理", "会员管理"},
+				[2]string{"电子面单", "电子面单"}, [2]string{"通知推送", "通知推送"})+
+			common.FormSelect("权限等级", "level", "basic",
+				[2]string{"basic", "基础版"}, [2]string{"pro", "专业版"}, [2]string{"enterprise", "企业版"})+
+			common.FormSelect("状态", "status", "pending",
+				[2]string{"pending", "审核中"}, [2]string{"approved", "已批准"},
+				[2]string{"active", "已开通"}, [2]string{"revoked", "已停用"})+
+			common.FormField("到期时间", "expires_at", "", "如: 2027-06-01")+
+			common.FormField("备注", "remarks", "", "")+
 			common.FormFooter()+common.ModalEnd())
 	}))
 	r.POST("/admin/client-permissions/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		cid, _ := common.ParseID(req.FormValue("client_id"))
+		clientName := ""
+		if c, _ := cr.GetByID(req.Context(), tenant, cid); c != nil { clientName = c.Name }
+		permMu.Lock()
+		permSeq++
+		permissions = append(permissions, ClientPermission{
+			ID: permSeq, ClientID: cid, ClientName: clientName,
+			Permission: req.FormValue("permission"), Level: req.FormValue("level"),
+			Status: req.FormValue("status"), RequestedAt: time.Now().Format("2006-01-02"),
+			ApprovedAt: "—", ExpiresAt: req.FormValue("expires_at"),
+			ApprovedBy: "—", Remarks: req.FormValue("remarks"),
+		})
+		permMu.Unlock()
+		common.Redirect(w, "/admin/client-permissions")
+	}))
+	r.GET("/admin/client-permissions/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		permMu.RLock()
+		var p *ClientPermission
+		for i := range permissions { if permissions[i].ID == id { p = &permissions[i]; break } }
+		permMu.RUnlock()
+		if p == nil { http.Error(w, "not found", 404); return }
+		common.HtmlOK(w)
+		cl, _, _ := cr.List(req.Context(), tenant, 0, 50)
+		clientOpts := ""
+		for _, c := range cl {
+			sel := ""
+			if c.ID == p.ClientID { sel = " selected" }
+			clientOpts += fmt.Sprintf(`<option value="%d"%s>%s</option>`, c.ID, sel, c.Name)
+		}
+		fmt.Fprint(w, common.ModalStart("编辑客户端权限")+common.FormSave("/admin/client-permissions/update")+
+			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, p.ID)+
+			fmt.Sprintf(`<div class="form-group"><label class="form-label">客户</label><select name="client_id" class="form-input">%s</select></div>`, clientOpts)+
+			common.FormSelect("权限类型", "permission", p.Permission,
+				[2]string{"报关申报", "报关申报"}, [2]string{"API数据对接", "API数据对接"},
+				[2]string{"仓储服务", "仓储服务"}, [2]string{"物流追踪", "物流追踪"},
+				[2]string{"财务结算", "财务结算"}, [2]string{"会员管理", "会员管理"},
+				[2]string{"电子面单", "电子面单"}, [2]string{"通知推送", "通知推送"})+
+			common.FormSelect("权限等级", "level", p.Level,
+				[2]string{"basic", "基础版"}, [2]string{"pro", "专业版"}, [2]string{"enterprise", "企业版"})+
+			common.FormSelect("状态", "status", p.Status,
+				[2]string{"pending", "审核中"}, [2]string{"approved", "已批准"},
+				[2]string{"active", "已开通"}, [2]string{"expired", "已过期"},
+				[2]string{"revoked", "已停用"})+
+			common.FormField("到期时间", "expires_at", p.ExpiresAt, "如: 2027-06-01")+
+			common.FormField("审批人", "approved_by", p.ApprovedBy, "")+
+			common.FormField("备注", "remarks", p.Remarks, "")+
+			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/client-permissions/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id, _ := common.ParseID(req.FormValue("id"))
+		cid, _ := common.ParseID(req.FormValue("client_id"))
+		clientName := ""
+		if c, _ := cr.GetByID(req.Context(), tenant, cid); c != nil { clientName = c.Name }
+		permMu.Lock()
+		for i := range permissions {
+			if permissions[i].ID == id {
+				permissions[i].ClientID = cid
+				permissions[i].ClientName = clientName
+				permissions[i].Permission = req.FormValue("permission")
+				permissions[i].Level = req.FormValue("level")
+				newStatus := req.FormValue("status")
+				permissions[i].Status = newStatus
+				if (newStatus == "approved" || newStatus == "active") && permissions[i].ApprovedAt == "—" {
+					permissions[i].ApprovedAt = time.Now().Format("2006-01-02")
+				}
+				permissions[i].ExpiresAt = req.FormValue("expires_at")
+				permissions[i].ApprovedBy = req.FormValue("approved_by")
+				permissions[i].Remarks = req.FormValue("remarks")
+				break
+			}
+		}
+		permMu.Unlock()
 		common.Redirect(w, "/admin/client-permissions")
 	}))
 

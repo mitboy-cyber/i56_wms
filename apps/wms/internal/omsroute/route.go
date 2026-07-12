@@ -124,7 +124,7 @@ func Register(
 		_ = entries
 
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>订单详情 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>订单详情 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
 .card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
@@ -252,8 +252,14 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 	}))
 	r.GET("/admin/orders/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		idStr := req.URL.Query().Get("id")
+		id, err := strconv.ParseInt(idStr, 10, 64)
 		o, _ := osvc.GetByID(ctx, tenant, id)
+		if err != nil {
+			// Try lookup by order number (e.g., ORD-20260711-002)
+			o2, _ := osvc.GetByOrderNo(ctx, tenant, idStr)
+			if o2 != nil { o = o2 }
+		}
 		if o == nil { http.Error(w, "not found", 404); return }
 		whs, _, _ := ws.List(ctx, 1, 0, 50)
 		clients, _, _ := cr.List(ctx, 1, 0, 200)
@@ -303,14 +309,19 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		common.Redirect(w, "/admin/orders")
 	}))
 	r.POST("/admin/orders/delete", a(func(w http.ResponseWriter, req *http.Request) {
-		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		idStr := req.URL.Query().Get("id")
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			o, _ := osvc.GetByOrderNo(req.Context(), tenant, idStr)
+			if o != nil { id = o.ID }
+		}
 		osvc.Cancel(req.Context(), tenant, id)
 		common.Redirect(w, "/admin/orders")
 	}))
 
 	// ─── /admin/service-orders — 附加服务订单 (from admin_modules.go OMS) ───
 	r.GET("/admin/service-orders", a(func(w http.ResponseWriter, req *http.Request) {
-		svcOrders, total, _ := sr.List(req.Context(), tenant, 0, 50)
+		svcOrders, _, _ := sr.List(req.Context(), tenant, 0, 50)
 		clientNames := map[int64]string{}
 		if clients, _, _ := cr.List(req.Context(), tenant, 0, 200); len(clients) > 0 {
 			for _, c := range clients { clientNames[c.ID] = c.Name }
@@ -333,7 +344,7 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 				{"SO-004", "拆箱服务", "EZ集运通", "¥8.00", "已完成", "07-09 16:45"},
 			}
 		}
-		gp(w, "oms_service_orders", "附加服务订单", int(total),
+		gp(w, "oms_service_orders", "附加服务订单", len(svcOrders),
 			[]string{"编号", "服务类型", "客户", "金额", "状态", "时间"}, rows,
 			"/admin/service-orders/add-form")
 	}))

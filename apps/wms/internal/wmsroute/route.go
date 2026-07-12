@@ -308,7 +308,7 @@ func Register(
 			}
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>仓库详情 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>仓库详情 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:16px;margin-bottom:12px}
 .card-header{font-size:14px;font-weight:600;color:var(--i56-text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--i56-border)}
@@ -411,11 +411,20 @@ func Register(
 			case parcelDomain.StatusReturned:
 				statusCN = "已退货"
 			}
+			cargoCN := p.CargoType
+			switch p.CargoType {
+			case "general":
+				cargoCN = "普货"
+			case "sensitive":
+				cargoCN = "特货"
+			case "dangerous":
+				cargoCN = "危险品"
+			}
 			dims := "—"
 			if p.Length > 0 {
 				dims = fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height)
 			}
-			rows = append(rows, []string{p.TrackingNumber, p.ProductName, p.CargoType, statusCN,
+			rows = append(rows, []string{p.TrackingNumber, p.ProductName, cargoCN, statusCN,
 				fmt.Sprintf("%.2f", p.ActualWeight), dims, "1", p.CreatedAt.Format("2006-01-02")})
 		}
 		if len(rows) == 0 {
@@ -490,7 +499,7 @@ func Register(
 
 	// ─── /admin/service-workorders (from admin_modules.go WMS) ───
 	r.GET("/admin/service-workorders", a(func(w http.ResponseWriter, req *http.Request) {
-		workOrders, total, _ := wor.List(req.Context(), tenant, 0, 50)
+		workOrders, _, _ := wor.List(req.Context(), tenant, 0, 50)
 		whNames := map[int64]string{}
 		if whs, _, _ := ws.List(req.Context(), tenant, 0, 200); len(whs) > 0 {
 			for _, wh := range whs {
@@ -513,7 +522,7 @@ func Register(
 				{"WO-004", "拆箱合箱", "待处理", "厦门仓", "07-11 10:00"},
 			}
 		}
-		gp(w, "wms_service_wos", "附加服务工单", int(total), []string{"工单号", "标题", "状态", "仓库", "时间"}, rows, "/admin/service-workorders/add-form")
+		gp(w, "wms_service_wos", "附加服务工单", len(workOrders), []string{"工单号", "标题", "状态", "仓库", "时间"}, rows, "/admin/service-workorders/add-form")
 	}))
 	r.GET("/admin/service-workorders/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -532,10 +541,27 @@ func Register(
 		common.Redirect(w, "/admin/service-workorders")
 	}))
 	r.GET("/admin/service-workorders/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
-		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		idStr := req.URL.Query().Get("id")
+		// Strip "WO-" prefix if present (e.g., "WO-001" → "001")
+		cleanedID := idStr
+		if idx := strings.LastIndex(idStr, "-"); idx >= 0 { cleanedID = idStr[idx+1:] }
+		id, _ := common.ParseID(cleanedID)
 		wo, _ := wor.GetByID(req.Context(), tenant, id)
-		if wo == nil { http.Error(w, "not found", 404); return }
 		common.HtmlOK(w)
+		if wo == nil {
+			// Fallback: render with original ID string for in-memory/demo data
+			fmt.Fprint(w, formBuild(
+				common.ModalStart("编辑服务工单"),
+				common.FormSave("/admin/service-workorders/update"),
+				fmt.Sprintf(`<input type="hidden" name="id" value="%s">`, cleanedID),
+				common.FormField("客户ID", "client_id", "1", ""),
+				common.FormField("标题", "title", idStr, ""),
+				common.FormField("描述", "description", "", ""),
+				common.FormField("状态", "status", "待处理", ""),
+				common.FormFooter(), common.ModalEnd(),
+			))
+			return
+		}
 		fmt.Fprint(w, formBuild(
 			common.ModalStart("编辑服务工单"),
 			common.FormSave("/admin/service-workorders/update"),
@@ -623,7 +649,7 @@ func Register(
 				{"合箱服务", "MERGE", "打包类", "¥10.00"},
 			}
 		}
-		gp(w, "wms_service_types", "附加服务类型", len(rows), []string{"名称", "编码", "分类", "单价"}, rows, "")
+		gp(w, "wms_service_types", "附加服务类型", len(rows), []string{"名称", "编码", "分类", "单价"}, rows, "/admin/service-types/add-form")
 	}))
 	r.GET("/admin/service-types/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		code := req.URL.Query().Get("id")
@@ -680,7 +706,7 @@ func Register(
 			rows[i] = []string{
 				fmt.Sprintf("WO-%s-%03d", today, wo.ID), wo.ProcessName, currentStepName,
 				priorityStr, assignedTo, "系统",
-				wfDomain.StatusDisplay(wo.Status), wo.CreatedAt.Format("07-11 15:04"),
+				wfDomain.StatusDisplay(wo.Status), wo.CreatedAt.Format("01-02 15:04"),
 			}
 		}
 		if len(rows) == 0 {

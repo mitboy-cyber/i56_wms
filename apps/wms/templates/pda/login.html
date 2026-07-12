@@ -4,48 +4,60 @@
 <div style="width:100%;text-align:center;font-size:16px;font-weight:700">I56 WMS 仓库管理</div>
 {{end}}
 {{define "content"}}
-<div class="pda-content" style="padding-top:60px;text-align:center">
-  <div style="margin-bottom:32px">
-    <div style="font-size:64px;margin-bottom:12px;line-height:1">🏭</div>
-    <div style="font-size:22px;font-weight:800;margin-bottom:4px">I56 PDA</div>
-    <div style="font-size:13px;color:var(--pda-text-muted)">仓库手持终端 · 移动操作平台</div>
+<div style="max-width:320px;margin:60px auto 0;text-align:center;padding:0 16px">
+  <div style="margin-bottom:28px">
+    <div style="font-size:56px;margin-bottom:8px;line-height:1">🏭</div>
+    <div style="font-size:20px;font-weight:800;margin-bottom:2px">I56 PDA</div>
+    <div style="font-size:12px;color:var(--pda-text-muted)">仓库手持终端 · 移动操作平台</div>
   </div>
 
   {{if .Error}}
-  <div class="pda-card" style="border-color:var(--pda-danger);background:rgba(239,68,68,.1);margin-bottom:16px">
-    <div style="font-size:13px;color:var(--pda-danger);text-align:center;display:flex;align-items:center;justify-content:center;gap:6px">
-      ⚠️ {{.Error}}
-    </div>
+  <div style="border:1px solid var(--pda-danger);border-radius:8px;background:rgba(239,68,68,.08);padding:10px;margin-bottom:16px">
+    <div style="font-size:13px;color:var(--pda-danger);text-align:center">⚠️ {{.Error}}</div>
   </div>
   {{end}}
 
   <form method="POST" action="/pda/login" style="text-align:left">
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;color:var(--pda-text-muted);font-weight:600;display:block;margin-bottom:6px">操作员编号</label>
+      <input type="text" name="code" id="code-input" 
+             placeholder="输入工号，如 OP001" 
+             value="{{.Code}}" 
+             autocomplete="off" autofocus
+             style="display:block;width:100%;height:48px;padding:0 14px;border:2px solid var(--pda-border);border-radius:8px;background:var(--pda-surface-raised);color:var(--pda-text);font-size:16px;font-family:inherit;outline:none;box-sizing:border-box">
+    </div>
     <div style="margin-bottom:20px">
-      <div style="font-size:12px;color:var(--pda-text-muted);margin-bottom:8px;font-weight:600">操作员编号</div>
-      <input type="text" name="code" class="pda-input" placeholder="输入工号，如 OP001" autofocus
-             value="{{.Code}}" style="font-size:18px;text-align:center;letter-spacing:4px" autocomplete="off" inputmode="text">
+      <label style="font-size:12px;color:var(--pda-text-muted);font-weight:600;display:block;margin-bottom:6px">PIN 码</label>
+      <input type="password" name="pin" 
+             placeholder="输入 4 位 PIN 码" 
+             maxlength="4" 
+             inputmode="numeric" pattern="[0-9]*" 
+             autocomplete="off"
+             style="display:block;width:100%;height:48px;padding:0 14px;border:2px solid var(--pda-border);border-radius:8px;background:var(--pda-surface-raised);color:var(--pda-text);font-size:16px;font-family:inherit;outline:none;box-sizing:border-box;text-align:center;letter-spacing:6px">
     </div>
-    <div style="margin-bottom:24px">
-      <div style="font-size:12px;color:var(--pda-text-muted);margin-bottom:8px;font-weight:600">PIN 码</div>
-      <input type="password" name="pin" class="pda-input" placeholder="输入 4 位 PIN 码"
-             maxlength="4" style="font-size:18px;text-align:center;letter-spacing:12px"
-             inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-    </div>
-    <button type="submit" class="pda-btn pda-btn-primary pda-btn-lg" style="margin-top:8px">
-      <span style="font-size:18px">登 录</span>
+    <button type="submit" style="display:block;width:100%;height:48px;background:var(--pda-brand);color:#fff;border:none;border-radius:var(--pda-radius-sm);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit">
+      登 录
     </button>
   </form>
 
-  <div style="margin-top:24px;font-size:11px;color:var(--pda-text-muted);display:flex;align-items:center;justify-content:center;gap:8px">
-    <span style="width:40px;height:1px;background:var(--pda-border)"></span>
-    默认测试账号：OP001 / 1234
-    <span style="width:40px;height:1px;background:var(--pda-border)"></span>
+  <div style="margin-top:20px;font-size:11px;color:var(--pda-text-muted)">
+    测试账号：OP001 / 1234
   </div>
 </div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-  var f = document.querySelector('input[autofocus]');
-  if (f) setTimeout(function(){ f.focus(); }, 200);
-});
+(function(){
+  var inp = document.getElementById('code-input');
+  // 阻止任何意外修改: 去掉所有CSS类的副作用
+  inp.className = '';
+  inp.style.textIndent = '0';
+  inp.style.letterSpacing = 'normal';
+  // 去掉可能的自动大写
+  inp.setAttribute('autocorrect', 'off');
+  inp.setAttribute('autocapitalize', 'off');
+  inp.setAttribute('spellcheck', 'false');
+  // 确保 focus
+  setTimeout(function(){ inp.focus(); }, 300);
+})();
 </script>
 {{end}}

@@ -21,6 +21,10 @@ func (r *MemPDARepo) seedOperators() {
 		r.operators[id]=&domain.Operator{ID:id,TenantID:1,WarehouseID:op.whID,Name:op.name,Code:op.code,Pin:op.pin,IsActive:true}
 	}
 }
+func (r *MemPDARepo) GetOperatorByID(id int64)*domain.Operator{
+	r.mu.RLock();defer r.mu.RUnlock()
+	op,ok:=r.operators[id];if ok&&op.IsActive{return op};return nil
+}
 func (r *MemPDARepo) GetOperatorByCode(code string)*domain.Operator{
 	r.mu.RLock();defer r.mu.RUnlock()
 	for _,op:=range r.operators{if op.Code==code&&op.IsActive{return op}};return nil

@@ -19,6 +19,20 @@ func registerPDAAPIRoutesOnRouter(r *router.Router, ops *pdaSvc.PDAOperations) {
 		p,err:=ops.Receive(req.Context(),b.OpID,b.TrackingNo,b.Weight,b.Length,b.Width,b.Height,b.Location)
 		if err!=nil{response.Error(w,err);return};response.JSON(w,200,map[string]any{"parcel":p,"message":"入库成功"})
 	})
+	r.POST("/api/v1/pda/weigh",func(w http.ResponseWriter,req *http.Request){
+		var b struct{TrackingNo string `json:"tracking_no"`;Weight float64 `json:"weight"`;OpID int64 `json:"operator_id"`}
+		json.NewDecoder(req.Body).Decode(&b);if b.OpID==0{b.OpID=1};if b.Weight<=0{b.Weight=0.1}
+		p,oldW,err:=ops.Weigh(req.Context(),b.OpID,b.TrackingNo,b.Weight)
+		if err!=nil{response.Error(w,err);return}
+		response.JSON(w,200,map[string]any{"parcel":p,"old_weight":oldW,"new_weight":b.Weight,"message":fmt.Sprintf("核重完成 %.2f→%.2f kg",oldW,b.Weight)})
+	})
+	r.GET("/api/v1/pda/query",func(w http.ResponseWriter,req *http.Request){
+		tn:=req.URL.Query().Get("tracking_no")
+		if tn==""{response.JSON(w,400,map[string]any{"error":map[string]string{"message":"缺少 tracking_no 参数"}});return}
+		p,err:=ops.GetParcelForReceive(req.Context(),tn)
+		if err!=nil||p==nil{response.Error(w,fmt.Errorf("包裹 %s 未找到",tn));return}
+		response.JSON(w,200,map[string]any{"parcel":p,"message":"查询成功"})
+	})
 	r.POST("/api/v1/pda/putaway",func(w http.ResponseWriter,req *http.Request){
 		var b struct{TrackingNo string `json:"tracking_no"`;Location string `json:"location_barcode"`;OpID int64 `json:"operator_id"`}
 		json.NewDecoder(req.Body).Decode(&b);if b.OpID==0{b.OpID=1}
