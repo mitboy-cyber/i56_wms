@@ -10,6 +10,7 @@ import (
 	"github.com/i56/framework/core/router"
 	"github.com/i56/framework/events"
 
+	"github.com/i56/i56-apps/i56-wms/internal/ai/optimizer"
 	"github.com/i56/i56-apps/i56-wms/internal/common"
 
 	custRepo "github.com/i56/modules/customer/repository"
@@ -246,8 +247,35 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		whOpts := ""; for _, w := range whs { whOpts += fmt.Sprintf(`<option value="%d">%s</option>`, w.ID, w.Name) }
 		clientOpts := ""; for _, c := range clients { clientOpts += fmt.Sprintf(`<option value="%d">%s</option>`, c.ID, c.Name) }
 		routeOpts := ""; for _, rt := range routes { routeOpts += fmt.Sprintf(`<option value="%d">%s (%s)</option>`, rt.ID, rt.Name, rt.TransportType) }
+
+		// AI Route Optimization: score and recommend top 3 routes
+		routeOpt := optimizer.New(rr)
+		scores := routeOpt.ScoreRoutes("厦门", "台湾", 5.0, "normal")
+		routeRecHTML := ""
+		if len(scores) > 0 {
+			routeRecHTML = `<div style="background:var(--i56-bg-base);border:1px solid var(--i56-border);border-radius:6px;padding:12px;margin-bottom:12px">` +
+				`<div style="font-size:12px;font-weight:600;color:var(--i56-brand);margin-bottom:8px">🤖 AI路线推荐 (综合评分)</div>`
+			for i, s := range scores {
+				bgColor := "var(--i56-bg-surface)"
+				borderColor := "var(--i56-border)"
+				if i == 0 {
+					bgColor = "rgba(99,102,241,0.08)"
+					borderColor = "var(--i56-brand)"
+				}
+				routeRecHTML += fmt.Sprintf(`<div style="background:%s;border:1px solid %s;border-radius:4px;padding:8px;margin-bottom:4px;font-size:11px">`+
+					`<span style="font-weight:600;color:var(--i56-text-primary)">%d. %s</span>`+
+					`<span style="color:var(--i56-text-secondary);margin-left:4px">(%s)</span>`+
+					`<span style="float:right;color:var(--i56-brand);font-weight:700">%.0f分</span>`+
+					`<div style="color:var(--i56-text-secondary);margin-top:2px">`+
+					`💰 ¥%.2f &nbsp;|&nbsp; ⏱ %dh &nbsp;|&nbsp; 📊 %.0f%%可靠</div></div>`,
+					bgColor, borderColor, i+1, s.RouteName, s.TransportType, s.Score, s.EstCost, s.EstTime, s.Reliability*100)
+			}
+			routeRecHTML += `</div>`
+		}
+
 		common.HtmlOK(w)
 		fmt.Fprint(w, common.ModalStart("新增集运订单")+common.FormSave("/admin/orders/save")+
+			routeRecHTML+
 			fmt.Sprintf(`<div class="form-group"><label class="form-label">仓库</label><select name="warehouse_id" class="form-input">%s</select></div>`, whOpts)+
 			fmt.Sprintf(`<div class="form-group"><label class="form-label">客户</label><select name="client_id" class="form-input">%s</select></div>`, clientOpts)+
 			common.FormField("会员编号", "member_code", "", "会员编号")+

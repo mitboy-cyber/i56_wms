@@ -70,6 +70,11 @@
     <div class="stat-value" style="color:var(--i56-danger)">{{.AbnormalParcels}}</div>
     <div class="stat-delta down">需处理</div>
   </div>
+  <div class="stat-card" onclick="location.href='/admin/exceptions'" style="cursor:pointer">
+    <div class="stat-label">🤖 AI异常检测</div>
+    <div class="stat-value" style="color:var(--i56-warning, #f59e0b)">{{if .AnomalyCount}}{{.AnomalyCount}}{{else}}0{{end}}</div>
+    <div class="stat-delta down">5项规则扫描</div>
+  </div>
 </div>
 
 <!-- ===== Charts Row: Bar Chart + Status Distribution ===== -->

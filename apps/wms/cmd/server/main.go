@@ -62,6 +62,8 @@ import (
 	omsroute "github.com/i56/i56-apps/i56-wms/internal/omsroute"
 	sysroute "github.com/i56/i56-apps/i56-wms/internal/sysroute"
 	tmsroute "github.com/i56/i56-apps/i56-wms/internal/tmsroute"
+	"github.com/i56/i56-apps/i56-wms/internal/ai/classifier"
+	"github.com/i56/i56-apps/i56-wms/internal/ai/translate"
 	wmsroute "github.com/i56/i56-apps/i56-wms/internal/wmsroute"
 )
 
@@ -374,7 +376,11 @@ func main() {
 
 	// ★ Module-split route registrations (replaces adminPages + registerBFT56Modules + adminSystemPages + registerAdminCRUD)
 	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps)
-	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr)
+	// AI: Cargo classifier
+	cargoClassifier := classifier.New(aiSvc.Gateway)
+	_ = translate.New(aiSvc.Gateway) // available for future use
+	
+	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr, cargoClassifier)
 	tmsroute.Register(r, a, rc, rr, cour)
 	crmroute.Register(r, a, rc, cr, mr, lr, ar, dr, rpr)
 	finroute.Register(r, a, rc, rpt)
