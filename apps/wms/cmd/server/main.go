@@ -341,6 +341,28 @@ func main() {
 	})
 
 	// Health — now with AI status
+		// AI services
+	cargoClassifier := classifier.New(aiSvc.Gateway)
+	productTranslator := translate.New(aiSvc.Gateway)
+
+	r.GET("/api/ai/classify", func(w http.ResponseWriter, req *http.Request) {
+		text := req.URL.Query().Get("text")
+		if text == "" { http.Error(w, "{}", 400); return }
+		result := cargoClassifier.Classify(text)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	})
+
+	r.GET("/api/ai/translate", func(w http.ResponseWriter, req *http.Request) {
+		text := req.URL.Query().Get("q")
+		from := req.URL.Query().Get("from"); to := req.URL.Query().Get("to")
+		if from == "" { from = "zh" }; if to == "" { to = "en" }
+		translated := productTranslator.Translate(text, from, to)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{"text":text,"from":from,"to":to,"translated":translated})
+	})
+
+	// WMS modules need cargo classifier
 	r.GET("/api/v1/health", func(w http.ResponseWriter, req *http.Request) {
 		deps := "in-memory"
 		if dbAvailable { deps = "postgres" }
@@ -376,10 +398,6 @@ func main() {
 
 	// ★ Module-split route registrations (replaces adminPages + registerBFT56Modules + adminSystemPages + registerAdminCRUD)
 	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps)
-	// AI: Cargo classifier
-	cargoClassifier := classifier.New(aiSvc.Gateway)
-	_ = translate.New(aiSvc.Gateway) // available for future use
-	
 	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr, cargoClassifier)
 	tmsroute.Register(r, a, rc, rr, cour)
 	crmroute.Register(r, a, rc, cr, mr, lr, ar, dr, rpr)
