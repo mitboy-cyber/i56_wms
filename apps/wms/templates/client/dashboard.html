@@ -27,6 +27,49 @@
   </div>
 </div>
 
+<!-- 订单状态时间线 -->
+<h3 class="section-title">📋 订单流程追踪</h3>
+<div class="section-card">
+  <div class="order-timeline">
+    <div class="timeline-step completed">
+      <div class="timeline-dot">📝</div>
+      <div class="timeline-label">创建</div>
+    </div>
+    <div class="timeline-step completed">
+      <div class="timeline-dot">🛒</div>
+      <div class="timeline-label">拣货</div>
+    </div>
+    <div class="timeline-step current">
+      <div class="timeline-dot">📦</div>
+      <div class="timeline-label">打包</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot">🚛</div>
+      <div class="timeline-label">装柜</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot">✈️</div>
+      <div class="timeline-label">运输</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot">🛃</div>
+      <div class="timeline-label">清关</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot">🏠</div>
+      <div class="timeline-label">派送</div>
+    </div>
+    <div class="timeline-step">
+      <div class="timeline-dot">✅</div>
+      <div class="timeline-label">签收</div>
+    </div>
+  </div>
+  <div class="timeline-bar">
+    <div class="timeline-progress" style="width:25%"></div>
+  </div>
+  <div style="font-size:10px;color:var(--i56-text-muted);margin-top:8px;text-align:center">以上为完整订单生命周期流程 · 当前活跃订单 {{.ActiveOrderCount}}/{{.OrderCount}}</div>
+</div>
+
 <!-- 包裹状态分布 -->
 <h3 class="section-title">📦 包裹状态分布</h3>
 <div class="stat-grid">

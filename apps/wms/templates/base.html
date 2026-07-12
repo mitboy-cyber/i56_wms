@@ -141,6 +141,8 @@
         <a href="/admin/system/scheduler" class="nav-item nav-sub-item">⏰ 定时任务</a>
         <a href="/admin/system/audit-logs" class="nav-item nav-sub-item">📋 审计日志</a>
         <a href="/admin/system/reports" class="nav-item nav-sub-item">📊 内置报表</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/ai-chat" class="nav-item nav-sub-item">🤖 AI 助手</a>
         
     </div>
 
@@ -244,7 +246,7 @@ function toggleNavGroup(header) {
         'fin': ['report/order-profit', 'report/service-profit', 'report/client-profit', 'report/route-profit'],
         'tms': ['area-groups', 'cargo-types', 'carriers', 'container-loadings', 'couriers', 'customs-brokers', 'customs-points', 'route-templates', 'shipping-providers', 'transport-modes', 'logistics-tracking'],
         'crm': ['customer-addresses', 'customer-declarants', 'clients', 'client-accounts', 'client-members', 'client-recharge', 'balance-logs', 'recharge-records', 'client-pricing', 'monthly-statements', 'client-permissions'],
-        'sys': ['notifications', 'print-templates', 'roles', 'employees', 'system-params', 'system/api-couriers', 'system/api-customs', 'system/api-ezway', 'system/api-notifications', 'system/api-storage', 'system/api-printers', 'system/api-devices', 'system/scheduler', 'system/audit-logs', 'system/reports']
+        'sys': ['notifications', 'print-templates', 'roles', 'employees', 'system-params', 'system/api-couriers', 'system/api-customs', 'system/api-ezway', 'system/api-notifications', 'system/api-storage', 'system/api-printers', 'system/api-devices', 'system/scheduler', 'system/audit-logs', 'system/reports', 'system/ai-chat']
       };
       var pages = groupPages[dp] || [];
       for (var i = 0; i < pages.length; i++) {

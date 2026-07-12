@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" data-theme="light">
+<html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{block "title" .}}I56 Client{{end}}</title>
@@ -84,6 +84,18 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 .toast-item .toast-close:hover{opacity:1}
 @keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 
+/* Order timeline */
+.order-timeline{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;overflow-x:auto;padding:4px 0}
+.timeline-step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:48px;position:relative;flex-shrink:0}
+.timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--i56-bg-base);border:2px solid var(--i56-border);transition:all .3s}
+.timeline-label{font-size:10px;color:var(--i56-text-muted);white-space:nowrap;transition:color .3s}
+.timeline-step.completed .timeline-dot{border-color:var(--i56-brand);background:var(--i56-brand-alpha-10)}
+.timeline-step.completed .timeline-label{color:var(--i56-brand)}
+.timeline-step.current .timeline-dot{border-color:var(--i56-brand);background:var(--i56-brand);color:#fff;box-shadow:0 0 8px var(--i56-brand-alpha-10)}
+.timeline-step.current .timeline-label{color:var(--i56-brand);font-weight:600}
+.timeline-bar{height:6px;background:var(--i56-bg-base);border-radius:3px;overflow:hidden}
+.timeline-progress{height:100%;background:linear-gradient(90deg,var(--i56-brand),#6366f1);border-radius:3px;transition:width .6s ease}
+
 /* Mobile responsive */
 .mobile-menu-btn{display:none;border:none;background:none;font-size:18px;cursor:pointer;color:var(--i56-text-primary);padding:4px}
 
@@ -121,8 +133,8 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 <div class="nav-section">
 <div class="nav-section-title">客户资料</div>
 <a class="nav-item" href="/client/addresses">📍 收件地址</a>
-<a class="nav-item" href="/client/members">👥 客戶會員</a>
-<a class="nav-item" href="/client/declarants">👤 申報人</a>
+<a class="nav-item" href="/client/members">👥 客户会员</a>
+<a class="nav-item" href="/client/declarants">👤 申报人</a>
 </div>
 
 <div class="nav-section">
@@ -149,8 +161,8 @@ tr:hover td{background:var(--i56-bg-surface-hover)}
 
 <div class="nav-section">
 <div class="nav-section-title">开发对接</div>
-<a class="nav-item" href="/client/webhooks">🔗 Webhook投遞</a>
-<a class="nav-item" href="/client/webhook-logs">📜 投遞日誌</a>
+<a class="nav-item" href="/client/webhooks">🔗 Webhook投递</a>
+<a class="nav-item" href="/client/webhook-logs">📜 投递日志</a>
 <a class="nav-item" href="/client/api-credentials">🔑 API凭证</a>
 </div>
 </nav>

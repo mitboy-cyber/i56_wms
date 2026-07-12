@@ -55,6 +55,7 @@ import (
 	tdRepo "github.com/i56/modules/taskdispatch/repository"
 
 	// I56 module route packages
+	"github.com/i56/i56-apps/i56-wms/internal/ai/core"
 	"github.com/i56/i56-apps/i56-wms/internal/common"
 	crmroute "github.com/i56/i56-apps/i56-wms/internal/crmroute"
 	finroute "github.com/i56/i56-apps/i56-wms/internal/finroute"
@@ -249,6 +250,12 @@ func main() {
 		},
 	})
 
+	// ★ AI Cost Tracker
+	costTracker := core.NewCostTracker()
+
+	// ★ AI Business Context (injects WMS domain data into AI queries)
+	bizCtx := core.NewBusinessContext(or, pr, wr, cr, osvc, ps, ws)
+
 // AI API routes
 	r.POST("/api/ai/chat", func(w http.ResponseWriter, req *http.Request) {
 		var body struct{ Message string `json:"message"`; EnableTools bool `json:"enable_tools"` }
@@ -259,6 +266,10 @@ func main() {
 				{Role: gateway.RoleUser, Content: body.Message},
 			},
 		})
+		// Track cost
+		if resp != nil {
+			costTracker.Track(resp.Model, "chat", 1, resp.TokenUsage.PromptTokens, resp.TokenUsage.CompletionTokens, 0.0001)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		if err != nil { json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); return }
 		json.NewEncoder(w).Encode(resp)
@@ -283,6 +294,48 @@ func main() {
 	r.GET("/api/ai/tools", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"tools":"loaded","count":"4"})
+	})
+
+	// ★ AI Chat SSE endpoint (for admin chat panel)
+	r.POST("/api/v1/ai/chat", func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Message string `json:"message"` }
+		json.NewDecoder(req.Body).Decode(&body)
+		msg := body.Message
+
+		// Inject business context
+		bizContext := bizCtx.GetBusinessContext(1, msg)
+
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "SSE not supported", 500)
+			return
+		}
+
+		ch, err := aiSvc.ChatStream(req.Context(), "admin", aiRouter.TierLight, &gateway.ChatRequest{
+			Messages: []gateway.Message{
+				{Role: gateway.RoleSystem, Content: "You are an I56 WMS AI assistant. " + bizContext},
+				{Role: gateway.RoleUser, Content: msg},
+			},
+		})
+		if err != nil {
+			fmt.Fprintf(w, "data: Error: %s\n\n", err.Error())
+			flusher.Flush()
+			return
+		}
+		totalTokens := 0
+		for ev := range ch {
+			fmt.Fprintf(w, "data: %s\n\n", ev.Content)
+			flusher.Flush()
+			totalTokens++
+			if ev.Done {
+				break
+			}
+		}
+		// Track cost for streaming
+		costTracker.Track("deepseek", "chat-sse", 1, len(msg)/4, totalTokens, float64(totalTokens)*0.000001)
 	})
 
 	// Health — now with AI status
