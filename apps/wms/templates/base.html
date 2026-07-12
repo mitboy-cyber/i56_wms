@@ -8,7 +8,7 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
-<button class="mobile-menu-btn" onclick="document.querySelector('.app-sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:1001;background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:18px;display:none">☰</button>
+<button class="i56-mobile-menu" onclick="document.querySelector('.app-sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:1001;background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:18px;display:none">☰</button>
 <div class="app-layout">
 <aside class="app-sidebar">
   <div class="sidebar-header">
@@ -159,7 +159,7 @@
       I56 Admin <span style="color:var(--i56-text-muted);margin:0 4px">/</span> <span>{{block "breadcrumb" .}}首页{{end}}</span>
     </div>
     <div class="header-actions">
-      <button class="btn btn-sm btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
+      <button class="i56-btn i56-btn-sm i56-btn-ghost" onclick="I56Theme.toggle()" title="切换主题">🌓</button>
     </div>
   </header>
   <main class="app-content">
@@ -272,3 +272,43 @@ function toggleNavGroup(header) {
 </script>
 </body>
 </html>
+
+<!-- I56 AI Assistant Bubble -->
+<style>
+.i56-ai-bubble{position:fixed;bottom:20px;right:20px;z-index:9998}
+.i56-ai-toggle{width:48px;height:48px;border-radius:50%;background:var(--i56-brand);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.2);transition:transform .2s}
+.i56-ai-toggle:hover{transform:scale(1.1)}
+.i56-ai-panel{position:fixed;bottom:80px;right:20px;width:380px;max-height:520px;background:var(--i56-bg-surface);border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.15);display:none;flex-direction:column;overflow:hidden;z-index:9999}
+.i56-ai-header{padding:12px 16px;background:var(--i56-brand);color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.i56-ai-close{background:none;border:none;color:#fff;font-size:18px;cursor:pointer}
+.i56-ai-messages{flex:1;overflow-y:auto;padding:12px;max-height:360px;display:flex;flex-direction:column;gap:8px}
+.i56-ai-msg{max-width:85%;padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.5;word-break:break-word}
+.i56-ai-msg-user{background:var(--i56-brand);color:#fff;align-self:flex-end}
+.i56-ai-msg-ai{background:var(--i56-bg-surface-hover);align-self:flex-start}
+.i56-ai-welcome{text-align:center;color:var(--i56-text-muted);font-size:12px;padding:8px}
+.i56-ai-input{display:flex;padding:8px;border-top:1px solid var(--i56-border);background:var(--i56-bg-surface)}
+.i56-ai-input input{flex:1;border:1px solid var(--i56-border);border-radius:6px;padding:8px 12px;font-size:13px;outline:none}
+.i56-ai-input input:focus{border-color:var(--i56-brand)}
+.i56-ai-input button{background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 14px;margin-left:6px;cursor:pointer;font-size:14px}
+@media(max-width:480px){.i56-ai-panel{width:calc(100vw-16px);right:8px;left:8px;bottom:72px}}
+</style>
+<div class="i56-ai-bubble">
+  <button class="i56-ai-toggle" onclick="I56AI.toggle()" title="AI 助手">🤖</button>
+  <div class="i56-ai-panel" id="i56-ai-panel">
+    <div class="i56-ai-header">
+      <span>🤖 I56 AI 助手</span>
+      <button class="i56-ai-close" onclick="I56AI.close()">✕</button>
+    </div>
+    <div class="i56-ai-messages" id="i56-ai-messages">
+      <div class="i56-ai-welcome">您好！我是I56 AI助手，可以帮您查询订单、包裹、客户信息。</div>
+    </div>
+    <form class="i56-ai-input" onsubmit="I56AI.send(event)">
+      <input type="text" id="i56-ai-query" placeholder="输入问题，如：本月订单量？" />
+      <button type="submit">➤</button>
+    </form>
+  </div>
+</div>
+<script>
+var I56AI={toggle:function(){var p=document.getElementById("i56-ai-panel");p.style.display=p.style.display==="flex"?"none":"flex";if(p.style.display==="flex")document.getElementById("i56-ai-query").focus()},close:function(){document.getElementById("i56-ai-panel").style.display="none"},send:function(e){e.preventDefault();var i=document.getElementById("i56-ai-query"),q=i.value.trim();if(!q)return;var m=document.getElementById("i56-ai-messages");m.innerHTML+='<div class="i56-ai-msg i56-ai-msg-user">'+q.replace(/</g,"&lt;")+"</div>";i.value="";var d=document.createElement("div");d.className="i56-ai-msg i56-ai-msg-ai";d.textContent="思考中...";m.appendChild(d);m.scrollTop=m.scrollHeight;fetch("/api/v1/ai/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q})}).then(function(r){return r.text()}).then(function(t){d.textContent=t||"抱歉，暂时无法回答。";m.scrollTop=m.scrollHeight}).catch(function(){d.textContent="网络错误，请稍后重试。"})}};
+document.addEventListener("keydown",function(e){if(e.ctrlKey&&e.key==="k"){e.preventDefault();I56AI.toggle()}});
+</script>
