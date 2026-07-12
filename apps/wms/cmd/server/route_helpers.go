@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/i56/framework/core/auth"
 	"github.com/i56/framework/core/router"
@@ -80,6 +81,7 @@ func clientPg(
 		if entries := lr.GetByClient(ctx, 1, 1); len(entries) > 0 {
 			balance = entries[len(entries)-1].BalanceAfter
 		}
+
 		// Build orders for dashboard display
 		orderMaps := make([]map[string]any, 0, len(orders))
 		activeCount := 0
@@ -150,6 +152,77 @@ func clientPg(
 			case parcelDomain.StatusShipped, parcelDomain.StatusLoaded, parcelDomain.StatusOutbound: shipped++
 			}
 		}
+		// Today's shipment count vs yesterday
+		today := time.Now().Truncate(24 * time.Hour)
+		todayStr := today.Format("2006-01-02")
+		yesterdayStr := today.Add(-24 * time.Hour).Format("2006-01-02")
+		todayShipments := 0
+		yesterdayShipments := 0
+		for _, o := range orders {
+			if o.Status == orderDomain.StatusShipped || o.Status == orderDomain.StatusInTransit || o.Status == orderDomain.StatusCompleted {
+				od := o.CreatedAt.Format("2006-01-02")
+				if od == todayStr {
+					todayShipments++
+				} else if od == yesterdayStr {
+					yesterdayShipments++
+				}
+			}
+		}
+		shipmentDelta := todayShipments - yesterdayShipments
+		shipmentDeltaPct := 0
+		if yesterdayShipments > 0 {
+			shipmentDeltaPct = (shipmentDelta * 100) / yesterdayShipments
+		}
+
+		// Pre-calculate parcel circle percentages
+		totalPc := int(pt)
+		type pctData struct {
+			Label string
+			Count int
+			Pct   float64
+			Color string
+		}
+		pctList := []pctData{
+			{"预报", preDec, 0, "#6366f1"},
+			{"入仓", recvd, 0, "#0ea5e9"},
+			{"上架", stored, 0, "#10b981"},
+			{"出货", shipped, 0, "#f59e0b"},
+		}
+		otherCount := totalPc - preDec - recvd - stored - shipped
+		if totalPc > 0 {
+			for i := range pctList {
+				pctList[i].Pct = float64(pctList[i].Count) * 100.0 / float64(totalPc)
+			}
+		}
+		if otherCount > 0 {
+			pctList = append(pctList, pctData{"其他", otherCount, float64(otherCount) * 100.0 / float64(totalPc), "#8b5cf6"})
+		}
+
+		// Notifications (last 5 from orders)
+		type notif struct {
+			Time    string
+			Icon    string
+			Message string
+			Type    string
+		}
+		notifications := []notif{}
+		for i, o := range orders {
+			if i >= 5 {
+				break
+			}
+			s := statusCN[o.Status]
+			if s == "" {
+				s = string(o.Status)
+			}
+			msg := fmt.Sprintf("订单 %s %s", o.OrderNo, s)
+			notifications = append(notifications, notif{
+				Time:    o.CreatedAt.Format("01-02 15:04"),
+				Icon:    "📋",
+				Message: msg,
+				Type:    "order",
+			})
+		}
+
 		execTpl(cTmpl, "dashboard", w, "dashboard.html", map[string]any{
 			"Title":              "主控台",
 			"Balance":            balance,
@@ -170,6 +243,13 @@ func clientPg(
 			"PackingCount":       0,
 			"PackedCount":        packed,
 			"ShippedCount":       shipped,
+			"TodayShipments":     todayShipments,
+			"YesterdayShipments": yesterdayShipments,
+			"ShipmentDelta":      shipmentDelta,
+			"ShipmentDeltaPct":   shipmentDeltaPct,
+			"ShipmentDeltaUp":    shipmentDelta >= 0,
+			"Notifications":      notifications,
+			"PctList":            pctList,
 		})
 	}))
 

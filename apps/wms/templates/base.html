@@ -8,7 +8,8 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
-<button class="i56-mobile-menu" onclick="document.querySelector('.app-sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:1001;background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:18px;display:none">☰</button>
+<button class="i56-mobile-menu" onclick="toggleMobileSidebar()" style="position:fixed;top:12px;left:12px;z-index:1001;background:var(--i56-brand);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:18px;cursor:pointer">☰</button>
+<div class="i56-sidebar-overlay" id="mobileSidebarOverlay" onclick="closeMobileSidebar()"></div>
 <div class="app-layout">
 <aside class="app-sidebar">
   <div class="sidebar-header">
@@ -166,6 +167,9 @@
   <main class="app-content">
     {{block "content" .}}{{end}}
   </main>
+  <footer style="margin-top:16px;padding:10px 20px;border-top:1px solid var(--i56-border);text-align:center;font-size:11px;color:var(--i56-text-muted)">
+    &copy; 2026 I56 Framework v2.4 LTS
+  </footer>
 </div>
 
 </div>
@@ -189,7 +193,31 @@
 <!-- Modal container for add/edit forms -->
 <div id="modal-container" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)"></div>
 
+<style>
+/* Mobile sidebar */
+.i56-sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:999}
+.i56-sidebar-overlay.show{display:block}
+@media (max-width:768px){
+  .i56-mobile-menu{display:block!important}
+  .app-sidebar{position:fixed;top:0;left:-260px;width:260px;height:100vh;z-index:1000;transition:left .3s;overflow-y:auto}
+  .app-sidebar.open{left:0}
+  .app-main{margin-left:0!important}
+}
+@media (min-width:769px){
+  .i56-mobile-menu{display:none!important}
+  .app-sidebar{left:0!important}
+}
+</style>
+
 <script>
+function toggleMobileSidebar(){
+  document.querySelector('.app-sidebar').classList.toggle('open');
+  document.getElementById('mobileSidebarOverlay').classList.toggle('show');
+}
+function closeMobileSidebar(){
+  document.querySelector('.app-sidebar').classList.remove('open');
+  document.getElementById('mobileSidebarOverlay').classList.remove('show');
+}
 /* ── AI Command Bar ── */
 function aiBarShow(){document.getElementById('i56-ai-bar').style.display='block';document.getElementById('ai-bar-input').focus()}
 function aiBarHide(){document.getElementById('i56-ai-bar').style.display='none';document.getElementById('ai-bar-response').style.display='none'}

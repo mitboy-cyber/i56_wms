@@ -168,5 +168,6 @@ func initClientTemplates() map[string]*template.Template {
 		"client_carrier_delivery":  template.Must(template.New("ccdel").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_carrier_delivery.html")),
 		"client_carrier_surcharge": template.Must(template.New("ccsur").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_carrier_surcharge.html")),
 		"client_pricing":           template.Must(template.New("cpric").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_pricing.html")),
+		"client_order_detail":      template.Must(template.New("codet").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_order_detail.html")),
 	}
 }

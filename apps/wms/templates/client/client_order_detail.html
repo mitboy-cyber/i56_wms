@@ -1,0 +1,115 @@
+{{template "base.html" .}}
+{{define "title"}}订单详情 - {{.Order.OrderNo}}{{end}}
+{{define "content"}}
+<div class="page-title">📋 订单详情</div>
+
+{{if .Error}}
+<div class="toast toast-error mb-3">{{.Error}}</div>
+{{end}}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+  <!-- 订单基本信息 -->
+  <div class="i56-card section-card">
+    <div class="section-title" style="margin-top:0;border-bottom:1px solid var(--i56-border)">📋 基本信息</div>
+    <dl class="key-value-list">
+      <dt>订单号</dt><dd class="inline-code">{{.Order.OrderNo}}</dd>
+      <dt>收件人</dt><dd>{{.Order.RecipientName}}</dd>
+      <dt>状态</dt><dd><span class="badge badge-{{.StatusColor}}">{{.StatusLabel}}</span></dd>
+      <dt>包裹数</dt><dd>{{.Order.ParcelCount}} 件</dd>
+      <dt>总重量</dt><dd>{{printf "%.2f" .Order.TotalActualWeight}} kg</dd>
+      <dt>总金额</dt><dd>¥{{printf "%.2f" .Order.TotalPrice}}</dd>
+      <dt>创建时间</dt><dd>{{.Order.CreatedAt.Format "2006-01-02 15:04"}}</dd>
+      <dt>更新时间</dt><dd>{{.Order.UpdatedAt.Format "2006-01-02 15:04"}}</dd>
+      {{if .Order.Remark}}<dt>备注</dt><dd>{{.Order.Remark}}</dd>{{end}}
+    </dl>
+  </div>
+
+  <!-- 费用明细 -->
+  <div class="i56-card section-card">
+    <div class="section-title" style="margin-top:0;border-bottom:1px solid var(--i56-border)">💰 费用明细</div>
+    <dl class="key-value-list">
+      <dt>基础运费</dt><dd>¥{{printf "%.2f" .BaseFreight}}</dd>
+      <dt>燃油附加费</dt><dd>¥{{printf "%.2f" .FuelSurcharge}}</dd>
+      <dt>包装费</dt><dd>¥{{printf "%.2f" .PackageFee}}</dd>
+      <dt>保险费用</dt><dd>¥{{printf "%.2f" .InsuranceFee}}</dd>
+      <dt>操作服务费</dt><dd>¥{{printf "%.2f" .ServiceFee}}</dd>
+      <dt style="font-weight:700;border-top:1px solid var(--i56-border);padding-top:8px">合计</dt>
+      <dd style="font-weight:700;font-size:16px;border-top:1px solid var(--i56-border);padding-top:8px">¥{{printf "%.2f" .Order.TotalPrice}}</dd>
+    </dl>
+    <div style="margin-top:12px">
+      <button class="btn btn-primary" onclick="alert('发票功能开发中')" style="width:100%;justify-content:center">🧾 下载发票</button>
+    </div>
+  </div>
+</div>
+
+<!-- 订单生命周期时间线 (8 steps) -->
+<h3 class="section-title">📅 订单生命周期</h3>
+<div class="i56-card section-card">
+  <div class="order-detail-timeline">
+    {{range .TimelineSteps}}
+    <div class="odt-step{{if .Active}} odt-active{{end}}{{if .Done}} odt-done{{end}}">
+      <div class="odt-marker">
+        <div class="odt-dot">{{if .Done}}✓{{else if .Active}}●{{else}}○{{end}}</div>
+        {{if not (eq .Index 8)}}
+        <div class="odt-line{{if .Done}} odt-line-done{{end}}"></div>
+        {{end}}
+      </div>
+      <div class="odt-content">
+        <div class="odt-label">{{.Label}}</div>
+        {{if .Date}}<div class="odt-date">{{.Date}}</div>{{end}}
+        {{if .Note}}<div class="odt-note">{{.Note}}</div>{{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<!-- 包裹列表 -->
+<h3 class="section-title">📦 包裹列表</h3>
+<div class="data-table-wrapper" style="margin-bottom:16px">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>快递单号</th>
+        <th>品名</th>
+        <th>重量</th>
+        <th>状态</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{if .Parcels}}{{range .Parcels}}
+    <tr>
+      <td class="inline-code">{{.TrackingNumber}}</td>
+      <td>{{.ProductName}}</td>
+      <td>{{printf "%.2f" .Weight}} kg</td>
+      <td><span class="badge badge-{{.StatusColor}}">{{.StatusLabel}}</span></td>
+    </tr>
+    {{end}}{{else}}
+    <tr><td colspan="4" class="empty-state">暂无包裹</td></tr>
+    {{end}}
+    </tbody>
+  </table>
+</div>
+
+<!-- 操作按钮 -->
+<div style="display:flex;gap:8px;margin-bottom:16px">
+  <a href="/client/orders" class="btn">← 返回订单列表</a>
+</div>
+
+<style>
+.order-detail-timeline{display:flex;flex-direction:column;gap:0}
+.odt-step{display:flex;gap:12px}
+.odt-marker{display:flex;flex-direction:column;align-items:center;min-width:32px}
+.odt-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid var(--i56-border);background:var(--i56-bg-base);color:var(--i56-text-muted);flex-shrink:0}
+.odt-line{width:2px;height:28px;background:var(--i56-border);margin:2px 0}
+.odt-line-done{background:var(--i56-brand)}
+.odt-done .odt-dot{border-color:#10b981;background:#10b981;color:#fff}
+.odt-active .odt-dot{border-color:var(--i56-brand);background:var(--i56-brand);color:#fff;box-shadow:0 0 6px var(--i56-brand-alpha-10)}
+.odt-content{padding-bottom:12px;flex:1}
+.odt-label{font-size:13px;font-weight:600}
+.odt-date{font-size:11px;color:var(--i56-text-muted);margin-top:2px}
+.odt-note{font-size:10px;color:var(--i56-text-muted);font-style:italic}
+.odt-done .odt-label{color:#10b981}
+.odt-active .odt-label{color:var(--i56-brand)}
+</style>
+{{end}}

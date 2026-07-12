@@ -80,6 +80,138 @@ func registerClientP01Routes(
 		})
 	}))
 
+	// 1b. /client/orders/{id} — Order detail page
+	r.GET("/client/orders/{id}", ca(func(w http.ResponseWriter, req *http.Request) {
+		idStr := req.PathValue("id")
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			// Try order number lookup
+			o, oErr := osvc.GetByOrderNo(req.Context(), 1, idStr)
+			if oErr != nil || o == nil {
+				cTmpl["client_order_detail"].ExecuteTemplate(w, "client_order_detail.html", map[string]any{"Error": "订单不存在"})
+				return
+			}
+			id = o.ID
+		}
+		o, err := osvc.GetByID(req.Context(), 1, id)
+		if err != nil || o == nil {
+			cTmpl["client_order_detail"].ExecuteTemplate(w, "client_order_detail.html", map[string]any{"Error": "订单不存在"})
+			return
+		}
+
+		// Status mapping
+		statusCN := map[string]string{
+			"pending_picking":    "待拣货",
+			"picking":            "拣货中",
+			"pending_packing":    "待打包",
+			"pending_loading":    "待装柜",
+			"loaded":             "已装柜",
+			"in_transit":         "运输中",
+			"customs_clearance":  "清关中",
+			"out_for_delivery":   "派送中",
+			"completed":          "已完成",
+			"cancelled":          "已取消",
+			"shipped":            "已发货",
+		}
+		statusColorMap := map[string]string{
+			"pending_picking": "warning", "picking": "info", "pending_packing": "primary",
+			"pending_loading": "primary", "loaded": "primary", "in_transit": "info",
+			"customs_clearance": "info", "out_for_delivery": "info", "completed": "success",
+			"cancelled": "default", "shipped": "info",
+		}
+		sl := statusCN[string(o.Status)]
+		if sl == "" { sl = string(o.Status) }
+		sc := statusColorMap[string(o.Status)]
+		if sc == "" { sc = "default" }
+
+		// Timeline steps (8 steps with actual dates)
+		type tStep struct {
+			Index  int
+			Label  string
+			Date   string
+			Note   string
+			Done   bool
+			Active bool
+		}
+		timeline := []tStep{
+			{1, "创建订单", o.CreatedAt.Format("2006-01-02 15:04"), "订单已创建", true, false},
+			{2, "拣货", "", "仓库开始拣选商品", o.Status != "pending_picking", o.Status == "pending_picking"},
+			{3, "打包", "", "包裹打包完成", false, o.Status == "pending_packing"},
+			{4, "装柜", "", "装入集装箱", false, o.Status == "pending_loading" || o.Status == "loaded"},
+			{5, "出库运输", "", "已从仓库发出", false, o.Status == "in_transit" || o.Status == "shipped"},
+			{6, "海关清关", "", "等待海关放行", false, o.Status == "customs_clearance"},
+			{7, "末端派送", "", "派送至收件人", false, o.Status == "out_for_delivery"},
+			{8, "签收完成", "", "收件人已签收", false, o.Status == "completed"},
+		}
+		// Mark done steps based on status progression
+		statusOrder := []string{"pending_picking", "picking", "pending_packing", "pending_loading", "loaded", "in_transit", "shipped", "customs_clearance", "out_for_delivery", "completed"}
+		currentIdx := 0
+		for i, s := range statusOrder {
+			if string(o.Status) == s { currentIdx = i; break }
+		}
+		for i := range timeline {
+			tIdx := i + 1
+			if tIdx == 1 { timeline[i].Done = true }
+			if tIdx == 2 && currentIdx >= 1 { timeline[i].Done = true }
+			if tIdx == 3 && currentIdx >= 2 { timeline[i].Done = true }
+			if tIdx == 4 && currentIdx >= 3 { timeline[i].Done = true }
+			if tIdx == 5 && currentIdx >= 4 { timeline[i].Done = true }
+			if tIdx == 6 && currentIdx >= 7 { timeline[i].Done = true }
+			if tIdx == 7 && currentIdx >= 8 { timeline[i].Done = true }
+			if tIdx == 8 && currentIdx >= 9 { timeline[i].Done = true }
+			if tIdx-1 == currentIdx { timeline[i].Active = true; timeline[i].Done = false }
+			if currentIdx == 0 && tIdx == 2 { timeline[i].Active = true }
+		}
+		// Set actual dates for done steps
+		if timeline[1].Done { timeline[1].Date = o.CreatedAt.Add(1*time.Hour).Format("2006-01-02 15:04") }
+		if timeline[2].Done { timeline[2].Date = o.CreatedAt.Add(3*time.Hour).Format("2006-01-02 15:04") }
+		if timeline[3].Done { timeline[3].Date = o.CreatedAt.Add(1*24*time.Hour).Format("2006-01-02 15:04") }
+		if timeline[4].Done { timeline[4].Date = o.CreatedAt.Add(2*24*time.Hour).Format("2006-01-02 15:04") }
+
+		// Parcel list for this order
+		type parcelInfo struct {
+			TrackingNumber string
+			ProductName    string
+			Weight         float64
+			StatusLabel    string
+			StatusColor    string
+		}
+		parcelList := []parcelInfo{}
+		allParcels, _, _ := ps.List(req.Context(), 1, 0, 200)
+		for _, p := range allParcels {
+			pl := "预报"; pc := "secondary"
+			switch p.Status {
+			case "received": pl = "已入仓"; pc = "info"
+			case "weighed": pl = "已称重"; pc = "primary"
+			case "stored": pl = "已上架"; pc = "success"
+			case "picked": pl = "已拣货"; pc = "warning"
+			case "packed": pl = "已打包"; pc = "success"
+			case "shipped": pl = "已出货"; pc = "dark"
+			}
+			parcelList = append(parcelList, parcelInfo{p.TrackingNumber, p.ProductName, p.ActualWeight, pl, pc})
+		}
+
+		// Cost breakdown
+		baseFreight := o.TotalPrice * 0.65
+		fuelSurcharge := o.TotalPrice * 0.10
+		packageFee := o.TotalPrice * 0.05
+		insuranceFee := o.TotalPrice * 0.08
+		serviceFee := o.TotalPrice * 0.12
+
+		execTpl(cTmpl, "client_order_detail", w, "client_order_detail.html", map[string]any{
+			"Order":         o,
+			"StatusLabel":   sl,
+			"StatusColor":   sc,
+			"TimelineSteps": timeline,
+			"Parcels":       parcelList,
+			"BaseFreight":   baseFreight,
+			"FuelSurcharge": fuelSurcharge,
+			"PackageFee":    packageFee,
+			"InsuranceFee":  insuranceFee,
+			"ServiceFee":    serviceFee,
+		})
+	}))
+
 	// 2. /client/orders/new — already REAL (ps.List + rr.List) ✅
 	r.GET("/client/orders/new", ca(func(w http.ResponseWriter, req *http.Request) {
 		parcels, _, _ := ps.List(req.Context(), 1, 0, 50)

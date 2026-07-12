@@ -443,10 +443,11 @@ func main() {
 
 	// PDA routes
 
-	// Catch-all
+	// Catch-all — serve 404 page
 	r.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path != "/" {
-			http.NotFound(w, req)
+			w.WriteHeader(404)
+			http.ServeFile(w, req, "templates/error/404.html")
 			return
 		}
 		http.Redirect(w, req, "/login", 303)

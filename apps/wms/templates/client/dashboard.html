@@ -3,7 +3,7 @@
 {{define "content"}}
 <div class="page-title">{{.Title}}</div>
 
-<!-- 账户概览 -->
+<!-- 账户概览 + 今日发货 -->
 <div class="stat-grid">
   <div class="stat-card">
     <div class="stat-label">💰 账户余额</div>
@@ -25,49 +25,89 @@
     <div class="stat-value">{{.OrderCount}}</div>
     <div class="stat-delta">{{.ActiveOrderCount}} 处理中</div>
   </div>
+  <div class="stat-card">
+    <div class="stat-label">🚚 今日发货</div>
+    <div class="stat-value">{{.TodayShipments}}</div>
+    <div class="stat-delta{{if .ShipmentDeltaUp}} up{{else}} down{{end}}">
+      {{if .ShipmentDeltaUp}}+{{end}}{{.ShipmentDelta}} vs 昨日 ({{.YesterdayShipments}})
+    </div>
+  </div>
 </div>
 
-<!-- 订单状态时间线 -->
+<!-- 快捷操作 -->
+<h3 class="section-title">⚡ 快捷操作</h3>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+  <a href="/client/predeclare" class="btn btn-primary" style="height:36px;padding:0 16px;font-size:13px">📝 预报包裹</a>
+  <a href="/client/orders/new" class="btn" style="height:36px;padding:0 16px;font-size:13px">📦 创建订单</a>
+  <a href="/client/pricing" class="btn" style="height:36px;padding:0 16px;font-size:13px">💰 查看报价</a>
+  <a href="/client/ledger" class="btn" style="height:36px;padding:0 16px;font-size:13px">📊 余额明细</a>
+</div>
+
+<!-- 订单状态时间线 + 包裹状态圆环 并排 -->
 <h3 class="section-title">📋 订单流程追踪</h3>
-<div class="i56-card">
-  <div class="order-timeline">
-    <div class="timeline-step completed">
-      <div class="timeline-dot">📝</div>
-      <div class="timeline-label">创建</div>
+<div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="i56-card" style="padding:16px">
+    <div class="order-timeline">
+      <div class="timeline-step completed">
+        <div class="timeline-dot">📝</div>
+        <div class="timeline-label">创建</div>
+      </div>
+      <div class="timeline-step completed">
+        <div class="timeline-dot">🛒</div>
+        <div class="timeline-label">拣货</div>
+      </div>
+      <div class="timeline-step current">
+        <div class="timeline-dot">📦</div>
+        <div class="timeline-label">打包</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🚛</div>
+        <div class="timeline-label">装柜</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">✈️</div>
+        <div class="timeline-label">运输</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🛃</div>
+        <div class="timeline-label">清关</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">🏠</div>
+        <div class="timeline-label">派送</div>
+      </div>
+      <div class="timeline-step">
+        <div class="timeline-dot">✅</div>
+        <div class="timeline-label">签收</div>
+      </div>
     </div>
-    <div class="timeline-step completed">
-      <div class="timeline-dot">🛒</div>
-      <div class="timeline-label">拣货</div>
+    <div class="timeline-bar">
+      <div class="timeline-progress" style="width:25%"></div>
     </div>
-    <div class="timeline-step current">
-      <div class="timeline-dot">📦</div>
-      <div class="timeline-label">打包</div>
-    </div>
-    <div class="timeline-step">
-      <div class="timeline-dot">🚛</div>
-      <div class="timeline-label">装柜</div>
-    </div>
-    <div class="timeline-step">
-      <div class="timeline-dot">✈️</div>
-      <div class="timeline-label">运输</div>
-    </div>
-    <div class="timeline-step">
-      <div class="timeline-dot">🛃</div>
-      <div class="timeline-label">清关</div>
-    </div>
-    <div class="timeline-step">
-      <div class="timeline-dot">🏠</div>
-      <div class="timeline-label">派送</div>
-    </div>
-    <div class="timeline-step">
-      <div class="timeline-dot">✅</div>
-      <div class="timeline-label">签收</div>
+    <div style="font-size:10px;color:var(--i56-text-muted);margin-top:8px;text-align:center">以上为完整订单生命周期流程 · 当前活跃订单 {{.ActiveOrderCount}}/{{.OrderCount}}</div>
+  </div>
+
+  <!-- 包裹状态圆环图 (simple CSS circles, no JS) -->
+  <div class="i56-card" style="padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--i56-text-secondary)">📦 活跃包裹状态</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center">
+      {{if .PctList}}{{range .PctList}}
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div class="status-circle" style="
+          width:60px;height:60px;border-radius:50%;
+          background:{{.Color}};
+          display:flex;align-items:center;justify-content:center;
+          font-size:16px;font-weight:700;color:#fff;
+          box-shadow:0 2px 8px {{.Color}}44;
+        ">{{.Count}}</div>
+        <span style="font-size:10px;color:var(--i56-text-secondary);white-space:nowrap">{{.Label}}</span>
+        <span style="font-size:9px;color:var(--i56-text-muted)">{{printf "%.0f" .Pct}}%</span>
+      </div>
+      {{end}}{{else}}
+      <div style="text-align:center;color:var(--i56-text-muted);padding:20px">暂无包裹数据</div>
+      {{end}}
     </div>
   </div>
-  <div class="timeline-bar">
-    <div class="timeline-progress" style="width:25%"></div>
-  </div>
-  <div style="font-size:10px;color:var(--i56-text-muted);margin-top:8px;text-align:center">以上为完整订单生命周期流程 · 当前活跃订单 {{.ActiveOrderCount}}/{{.OrderCount}}</div>
 </div>
 
 <!-- 包裹状态分布 -->
@@ -156,4 +196,25 @@
     </div>
   </div>
 </div>
+
+<!-- 最近通知 -->
+<div style="display:grid;grid-template-columns:1fr;margin-bottom:16px">
+  <div class="data-table-wrapper">
+    <div class="data-table-header">
+      <span>🔔 最近通知</span>
+    </div>
+    <div style="padding:0">
+      {{if .Notifications}}{{range .Notifications}}
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--i56-border);font-size:12px">
+        <span style="font-size:16px">{{.Icon}}</span>
+        <span style="flex:1">{{.Message}}</span>
+        <span style="color:var(--i56-text-muted);font-size:10px;white-space:nowrap">{{.Time}}</span>
+      </div>
+      {{end}}{{else}}
+      <div class="empty-state" style="padding:20px">暂无通知</div>
+      {{end}}
+    </div>
+  </div>
+</div>
+
 {{end}}

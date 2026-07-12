@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>500 - 服务器错误 | I56 Framework</title>
+<link rel="stylesheet" href="/static/css/i56-bdl.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6fa;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.error-card{text-align:center;background:#fff;border-radius:16px;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,0.08);max-width:480px;width:90%}
+.error-code{font-size:96px;font-weight:800;color:#ef4444;line-height:1;margin-bottom:8px}
+.error-icon{font-size:64px;margin-bottom:16px}
+.error-title{font-size:22px;font-weight:700;color:#1a1a2e;margin-bottom:8px}
+.error-msg{font-size:14px;color:#6b7280;margin-bottom:24px;line-height:1.6}
+.error-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .15s}
+.btn-primary{background:#ef4444;color:#fff}
+.btn-primary:hover{background:#dc2626}
+.btn-outline{background:transparent;color:#ef4444;border:1px solid #ef4444}
+.btn-outline:hover{background:#fef2f2}
+.footer{position:fixed;bottom:16px;text-align:center;width:100%;font-size:11px;color:#9ca3af}
+@media(max-width:480px){.error-code{font-size:64px}.error-card{padding:32px 20px}}
+</style>
+</head>
+<body>
+<div class="error-card">
+  <div class="error-icon">🔧</div>
+  <div class="error-code">500</div>
+  <div class="error-title">服务器错误</div>
+  <div class="error-msg">
+    服务器遇到了意外情况，无法完成您的请求。<br>
+    请稍后重试，如问题持续存在请联系技术支持。
+  </div>
+  <div class="error-actions">
+    <a href="/" class="btn btn-primary">🔄 重试</a>
+    <a href="/client" class="btn btn-outline">📊 客户面板</a>
+    <a href="/admin" class="btn btn-outline">⚙️ 管理后台</a>
+  </div>
+</div>
+<div class="footer">&copy; 2026 I56 Framework v2.4 LTS</div>
+</body>
+</html>
