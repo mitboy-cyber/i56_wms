@@ -140,6 +140,28 @@ func Register(
 		rbac.CreateRole(req.Context(), tenant, &rbaDomain.Role{Name: req.FormValue("name"), Slug: req.FormValue("slug"), Description: req.FormValue("description"), IsActive: true})
 		common.Redirect(w, "/admin/roles")
 	}))
+	r.GET("/admin/roles/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		ro, _ := rbac.GetRoleByID(req.Context(), tenant, id)
+		if ro == nil { http.Error(w, "not found", 404); return }
+		common.HtmlOK(w)
+		fmt.Fprint(w, common.ModalStart("编辑角色")+common.FormSave("/admin/roles/update")+
+			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, ro.ID)+
+			common.FormField("角色名", "name", ro.Name, "如: 仓库管理")+
+			common.FormField("Slug", "slug", ro.Slug, "如: warehouse_admin")+
+			common.FormField("描述", "description", ro.Description, "角色描述")+
+			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/roles/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id, _ := strconv.ParseInt(req.FormValue("id"), 10, 64)
+		rbac.UpdateRole(req.Context(), tenant, id, &rbaDomain.Role{
+			ID: id, TenantID: tenant,
+			Name: req.FormValue("name"), Slug: req.FormValue("slug"),
+			Description: req.FormValue("description"), IsActive: true,
+		})
+		common.Redirect(w, "/admin/roles")
+	}))
 
 	// ─── System API config pages (from admin_modules.go SYS) ───
 	apiCfg := sysRepo.NewMemAPIConfigRepo()

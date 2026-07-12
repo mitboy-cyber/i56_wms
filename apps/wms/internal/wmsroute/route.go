@@ -27,6 +27,9 @@ import (
 	twoRepo "github.com/i56/modules/workorder/repository"
 	wfDomain "github.com/i56/modules/workflow/domain"
 	wfRepo "github.com/i56/modules/workflow/repository"
+	parcelRepo "github.com/i56/modules/parcel/repository"
+	whDomain "github.com/i56/modules/warehouse/domain"
+	whRepo "github.com/i56/modules/warehouse/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
 )
 
@@ -44,6 +47,8 @@ func Register(
 	sr *psRepo.MemServiceRepo,
 	wfr *wfRepo.MemWorkflowRepo,
 	rbac *rbacRepo.MemRBACRepo,
+	pr *parcelRepo.MemParcelRepo,
+	wr *whRepo.MemWarehouseRepo,
 ) {
 	const tenant int64 = 1
 	gp := rc.NewGenericList()
@@ -476,6 +481,49 @@ func Register(
 		}
 		common.Redirect(w, "/admin/parcels")
 	}))
+	r.GET("/admin/parcels/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		p, _ := pr.GetByID(req.Context(), tenant, id)
+		if p == nil { http.Error(w, "not found", 404); return }
+		common.HtmlOK(w)
+		fmt.Fprint(w, formBuild(
+			common.ModalStart("编辑包裹"),
+			common.FormSave("/admin/parcels/update"),
+			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, p.ID),
+			common.FormField("快递单号", "tracking_number", p.TrackingNumber, ""),
+			common.FormField("品名", "product_name", p.ProductName, ""),
+			common.FormSelect("货类", "cargo_type", p.CargoType,
+				[2]string{"general", "普货"}, [2]string{"electronic", "电子产品"},
+				[2]string{"liquid", "液体"}, [2]string{"fragile", "易碎品"},
+				[2]string{"dangerous", "危险品"}, [2]string{"special", "特货"}),
+			common.FormField("重量(kg)", "actual_weight", fmt.Sprintf("%.2f", p.ActualWeight), ""),
+			common.FormField("长(cm)", "length", fmt.Sprintf("%.0f", p.Length), ""),
+			common.FormField("宽(cm)", "width", fmt.Sprintf("%.0f", p.Width), ""),
+			common.FormField("高(cm)", "height", fmt.Sprintf("%.0f", p.Height), ""),
+			common.FormField("申报价值(¥)", "declared_value", "", ""),
+			common.FormField("库位", "location_code", p.LocationCode, ""),
+			common.FormField("备注", "remark", "", ""),
+			common.FormFooter(), common.ModalEnd(),
+		))
+	}))
+	r.POST("/admin/parcels/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id, _ := strconv.ParseInt(req.FormValue("id"), 10, 64)
+		p, _ := pr.GetByID(req.Context(), tenant, id)
+		if p != nil {
+			wgt, _ := strconv.ParseFloat(req.FormValue("actual_weight"), 64)
+			l, _ := strconv.ParseFloat(req.FormValue("length"), 64)
+			wi, _ := strconv.ParseFloat(req.FormValue("width"), 64)
+			h, _ := strconv.ParseFloat(req.FormValue("height"), 64)
+			p.TrackingNumber = req.FormValue("tracking_number")
+			p.ProductName = req.FormValue("product_name")
+			p.ActualWeight = wgt
+			p.Length = l; p.Width = wi; p.Height = h
+			p.LocationCode = req.FormValue("location_code")
+			pr.Update(req.Context(), p)
+		}
+		common.Redirect(w, "/admin/parcels")
+	}))
 
 	// ─── /admin/warehouses CRUD (from admin_crud.go) ───
 	r.GET("/admin/warehouses/add-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -494,6 +542,34 @@ func Register(
 	r.POST("/admin/warehouses/save", a(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		ws.Create(req.Context(), tenant, req.FormValue("name"), req.FormValue("code"), req.FormValue("address"), req.FormValue("contact"), req.FormValue("phone"))
+		common.Redirect(w, "/admin/warehouses")
+	}))
+	r.GET("/admin/warehouses/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := common.ParseID(req.URL.Query().Get("id"))
+		wh, _ := wr.GetByID(req.Context(), tenant, id)
+		if wh == nil { http.Error(w, "not found", 404); return }
+		common.HtmlOK(w)
+		fmt.Fprint(w, formBuild(
+			common.ModalStart("编辑仓库"),
+			common.FormSave("/admin/warehouses/update"),
+			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, wh.ID),
+			common.FormField("仓库名", "name", wh.Name, ""),
+			common.FormField("编码", "code", wh.Code, ""),
+			common.FormField("地址", "address", wh.Address, ""),
+			common.FormField("联系人", "contact", wh.Contact, ""),
+			common.FormField("电话", "phone", wh.Phone, ""),
+			common.FormFooter(), common.ModalEnd(),
+		))
+	}))
+	r.POST("/admin/warehouses/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id, _ := strconv.ParseInt(req.FormValue("id"), 10, 64)
+		wr.Update(req.Context(), tenant, id, &whDomain.Warehouse{
+			ID: id, TenantID: tenant,
+			Name: req.FormValue("name"), Code: req.FormValue("code"),
+			Address: req.FormValue("address"), Contact: req.FormValue("contact"),
+			Phone: req.FormValue("phone"), IsActive: true,
+		})
 		common.Redirect(w, "/admin/warehouses")
 	}))
 

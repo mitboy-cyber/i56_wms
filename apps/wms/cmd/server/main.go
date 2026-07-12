@@ -315,7 +315,7 @@ func main() {
 
 	// ★ Module-split route registrations (replaces adminPages + registerBFT56Modules + adminSystemPages + registerAdminCRUD)
 	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps)
-	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac)
+	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr)
 	tmsroute.Register(r, a, rc, rr, cour)
 	crmroute.Register(r, a, rc, cr, mr, lr, ar, dr, rpr)
 	finroute.Register(r, a, rc, rpt)

@@ -329,7 +329,7 @@ func Register(
 			clientOpts += fmt.Sprintf(`<option value="%d">%s (余额: ¥%.2f)</option>`, c.ID, c.Name, c.Balance)
 		}
 		common.HtmlOK(w)
-		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>客户充值 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><style>
+		fmt.Fprint(w, `<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>客户充值 - I56</title><link rel="stylesheet" href="/static/css/i56-bdl.css"><script src="/static/js/i56-theme.js"></script><script src="https://unpkg.com/htmx.org@1.9.10"></script><style>
 *{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:var(--i56-bg-base);color:var(--i56-text-primary);padding:16px}
 .card{background:var(--i56-bg-surface);border:1px solid var(--i56-border);border-radius:8px;padding:24px;max-width:480px;margin:40px auto}
 .card h3{font-size:16px;margin-bottom:16px;color:var(--i56-brand)}

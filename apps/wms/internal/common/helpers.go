@@ -61,7 +61,7 @@ func Redirect(w http.ResponseWriter, url string) {
 
 // ModalStart opens a modal overlay div.
 func ModalStart(title string) string {
-	return `<div class="modal-overlay" onclick="event.target===this&&this.remove()"><div class="modal-content"><div class="modal-header"><span class="modal-title">` + title + `</span><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button></div><div class="modal-body">`
+	return `<div class="modal-overlay" onclick="event.target===thisevent.target===this&&this.remove()event.target===this&&this.remove()closeI56Modal()"><div class="modal-content"><div class="modal-header"><span class="modal-title">` + title + `</span><button class="modal-close" onclick="closeI56Modal()">&times;</button></div><div class="modal-body">`
 }
 
 // ModalEnd closes a modal overlay div.
@@ -92,7 +92,7 @@ func FormSave(action string) string {
 
 // FormFooter closes a modal form with cancel and submit buttons.
 func FormFooter() string {
-	return `<div class="modal-footer"><button type="button" class="btn" onclick="this.closest('.modal-overlay').remove()">取消</button><button type="submit" class="btn btn-primary">保存</button></div></form>`
+	return `<div class="modal-footer"><button type="button" class="btn" onclick="closeI56Modal()">取消</button><button type="submit" class="btn btn-primary">保存</button></div></form>`
 }
 
 // ===================================================================
@@ -155,6 +155,7 @@ func RenderAdminPage(w http.ResponseWriter, title, breadcrumb, content string) {
 <title>`+title+` - I56</title>
 <link rel="stylesheet" href="/static/css/i56-bdl.css">
 <script src="/static/js/i56-theme.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
 <div class="app-layout">
