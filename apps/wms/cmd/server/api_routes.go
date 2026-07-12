@@ -10,6 +10,8 @@ import (
 	// repos for printing/webhook/report
 )
 
+// DEPRECATED: registerAPIRoutes() is no longer called from main.go.
+// API routes are now registered directly in main.go.
 func registerAPIRoutes(api *router.Router, tm *auth.TokenManager, ps *parcelSvc.ParcelService, osvc *orderSvc.OrderService, cs *custSvc.ClientService, ws *whSvc.WarehouseService, rr interface{}, cour interface{}, sr interface{}, wor interface{}, ppr interface{}, whr interface{}, rpt interface{}, pdaOps *pdaSvc.PDAOperations) {
 	// Minimal API — existing API routes work via the old registration in main.go
 	_=ps;_=osvc;_=cs;_=ws;_=rr;_=cour;_=sr;_=wor;_=ppr;_=whr;_=rpt;_=pdaOps;_=tm

@@ -1,5 +1,12 @@
 package main
 
+// DEPRECATED: This entire file is deprecated. All admin CRUD routes have been
+// migrated to internal module route packages which use common modal helpers
+// (common.ModalStart, common.FormField, etc.) instead of local closures.
+// The registerAdminCRUD() function is no longer called from main.go.
+// Utility types/functions at the bottom (CargoTypeSeed, cargoTypeSeed, etc.)
+// are still used by active code in this package.
+
 import (
 	"fmt"
 	"net/http"

@@ -1,5 +1,10 @@
 package main
 
+// DEPRECATED: This entire file is deprecated. All admin page routes have been
+// migrated to internal module route packages (omsroute, wmsroute, tmsroute,
+// crmroute, finroute, sysroute) which use templates/data_table for rendering.
+// The adminPages() function is no longer called from main.go.
+
 import (
 	"fmt"
 	"html/template"
@@ -24,11 +29,13 @@ import (
 	sysRepo "github.com/i56/modules/system/repository"
 	tmsRepo "github.com/i56/modules/transport/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
-	woRepo "github.com/i56/modules/workorder/repository"
+	twoRepo "github.com/i56/modules/workorder/repository"
 
 	"github.com/i56/i56-apps/i56-wms/internal/common"
 )
 
+// DEPRECATED: use internal module route packages (omsroute, wmsroute, etc.)
+// and templates/data_table.html instead.
 func adminPages(
 	tmpl map[string]*template.Template,
 	r *router.Router,
@@ -49,11 +56,14 @@ func adminPages(
 	ppr *printRepo.MemPrintRepo,
 	sysCfg *sysRepo.MemSystemConfigRepo,
 	sr *psRepo.MemServiceRepo,
-	wor *woRepo.MemWorkOrderRepo,
+	wor *twoRepo.MemWorkOrderRepo,
 ) {
 	a := adminOnly(tm)
 
-	gp := func(w http.ResponseWriter, page, title, icon string, total int, cols []string, rows [][]string, addURL ...string) {
+	// DEPRECATED: gp() was the old pattern before data_table templates.
+// Use data_table template directly via RenderCtx.NewGenericList() instead.
+// This function is in a deprecated file and no longer called.
+gp := func(w http.ResponseWriter, page, title, icon string, total int, cols []string, rows [][]string, addURL ...string) {
 		if cols == nil && len(rows) > 0 {
 			cols = make([]string, len(rows[0]))
 			for i := range cols {

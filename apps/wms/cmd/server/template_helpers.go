@@ -1,0 +1,142 @@
+package main
+
+import (
+	"html/template"
+	"net/http"
+
+	parcelDomain "github.com/i56/modules/parcel/domain"
+	orderDomain "github.com/i56/modules/order/domain"
+)
+
+// execTpl executes a pre-loaded template by key and name.
+func execTpl(tmpl map[string]*template.Template, key string, w http.ResponseWriter, name string, data any) {
+	tmpl[key].ExecuteTemplate(w, name, data)
+}
+
+// initTemplates initializes all admin-side Go templates with common FuncMap helpers.
+func initTemplates() map[string]*template.Template {
+	fm := template.FuncMap{
+		"statusColor": func(s parcelDomain.ParcelStatus) string {
+			switch s {
+			case "pre_declared": return "secondary"
+			case "received": return "info"
+			case "weighed": return "primary"
+			case "stored": return "success"
+			case "picked": return "warning"
+			case "shipped": return "dark"
+			default: return "secondary"
+			}
+		},
+		"orderStatusColor": func(s orderDomain.OrderStatus) string {
+			switch s {
+			case "pending_picking": return "warning"
+			case "picking": return "info"
+			case "pending_packing": return "primary"
+			default: return "secondary"
+			}
+		},
+		"statusDisplay": func(s string) string { return bftParcelStatus(s) },
+		"hasPrefix":     func(s, prefix string) bool { return len(s) >= len(prefix) && s[:len(prefix)] == prefix },
+		"add":           func(a, b int) int { return a + b },
+		"sub":           func(a, b int) int { return a - b },
+		"mul":           func(a, b int) int { return a * b },
+		"div":           func(a, b int) int { if b == 0 { return 0 }; return a / b },
+	}
+	tmpl := map[string]*template.Template{}
+	for _, p := range []struct{ k, file string }{
+		{"login", "login.html"},
+		{"dashboard", "dashboard.html"},
+		{"clients", "clients.html"},
+		{"parcels", "parcels.html"},
+		{"orders", "orders.html"},
+		{"warehouses", "warehouses.html"},
+		{"routes", "routes.html"},
+		{"generic_list", "generic_list.html"},
+		{"warehouse_console", "warehouse_console.html"},
+		{"admin_permissions", "admin/admin_permissions.html"},
+		{"admin_roles", "admin/admin_roles.html"},
+		{"admin_users", "admin/admin_users.html"},
+		{"admin_client_permissions", "admin/admin_client_permissions.html"},
+		{"base_new", "admin/base_new.html"},
+		// System page templates (Phase 1: replace inline HTML)
+		{"scheduler", "admin/system/scheduler.html"},
+		{"audit_logs", "admin/system/audit_logs.html"},
+		{"reports", "admin/system/reports.html"},
+		{"report_view", "admin/system/report_view.html"},
+		{"api_ezway", "admin/system/api_ezway.html"},
+		// TMS module — data_table-based templates (P3)
+		{"carriers", "admin/tms/carriers.html"},
+		{"couriers", "admin/tms/couriers.html"},
+		{"area_groups", "admin/tms/area_groups.html"},
+		{"route_templates", "admin/tms/route_templates.html"},
+	} {
+		if p.k == "carriers" || p.k == "couriers" || p.k == "area_groups" || p.k == "route_templates" {
+			files := []string{"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
+			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
+		} else if p.k == "base_new" {
+			files := []string{"templates/base.html", "templates/admin/base_new.html"}
+			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
+		} else {
+			files := []string{"templates/base.html", "templates/sidebar.html", "templates/" + p.file}
+			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
+		}
+	}
+	return tmpl
+}
+
+// initClientTemplates initializes all client-side Go templates with common FuncMap helpers.
+func initClientTemplates() map[string]*template.Template {
+	fm := template.FuncMap{
+		"statusColor": func(s parcelDomain.ParcelStatus) string {
+			switch s {
+			case "pre_declared": return "secondary"
+			case "received": return "info"
+			case "weighed": return "primary"
+			case "stored": return "success"
+			case "picked": return "warning"
+			case "shipped": return "dark"
+			default: return "secondary"
+			}
+		},
+		"orderStatusColor": func(s orderDomain.OrderStatus) string {
+			switch s {
+			case "pending_picking": return "warning"
+			case "picking": return "info"
+			case "pending_packing": return "primary"
+			default: return "secondary"
+			}
+		},
+		"statusDisplay": func(s string) string { return bftParcelStatus(s) },
+		"hasPrefix":     func(s, prefix string) bool { return len(s) >= len(prefix) && s[:len(prefix)] == prefix },
+		"add":           func(a, b int) int { return a + b },
+		"sub":           func(a, b int) int { return a - b },
+		"mul":           func(a, b int) int { return a * b },
+		"div":           func(a, b int) int { if b == 0 { return 0 }; return a / b },
+	}
+	return map[string]*template.Template{
+		"login":                    template.Must(template.New("clogin").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/login.html")),
+		"dashboard":                template.Must(template.New("cdash").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/dashboard.html")),
+		"predeclare":               template.Must(template.New("cpred").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/predeclare.html")),
+		"parcels":                  template.Must(template.New("cparcels").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/parcels.html")),
+		"ledger":                   template.Must(template.New("cledger").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/ledger.html")),
+		"client_orders":            template.Must(template.New("corders2").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_orders.html")),
+		"client_order_new":         template.Must(template.New("cordnew").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_order_new.html")),
+		"client_declarants":        template.Must(template.New("cdecl").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_declarants.html")),
+		"client_members":           template.Must(template.New("cmemb").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_members.html")),
+		"client_addresses":         template.Must(template.New("caddr").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_addresses.html")),
+		"client_warehouses":        template.Must(template.New("cwh").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_warehouses.html")),
+		"client_route_prices":      template.Must(template.New("crp").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_route_prices.html")),
+		"client_delivery_fees":     template.Must(template.New("cdf").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_delivery_fees.html")),
+		"client_service_orders":    template.Must(template.New("cso").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_service_orders.html")),
+		"client_carrier_surcharges": template.Must(template.New("ccs").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_carrier_surcharges.html")),
+		"client_webhooks":          template.Must(template.New("cwh").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_webhooks.html")),
+		"client_api_credentials":   template.Must(template.New("capi").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_api_credentials.html")),
+		"client_monthly_statements": template.Must(template.New("cms").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_monthly_statements.html")),
+		"client_weight_dashboard":  template.Must(template.New("cwd").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_weight_dashboard.html")),
+		"client_webhook_logs":      template.Must(template.New("cwhlog").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_webhook_logs.html")),
+		"client_warehouse_info":    template.Must(template.New("cwhinfo").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_warehouse_info.html")),
+		"client_carrier_delivery":  template.Must(template.New("ccdel").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_carrier_delivery.html")),
+		"client_carrier_surcharge": template.Must(template.New("ccsur").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_carrier_surcharge.html")),
+		"client_pricing":           template.Must(template.New("cpric").Funcs(fm).ParseFiles("templates/client/base.html", "templates/client/client_pricing.html")),
+	}
+}

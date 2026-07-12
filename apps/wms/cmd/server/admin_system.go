@@ -1,6 +1,8 @@
 package main
 import ("html/template";"net/http";"github.com/i56/framework/core/router";sysRepo "github.com/i56/modules/system/repository")
 
+// DEPRECATED: adminSystemPages() is no longer called from main.go.
+// System pages are now handled by sysroute.Register().
 func adminSystemPages(tmpl map[string]*template.Template, r *router.Router, a func(http.HandlerFunc)http.HandlerFunc, sysCfg *sysRepo.MemSystemConfigRepo) {
 	sysTmpl := template.Must(template.Must(tmpl["login"].Clone()).ParseFiles("templates/admin/sysconfig.html"))
 
