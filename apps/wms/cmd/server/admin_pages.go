@@ -58,8 +58,8 @@ func adminPages(
 	sr *psRepo.MemServiceRepo,
 	wor *twoRepo.MemWorkOrderRepo,
 ) {
-	a := adminOnly(tm)
 
+var a = func(h http.HandlerFunc) http.HandlerFunc { return h } // DEPRECATED — stub for legacy file
 	// DEPRECATED: gp() was the old pattern before data_table templates.
 // Use data_table template directly via RenderCtx.NewGenericList() instead.
 // This function is in a deprecated file and no longer called.

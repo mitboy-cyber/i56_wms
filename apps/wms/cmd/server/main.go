@@ -57,6 +57,7 @@ import (
 	// I56 module route packages
 	"github.com/i56/i56-apps/i56-wms/internal/ai/core"
 	"github.com/i56/i56-apps/i56-wms/internal/common"
+	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
 	crmroute "github.com/i56/i56-apps/i56-wms/internal/crmroute"
 	finroute "github.com/i56/i56-apps/i56-wms/internal/finroute"
 	omsroute "github.com/i56/i56-apps/i56-wms/internal/omsroute"
@@ -82,6 +83,9 @@ func main() {
 	cfg, _ := config.Load()
 	tm, err := auth.NewTokenManager(cfg.Auth)
 	if err != nil { log.Fatal(err) }
+
+	// ★ Admin Session Manager (HMAC-SHA256 sessions for admin panel auth)
+	sessionMgr := adminAuth.NewSessionManager()
 
 	// ★ PostgreSQL: try to connect; gracefully fall back to in-memory
 	dbAvailable := false
@@ -204,6 +208,43 @@ func main() {
 	r.GET("/logout", func(w http.ResponseWriter, req *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "i56_token", Value: "", Path: "/", MaxAge: -1})
 		http.Redirect(w, req, "/login", 303)
+	})
+
+	// ==========================================
+	// ★ Admin Authentication Routes (HMAC-session based)
+	// ==========================================
+	r.GET("/admin/login", func(w http.ResponseWriter, req *http.Request) {
+		// Check if already authenticated
+		if ck, err := req.Cookie("admin_session"); err == nil && sessionMgr.ValidateSession(ck.Value) != nil {
+			http.Redirect(w, req, "/admin", 303)
+			return
+		}
+		// Render a standalone login page (no sidebar)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		tmpl["admin_login"].ExecuteTemplate(w, "admin/login.html", map[string]any{"HideSidebar": true})
+	})
+	r.POST("/admin/login", func(w http.ResponseWriter, req *http.Request) {
+		u, p := req.FormValue("username"), req.FormValue("password")
+		if !sessionMgr.Authenticate(u, p) {
+			tmpl["admin_login"].ExecuteTemplate(w, "admin/login.html", map[string]any{
+				"Error":       "用户名或密码错误",
+				"HideSidebar": true,
+			})
+			return
+		}
+		cookieValue := sessionMgr.CreateSession(u)
+		http.SetCookie(w, &http.Cookie{
+			Name:     "admin_session",
+			Value:    cookieValue,
+			Path:     "/admin",
+			HttpOnly: true,
+			MaxAge:   int(adminAuth.SessionTTL.Seconds()),
+		})
+		http.Redirect(w, req, "/admin", 303)
+	})
+	r.GET("/admin/logout", func(w http.ResponseWriter, req *http.Request) {
+		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/admin", MaxAge: -1})
+		http.Redirect(w, req, "/admin/login", 303)
 	})
 
 	// ==========================================
@@ -393,11 +434,38 @@ func main() {
 		}
 	})
 
-	a := adminOnly(tm)
+	// Admin SSE endpoint — streams dashboard stat updates (order/parcel counts)
+	r.GET("/api/v1/admin/events", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		c := hub.Subscribe("admin-dashboard")
+		defer hub.Unsubscribe(c)
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "SSE not supported", 500)
+			return
+		}
+		// Send an initial connected event
+		fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"ok\"}\n\n")
+		flusher.Flush()
+		for {
+			select {
+			case ev := <-c.Events:
+				fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, ev.Data)
+				flusher.Flush()
+			case <-req.Context().Done():
+				return
+			}
+		}
+	})
+
+	a := adminOnly(sessionMgr)
 	rc := &common.RenderCtx{Tmpl: tmpl, Exec: common.DefaultExecTpl}
 
 	// ★ Module-split route registrations (replaces adminPages + registerBFT56Modules + adminSystemPages + registerAdminCRUD)
-	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps)
+	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps, hub)
 	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr, cargoClassifier)
 	tmsroute.Register(r, a, rc, rr, cour)
 	crmroute.Register(r, a, rc, cr, mr, lr, ar, dr, rpr)

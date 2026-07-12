@@ -632,6 +632,40 @@ a:hover { color: var(--i56-brand-600); }
   font-weight: 500;
 }
 
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+
+.sidebar-user-icon {
+  font-size: 16px;
+}
+
+.sidebar-user-name {
+  font-size: 13px;
+  color: var(--i56-text-primary);
+  font-weight: 600;
+}
+
+.sidebar-logout {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--i56-text-muted);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  transition: all 0.2s;
+}
+
+.sidebar-logout:hover {
+  color: var(--i56-error);
+  background: var(--i56-bg-surface-hover);
+}
+
 /* ===================================================================
    Login Page
    =================================================================== */

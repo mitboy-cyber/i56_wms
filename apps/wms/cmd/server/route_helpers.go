@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/i56/framework/core/auth"
+	fwAuth "github.com/i56/framework/core/auth"
 	"github.com/i56/framework/core/router"
+
+	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
 
 	custRepo "github.com/i56/modules/customer/repository"
 	orderDomain "github.com/i56/modules/order/domain"
@@ -24,18 +26,30 @@ import (
 	weightDomain "github.com/i56/modules/weight/domain"
 )
 
-// adminOnly returns an auth middleware that currently passes through all requests.
-// TODO: implement proper token validation.
-func adminOnly(tm *auth.TokenManager) func(http.HandlerFunc) http.HandlerFunc {
+// adminOnly returns an auth middleware that validates admin sessions
+// using HMAC-signed cookies. Invalid/missing session = redirect to /admin/login.
+func adminOnly(sm *adminAuth.SessionManager) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { next(w, r) }
+		return func(w http.ResponseWriter, r *http.Request) {
+			ck, err := r.Cookie("admin_session")
+			if err != nil {
+				http.Redirect(w, r, "/admin/login", 303)
+				return
+			}
+			session := sm.ValidateSession(ck.Value)
+			if session == nil {
+				http.Redirect(w, r, "/admin/login", 303)
+				return
+			}
+			next(w, r)
+		}
 	}
 }
 
 // clientPg registers all client portal routes (old-style inline rendering).
 // This also calls registerClientP01Routes for the P0/P1 migrated routes.
 func clientPg(
-	tm *auth.TokenManager,
+	tm *fwAuth.TokenManager,
 	cTmpl map[string]*template.Template,
 	r *router.Router,
 	ps *parcelSvc.ParcelService,

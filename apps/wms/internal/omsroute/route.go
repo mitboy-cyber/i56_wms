@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/i56/framework/core/router"
+	"github.com/i56/framework/core/sse"
 	"github.com/i56/framework/events"
 
 	"github.com/i56/i56-apps/i56-wms/internal/ai/optimizer"
@@ -36,6 +37,7 @@ func Register(
 	sr *psRepo.MemServiceRepo,
 	lr *custRepo.MemLedgerRepo,
 	ps *parcelSvc.ParcelService,
+	hub *sse.Hub,
 ) {
 	const tenant int64 = 1
 
@@ -295,6 +297,13 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		order := &orderDomain.Order{TenantID: tenant, WarehouseID: whID, ClientID: clientID, RouteID: routeID, RecipientName: req.FormValue("recipient_name"), Status: orderDomain.StatusPendingPicking, Remark: req.FormValue("remark")}
 		if _, err := osvc.Create(req.Context(), order); err == nil {
 			events.PublishOrderCreated(order.ID, order.OrderNo, order.ClientID, order.TotalPrice)
+			// SSE: notify dashboard of updated counts
+			_, totalOrders, _ := osvc.List(req.Context(), tenant, 0, 1)
+			_, totalParcels, _ := ps.List(req.Context(), tenant, 0, 1)
+			hub.Publish("admin-dashboard", sse.Event{
+				Type: "stats_update",
+				Data: fmt.Sprintf(`{"orderCount":%d,"parcelCount":%d}`, totalOrders, totalParcels),
+			})
 		}
 		common.Redirect(w, "/admin/orders")
 	}))
