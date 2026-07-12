@@ -1,1 +1,145 @@
-<!-- Sidebar is embedded in base.html — this file exists only for template.ParseFiles compatibility -->
+<aside class="app-sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <span class="brand-icon">I</span>
+    <a href="/" class="brand-link">I56 Framework</a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <!-- ═══ Dashboard ═══ -->
+    <a href="/admin" class="nav-item nav-top-item">🏠 首页</a>
+    <a href="/admin/warehouse-board" class="nav-item nav-top-item">📊 仓库看板</a>
+
+    <!-- ═══ OMS 订单管理 ═══ -->
+    <div class="nav-group" data-page="oms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">📦 订单管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/orders" class="nav-item nav-sub-item">集运订单</a>
+        <a href="/admin/service-orders" class="nav-item nav-sub-item">附加服务订单</a>
+      </div>
+    </div>
+
+    <!-- ═══ WMS 仓储管理 ═══ -->
+    <div class="nav-group" data-page="wms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🏗️ 仓储管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/warehouses" class="nav-item nav-sub-item">仓库列表</a>
+        <a href="/admin/inbound-board" class="nav-item nav-sub-item">入库看板</a>
+        <a href="/admin/warehouse-console" class="nav-item nav-sub-item">仓库作业台</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/parcels" class="nav-item nav-sub-item">包裹列表</a>
+        <a href="/admin/exception-reports" class="nav-item nav-sub-item">异常记录</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/task-monitor" class="nav-item nav-sub-item">员工任务监控</a>
+        <a href="/admin/work-orders" class="nav-item nav-sub-item">工单列表</a>
+        <a href="/admin/workflow-management" class="nav-item nav-sub-item">工单流程管理</a>
+        <a href="/admin/pda-workorder-templates" class="nav-item nav-sub-item">PDA 工单模板</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/service-workorders" class="nav-item nav-sub-item">附加服务工单</a>
+        <a href="/admin/service-templates" class="nav-item nav-sub-item">附加服务模板</a>
+        <a href="/admin/service-types" class="nav-item nav-sub-item">附加服务类型</a>
+        <a href="/admin/pda-sessions" class="nav-item nav-sub-item">PDA 在线会话</a>
+      </div>
+    </div>
+
+    <!-- ═══ TMS 运输管理 ═══ -->
+    <div class="nav-group" data-page="tms">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">🚛 运输管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/route-templates" class="nav-item nav-sub-item">线路模板</a>
+        <a href="/admin/carriers" class="nav-item nav-sub-item">承运商列表</a>
+        <a href="/admin/shipping-providers" class="nav-item nav-sub-item">运输公司</a>
+        <a href="/admin/transport-modes" class="nav-item nav-sub-item">运输方式</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/couriers" class="nav-item nav-sub-item">快递公司</a>
+        <a href="/admin/customs-brokers" class="nav-item nav-sub-item">清关公司</a>
+        <a href="/admin/customs-points" class="nav-item nav-sub-item">清关点管理</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/area-groups" class="nav-item nav-sub-item">区域组管理</a>
+        <a href="/admin/cargo-types" class="nav-item nav-sub-item">货物类型</a>
+        <a href="/admin/container-loadings" class="nav-item nav-sub-item">装柜记录</a>
+        <a href="/admin/logistics-tracking" class="nav-item nav-sub-item">物流追踪</a>
+      </div>
+    </div>
+
+    <!-- ═══ CRM 客户管理 ═══ -->
+    <div class="nav-group" data-page="crm">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">👥 客户管理</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/clients" class="nav-item nav-sub-item">客户管理</a>
+        <a href="/admin/client-accounts" class="nav-item nav-sub-item">客户账号</a>
+        <a href="/admin/client-members" class="nav-item nav-sub-item">客户会员</a>
+        <a href="/admin/client-pricing" class="nav-item nav-sub-item">客户价格</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/customer-addresses" class="nav-item nav-sub-item">客户收件地址</a>
+        <a href="/admin/customer-declarants" class="nav-item nav-sub-item">客户申报人</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/client-recharge" class="nav-item nav-sub-item">客户充值</a>
+        <a href="/admin/balance-logs" class="nav-item nav-sub-item">余额日志</a>
+        <a href="/admin/recharge-records" class="nav-item nav-sub-item">充值记录</a>
+        <a href="/admin/monthly-statements" class="nav-item nav-sub-item">月结对账单</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/client-permissions" class="nav-item nav-sub-item">客户端权限</a>
+      </div>
+    </div>
+
+    <!-- ═══ FIN 财务分析 ═══ -->
+    <div class="nav-group" data-page="fin">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">💰 财务分析</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/report/order-profit" class="nav-item nav-sub-item">集运订单盈利</a>
+        <a href="/admin/report/service-profit" class="nav-item nav-sub-item">附加服务盈利</a>
+        <a href="/admin/report/client-profit" class="nav-item nav-sub-item">客户盈利</a>
+        <a href="/admin/report/route-profit" class="nav-item nav-sub-item">路线盈利</a>
+      </div>
+    </div>
+
+    <!-- ═══ SYS 系统设置 ═══ -->
+    <div class="nav-group" data-page="sys">
+      <div class="nav-group-header" onclick="toggleNavGroup(this)">
+        <span class="nav-group-header-label">⚙️ 系统设置</span>
+        <span class="nav-chevron">▾</span>
+      </div>
+      <div class="nav-group-body">
+        <a href="/admin/system-params" class="nav-item nav-sub-item">系统参数</a>
+        <a href="/admin/system/ai-settings" class="nav-item nav-sub-item">AI 模型配置</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/roles" class="nav-item nav-sub-item">角色管理</a>
+        <a href="/admin/employees" class="nav-item nav-sub-item">员工管理</a>
+        <a href="/admin/notifications" class="nav-item nav-sub-item">通知管理</a>
+        <a href="/admin/print-templates" class="nav-item nav-sub-item">打印模板</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/api-notifications" class="nav-item nav-sub-item">通知渠道配置</a>
+        <a href="/admin/system/api-storage" class="nav-item nav-sub-item">存储配置</a>
+        <a href="/admin/system/api-printers" class="nav-item nav-sub-item">打印机设置</a>
+        <a href="/admin/system/api-devices" class="nav-item nav-sub-item">设备管理</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/api-couriers" class="nav-item nav-sub-item">物流API对接</a>
+        <a href="/admin/system/api-customs" class="nav-item nav-sub-item">清关API对接</a>
+        <a href="/admin/system/api-ezway" class="nav-item nav-sub-item">EZ Way实名认证</a>
+        <div class="nav-sub-divider"></div>
+        <a href="/admin/system/scheduler" class="nav-item nav-sub-item">定时任务</a>
+        <a href="/admin/system/audit-logs" class="nav-item nav-sub-item">审计日志</a>
+        <a href="/admin/system/reports" class="nav-item nav-sub-item">内置报表</a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="version">v2.4 LTS</span>
+    </div>
+  </nav>
+</aside>

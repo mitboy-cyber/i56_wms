@@ -101,13 +101,16 @@ func initTemplates() map[string]*template.Template {
 			p.k == "sys_roles" || p.k == "sys_employees" || p.k == "sys_print_templates" ||
 			p.k == "ai_chat" ||
 			p.k == "fin_order_profit" || p.k == "fin_route_profit" {
-			files := []string{"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
+			files := []string{"templates/sidebar.html",
+		"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
 			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
 		} else if p.k == "base_new" {
-			files := []string{"templates/base.html", "templates/admin/base_new.html"}
+			files := []string{"templates/sidebar.html",
+		"templates/base.html", "templates/admin/base_new.html"}
 			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
 		} else {
-			files := []string{"templates/base.html", "templates/sidebar.html", "templates/" + p.file}
+			files := []string{"templates/sidebar.html",
+		"templates/base.html", "templates/sidebar.html", "templates/" + p.file}
 			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
 		}
 	}
