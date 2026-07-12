@@ -221,12 +221,12 @@ func main() {
 		}
 		// Render a standalone login page (no sidebar)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		tmpl["admin_login"].ExecuteTemplate(w, "admin/login.html", map[string]any{"HideSidebar": true})
+		tmpl["admin_login"].ExecuteTemplate(w, "login.html", map[string]any{"HideSidebar": true})
 	})
 	r.POST("/admin/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")
 		if !sessionMgr.Authenticate(u, p) {
-			tmpl["admin_login"].ExecuteTemplate(w, "admin/login.html", map[string]any{
+			tmpl["admin_login"].ExecuteTemplate(w, "login.html", map[string]any{
 				"Error":       "用户名或密码错误",
 				"HideSidebar": true,
 			})
