@@ -2,10 +2,13 @@
 package route
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/i56/framework/core/router"
 	"github.com/i56/framework/core/sse"
@@ -17,6 +20,7 @@ import (
 	custRepo "github.com/i56/modules/customer/repository"
 	orderDomain "github.com/i56/modules/order/domain"
 	orderSvc "github.com/i56/modules/order/service"
+	parcelDomain "github.com/i56/modules/parcel/domain"
 	parcelSvc "github.com/i56/modules/parcel/service"
 	psDomain "github.com/i56/modules/parcel_service/domain"
 	psRepo "github.com/i56/modules/parcel_service/repository"
@@ -40,6 +44,36 @@ func Register(
 	hub *sse.Hub,
 ) {
 	const tenant int64 = 1
+
+	// publishDashboardStats computes current dashboard stats and pushes to SSE.
+	publishDashboardStats := func() {
+		now := time.Now()
+		todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		orders, _, _ := osvc.List(context.Background(), tenant, 0, 100)
+		parcels, totalParcels, _ := ps.List(context.Background(), tenant, 0, 200)
+
+		activeOrders := 0
+		todayRevenue := 0.0
+		for _, o := range orders {
+			if o.Status != orderDomain.StatusCancelled && o.Status != orderDomain.StatusCompleted {
+				activeOrders++
+			}
+			if o.CreatedAt.After(todayStart) || o.CreatedAt.Equal(todayStart) {
+				todayRevenue += o.TotalPrice
+			}
+		}
+		abnormalParcels := 0
+		for _, p := range parcels {
+			if p.Status == parcelDomain.StatusAbnormal || p.Status == parcelDomain.StatusReturned {
+				abnormalParcels++
+			}
+		}
+		hub.Publish("admin-dashboard", sse.Event{
+			Type: "stats_update",
+			Data: fmt.Sprintf(`{"parcelCount":%d,"orderCount":%d,"todayRevenue":"%.2f","abnormalParcels":%d}`,
+				totalParcels, activeOrders, todayRevenue, abnormalParcels),
+		})
+	}
 
 	// ─── /admin/orders — 集运订单 list (from admin_pages.go) ───
 	r.GET("/admin/orders", a(func(w http.ResponseWriter, req *http.Request) {
@@ -86,14 +120,31 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"—", "—", "暂无订单", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"}}
 		}
+
+		// Build status action buttons for each order (key=order_no)
+		statusActions := make(map[string]string)
+		for _, o := range orders {
+			transitions := orderDomain.ValidTransitions()[o.Status]
+			if len(transitions) > 0 {
+				var btns []string
+				for _, t := range transitions {
+					btns = append(btns, fmt.Sprintf(
+						`<button class="i56-btn i56-btn-xs i56-btn-ghost" onclick="I56Table.transitionOrder('%s','%s',this)" title="%s">▶ %s</button>`,
+						o.OrderNo, string(t), common.OrderStatusCN(string(t)), common.OrderStatusCN(string(t))))
+				}
+				statusActions[o.OrderNo] = strings.Join(btns, " ")
+			}
+		}
+
 		rc.Exec(rc.Tmpl, "oms_orders", w, "orders.html", map[string]any{
-			"Page":       "orders",
-			"Title":      "集运订单",
-			"Total":      int(total),
-			"Columns":    []string{"订单号", "仓库", "收件人", "客户", "会员", "线路", "件数", "状态", "实重(kg)", "计费重(kg)", "金额", "清关单号", "承运商单号", "时间"},
-			"Rows":       rows,
-			"HasActions": true,
-			"AddURL":     "/admin/orders/add-form",
+			"Page":          "orders",
+			"Title":         "集运订单",
+			"Total":         int(total),
+			"Columns":       []string{"订单号", "仓库", "收件人", "客户", "会员", "线路", "件数", "状态", "实重(kg)", "计费重(kg)", "金额", "清关单号", "承运商单号", "时间"},
+			"Rows":          rows,
+			"HasActions":    true,
+			"AddURL":        "/admin/orders/add-form",
+			"StatusActions": statusActions,
 		})
 	}))
 
@@ -297,13 +348,7 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		order := &orderDomain.Order{TenantID: tenant, WarehouseID: whID, ClientID: clientID, RouteID: routeID, RecipientName: req.FormValue("recipient_name"), Status: orderDomain.StatusPendingPicking, Remark: req.FormValue("remark")}
 		if _, err := osvc.Create(req.Context(), order); err == nil {
 			events.PublishOrderCreated(order.ID, order.OrderNo, order.ClientID, order.TotalPrice)
-			// SSE: notify dashboard of updated counts
-			_, totalOrders, _ := osvc.List(req.Context(), tenant, 0, 1)
-			_, totalParcels, _ := ps.List(req.Context(), tenant, 0, 1)
-			hub.Publish("admin-dashboard", sse.Event{
-				Type: "stats_update",
-				Data: fmt.Sprintf(`{"orderCount":%d,"parcelCount":%d}`, totalOrders, totalParcels),
-			})
+			publishDashboardStats()
 		}
 		common.Redirect(w, "/admin/orders")
 	}))
@@ -374,6 +419,50 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		}
 		osvc.Cancel(req.Context(), tenant, id)
 		common.Redirect(w, "/admin/orders")
+	}))
+
+	// ─── POST /admin/orders/{id}/status — Order status transition ───
+	r.POST("/admin/orders/{id}/status", a(func(w http.ResponseWriter, req *http.Request) {
+		orderNo := req.PathValue("id")
+		var body struct{ Status string `json:"status"` }
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			http.Error(w, `{"error":"invalid body"}`, 400)
+			return
+		}
+		target := orderDomain.OrderStatus(body.Status)
+		o, err := osvc.GetByOrderNo(req.Context(), tenant, orderNo)
+		if err != nil || o == nil {
+			http.Error(w, `{"error":"order not found"}`, 404)
+			return
+		}
+		if !o.CanTransitionTo(target) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": fmt.Sprintf("invalid transition: %s → %s", o.Status, target),
+			})
+			return
+		}
+		if err := osvc.Transition(req.Context(), tenant, o.ID, target); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		// Publish SSE event for real-time update
+		hub.Publish("admin-dashboard", sse.Event{
+			Type: "order_status_changed",
+			Data: fmt.Sprintf(`{"orderNo":"%s","oldStatus":"%s","newStatus":"%s"}`, o.OrderNo, string(o.Status), string(target)),
+		})
+		publishDashboardStats()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{
+			"ok":      true,
+			"orderNo": o.OrderNo,
+			"status":  string(target),
+			"statusCN": common.OrderStatusCN(string(target)),
+			"message": "状态更新成功",
+		})
 	}))
 
 	// ─── /admin/service-orders — 附加服务订单 (from admin_modules.go OMS) ───

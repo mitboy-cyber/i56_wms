@@ -265,4 +265,58 @@
 </style>
 
 {{end}}
+
+<!-- SSE Real-time Dashboard Updates -->
+<script>
+(function() {
+  var es = new EventSource('/api/v1/admin/events');
+  es.addEventListener('stats_update', function(e) {
+    var data = JSON.parse(e.data);
+    var cards = document.querySelectorAll('.stat-card');
+    // Update stat cards: 📦包裹总数, 📋活跃订单, 💰今日收入, ⚠️异常包裹
+    // order: ParcelCount, OrderCount, ClientCount, RouteCount, TodayRevenue, AbnormalParcels, AnomalyCount
+    var updates = {
+      0: data.parcelCount,    // 📦 包裹总数
+      1: data.orderCount,     // 📋 活跃订单
+      4: data.todayRevenue,   // 💰 今日收入
+      5: data.abnormalParcels // ⚠️ 异常包裹
+    };
+    for (var idx in updates) {
+      if (updates[idx] !== undefined && cards[idx]) {
+        var valEl = cards[idx].querySelector('.stat-value');
+        if (valEl) {
+          var newVal = updates[idx];
+          if (idx == 4) {
+            newVal = '¥' + parseFloat(newVal).toFixed(2);
+          }
+          if (valEl.textContent.trim() !== newVal.toString()) {
+            valEl.textContent = newVal;
+            cards[idx].classList.add('pulse');
+            setTimeout(function(c) { c.classList.remove('pulse'); }, 600, cards[idx]);
+          }
+        }
+      }
+    }
+  });
+  es.addEventListener('connected', function(e) {
+    console.log('[Dashboard] SSE connected');
+  });
+  es.onerror = function() { console.log('[Dashboard] SSE connection error, will retry...'); };
+})();
+</script>
+
+<style>
+@keyframes statPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); box-shadow: 0 0 12px rgba(99, 102, 241, 0.3); }
+  100% { transform: scale(1); }
+}
+.stat-card.pulse {
+  animation: statPulse 0.6s ease-out;
+}
+.stat-card.pulse .stat-value {
+  color: var(--i56-brand);
+}
+</style>
+
 {{end}}

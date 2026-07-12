@@ -199,3 +199,41 @@ function toggleNavGroup(header) {
 var I56AI={toggle:function(){var p=document.getElementById("i56-ai-panel");p.style.display=p.style.display==="flex"?"none":"flex";if(p.style.display==="flex")document.getElementById("i56-ai-query").focus()},close:function(){document.getElementById("i56-ai-panel").style.display="none"},send:function(e){e.preventDefault();var i=document.getElementById("i56-ai-query"),q=i.value.trim();if(!q)return;var m=document.getElementById("i56-ai-messages");m.innerHTML+='<div class="i56-ai-msg i56-ai-msg-user">'+q.replace(/</g,"&lt;")+"</div>";i.value="";var d=document.createElement("div");d.className="i56-ai-msg i56-ai-msg-ai";d.textContent="思考中...";m.appendChild(d);m.scrollTop=m.scrollHeight;fetch("/api/v1/ai/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q})}).then(function(r){return r.text()}).then(function(t){d.textContent=t||"抱歉，暂时无法回答。";m.scrollTop=m.scrollHeight}).catch(function(){d.textContent="网络错误，请稍后重试。"})}};
 document.addEventListener("keydown",function(e){if(e.ctrlKey&&e.key==="k"){e.preventDefault();I56AI.toggle()}});
 </script>
+
+<!-- AI Notification Indicator via SSE -->
+<style>
+.i56-ai-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 10px; height: 10px;
+  background: #ef4444; border-radius: 50%;
+  border: 2px solid var(--i56-bg-surface);
+  display: none; animation: badgePulse 1.5s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+</style>
+<script>
+(function() {
+  var es2 = new EventSource('/api/v1/sse?channel=ai-notify');
+  es2.addEventListener('new_message', function(e) {
+    // Show notification indicator on AI bubble
+    var badge = document.getElementById('i56-ai-notify-badge');
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.id = 'i56-ai-notify-badge';
+      badge.className = 'i56-ai-badge';
+      document.querySelector('.i56-ai-bubble').appendChild(badge);
+    }
+    badge.style.display = 'block';
+    // Hide when panel is opened
+    var observer = new MutationObserver(function(muts) {
+      muts.forEach(function(m) {
+        if (m.target.style.display === 'flex') { badge.style.display = 'none'; }
+      });
+    });
+    observer.observe(document.getElementById('i56-ai-panel'), { attributes: true, attributeFilter: ['style'] });
+  });
+})();
+</script>

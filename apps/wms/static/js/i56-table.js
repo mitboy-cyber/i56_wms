@@ -297,6 +297,34 @@
       w.document.write(html);
       w.document.close();
       setTimeout(function() { w.print(); }, 300);
+    },
+
+    /* ── Order Status Transition ── */
+    transitionOrder: function(orderNo, newStatus, btn) {
+      if (!confirm('确认将订单 ' + orderNo + ' 状态更新为 ' + newStatus + '？')) return;
+      var origText = btn.textContent;
+      btn.textContent = '...';
+      btn.disabled = true;
+      fetch('/admin/orders/' + encodeURIComponent(orderNo) + '/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      }).then(function(r) {
+        return r.json().then(function(data) { return { ok: r.ok, data: data }; });
+      }).then(function(result) {
+        if (result.ok) {
+          // Reload page to show updated status and new transition buttons
+          window.location.reload();
+        } else {
+          alert('状态更新失败: ' + (result.data.error || result.data.message || '未知错误'));
+          btn.textContent = origText;
+          btn.disabled = false;
+        }
+      }).catch(function() {
+        alert('网络错误，请稍后重试');
+        btn.textContent = origText;
+        btn.disabled = false;
+      });
     }
   };
 })();
