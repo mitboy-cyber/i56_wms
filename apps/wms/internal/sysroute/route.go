@@ -968,7 +968,13 @@ func Register(
 
 	// ─── /admin/system/ai-chat — AI 助手面板 ───
 	r.GET("/admin/system/ai-settings", a(func(w http.ResponseWriter, req *http.Request) {
-		rc.Exec(rc.Tmpl, "ai_settings", w, "ai_settings.html", map[string]any{
+		
+	r.GET("/admin/system/brand-settings", a(func(w http.ResponseWriter, req *http.Request) {
+		rc.Exec(rc.Tmpl, "brand_settings", w, "brand_settings.html", map[string]any{
+			"Title": "品牌与外观设置", "Breadcrumb": "系统 / 品牌设置",
+		})
+	}))
+	rc.Exec(rc.Tmpl, "ai_settings", w, "ai_settings.html", map[string]any{
 			"Title": "AI 大模型配置", "Breadcrumb": "系统 / AI 大模型配置",
 		})
 	}))

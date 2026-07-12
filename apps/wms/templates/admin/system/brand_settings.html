@@ -1,0 +1,139 @@
+{{template "admin_layout.html" .}}
+{{define "title"}}品牌与外观设置 - I56{{end}}
+{{define "content"}}
+<div class="i56-page-header">
+  <h1 class="i56-page-title">🎨 品牌与外观设置</h1>
+  <p class="i56-page-desc">配置网站Logo、Banner、Footer及主题颜色</p>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">🏢 品牌信息</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">公司名称</label>
+        <input type="text" class="i56-form-input" value="I56 Framework" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">系统简称</label>
+        <input type="text" class="i56-form-input" value="I56" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">Logo URL</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/logo.png" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">Favicon URL</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/favicon.ico" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">🎨 主题颜色</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div class="i56-form-group" style="text-align:center">
+        <div style="width:60px;height:60px;border-radius:12px;background:var(--i56-brand);margin:0 auto 8px"></div>
+        <label class="i56-form-label" style="font-size:12px">主色 (Brand)</label>
+        <input type="color" class="i56-form-input" value="#1D4ED8" style="height:36px;padding:2px" />
+      </div>
+      <div class="i56-form-group" style="text-align:center">
+        <div style="width:60px;height:60px;border-radius:12px;background:var(--i56-bg);margin:0 auto 8px"></div>
+        <label class="i56-form-label" style="font-size:12px">背景色</label>
+        <input type="color" class="i56-form-input" value="#F8FAFC" style="height:36px;padding:2px" />
+      </div>
+      <div class="i56-form-group" style="text-align:center">
+        <div style="width:60px;height:60px;border-radius:12px;background:var(--i56-text);margin:0 auto 8px"></div>
+        <label class="i56-form-label" style="font-size:12px">文字色</label>
+        <input type="color" class="i56-form-input" value="#1E293B" style="height:36px;padding:2px" />
+      </div>
+      <div class="i56-form-group" style="text-align:center">
+        <div style="width:60px;height:60px;border-radius:12px;background:var(--i56-success,#10B981);margin:0 auto 8px"></div>
+        <label class="i56-form-label" style="font-size:12px">成功色</label>
+        <input type="color" class="i56-form-input" value="#10B981" style="height:36px;padding:2px" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">🖼️ Banner 配置</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">登录页 Banner</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/banner-login.jpg" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">主控台 Banner</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/banner-dashboard.jpg" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">Banner 标题</label>
+        <input type="text" class="i56-form-input" value="I56 WMS — 智能仓储管理系统" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">Banner 副标题</label>
+        <input type="text" class="i56-form-input" value="一站式跨境物流解决方案" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">📝 Footer 配置</div>
+  <div class="i56-card-body">
+    <div class="i56-form-group">
+      <label class="i56-form-label">Footer 版权信息</label>
+      <input type="text" class="i56-form-input" value="© 2026 I56 Framework. All rights reserved." />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">技术支持链接</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/support" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">隐私政策链接</label>
+        <input type="text" class="i56-form-input" placeholder="https://example.com/privacy" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">📱 社交链接</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">微信</label>
+        <input type="text" class="i56-form-input" placeholder="公众号ID" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">LINE</label>
+        <input type="text" class="i56-form-input" placeholder="@yourlineid" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">客服电话</label>
+        <input type="text" class="i56-form-input" placeholder="400-XXX-XXXX" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">客服邮箱</label>
+        <input type="text" class="i56-form-input" placeholder="support@example.com" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px">
+  <button class="i56-btn" onclick="previewBrand()">👁️ 预览</button>
+  <button class="i56-btn" onclick="resetBrand()">恢复默认</button>
+  <button class="i56-btn i56-btn-primary">💾 保存设置</button>
+</div>
+
+<script>
+function previewBrand(){ alert('预览模式将在新标签页打开'); }
+function resetBrand(){ if(confirm('确定恢复默认品牌设置？')) location.reload(); }
+</script>
+{{end}}
