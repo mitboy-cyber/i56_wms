@@ -689,20 +689,20 @@ func Register(
 .test-success{background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
 </style></head><body>`))
 		if len(configs) == 0 {
-			w.Write([]byte(`<div class="card"><div class="card-header">💾 对象存储配置</div><div class="empty-state">暂无存储配置<br><a href="/admin/system/api-storage/add-form" class="btn-primary" style="display:inline-block;margin-top:8px">➕ 新增</a></div></div></body></html>`))
+			w.Write([]byte(`<div class="i56-card"><div class="i56-card-header">💾 对象存储配置</div><div class="i56-empty-state">暂无存储配置<br><a href="/admin/system/api-storage/add-form" class="i56-btn i56-btn-primary" style="display:inline-block;margin-top:8px">➕ 新增</a></div></div></body></html>`))
 			return
 		}
 		for _, c := range configs {
 			sb := "success"; st := "启用"
 			if !c.IsActive { sb = "default"; st = "停用" }
-			fmt.Fprintf(w, `<div class="card"><div class="card-header">💾 %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, c.Name, sb, st)
+			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">💾 %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, c.Name, sb, st)
 			fmt.Fprint(w, `<div class="info-grid">`)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">存储类型</span><span class="info-value">%s</span></div>`, c.Provider)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Bucket</span><span class="info-value" style="font-family:monospace">%s</span></div>`, c.Bucket)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Endpoint</span><span class="info-value" style="font-family:monospace;font-size:10px">%s</span></div>`, c.Endpoint)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">Region</span><span class="info-value">%s</span></div>`, c.Region)
 			fmt.Fprint(w, `</div>`)
-			fmt.Fprintf(w, `<div style="margin-top:12px;display:flex;gap:8px"><button class="btn-primary" onclick="testUpload(%d)">🧪 上传测试</button><a href="/admin/system/api-storage" class="btn-sm">返回列表</a></div><div id="tu-%d"></div></div>`, c.ID, c.ID)
+			fmt.Fprintf(w, `<div style="margin-top:12px;display:flex;gap:8px"><button class="i56-btn i56-btn-primary" onclick="testUpload(%d)">🧪 上传测试</button><a href="/admin/system/api-storage" class="i56-btn-sm">返回列表</a></div><div id="tu-%d"></div></div>`, c.ID, c.ID)
 		}
 		w.Write([]byte(`<script>function testUpload(id){var el=document.getElementById('tu-'+id);el.innerHTML='<div class="test-result" style="color:var(--i56-text-muted)">🔄 正在测试连接...</div>';setTimeout(function(){el.innerHTML='<div class="test-result test-success">✅ 上传测试成功！文件: test-upload.txt (128 bytes)<br>延迟: 45ms</div>'},1200)}</script></body></html>`))
 	}))
@@ -770,7 +770,7 @@ func Register(
 .test-warning{background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3)}
 </style></head><body>`))
 		if len(ps) == 0 {
-			w.Write([]byte(`<div class="card"><div class="card-header">🖨️ 打印机设置</div><div class="empty-state">暂无打印机配置<br><a href="/admin/system/printers" class="btn-primary" style="display:inline-block;margin-top:8px">前往配置</a></div></div></body></html>`))
+			w.Write([]byte(`<div class="i56-card"><div class="i56-card-header">🖨️ 打印机设置</div><div class="i56-empty-state">暂无打印机配置<br><a href="/admin/system/printers" class="i56-btn i56-btn-primary" style="display:inline-block;margin-top:8px">前往配置</a></div></div></body></html>`))
 			return
 		}
 		for i, p := range ps {
@@ -782,7 +782,7 @@ func Register(
 			if p.IPAddress != "" { ip = p.IPAddress }
 			sb := "success"; st := "在线"
 			if i > 0 { sb = "default"; st = "离线" }
-			fmt.Fprintf(w, `<div class="card"><div class="card-header">🖨️ %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, p.Name, sb, st)
+			fmt.Fprintf(w, `<div class="i56-card"><div class="i56-card-header">🖨️ %s <span class="badge badge-%s" style="margin-left:8px">%s</span></div>`, p.Name, sb, st)
 			fmt.Fprint(w, `<div class="info-grid">`)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">打印机名称</span><span class="info-value">%s</span></div>`, p.Name)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">IP 地址</span><span class="info-value" style="font-family:monospace">%s</span></div>`, ip)
@@ -790,7 +790,7 @@ func Register(
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">默认纸张</span><span class="info-value">%s</span></div>`, psz)
 			fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, st)
 			fmt.Fprint(w, `</div>`)
-			fmt.Fprintf(w, `<div style="margin-top:12px"><button class="btn-primary" onclick="tp(%d)">🖨️ 打印测试页</button></div><div id="pr-%d"></div></div>`, i, i)
+			fmt.Fprintf(w, `<div style="margin-top:12px"><button class="i56-btn i56-btn-primary" onclick="tp(%d)">🖨️ 打印测试页</button></div><div id="pr-%d"></div></div>`, i, i)
 		}
 		w.Write([]byte(`<script>function tp(idx){var el=document.getElementById('pr-'+idx);el.innerHTML='<div class="test-result" style="color:var(--i56-text-muted)">🔄 正在发送打印指令...</div>';setTimeout(function(){var r=Math.random();if(r>0.3){el.innerHTML='<div class="test-result test-success">✅ 测试打印成功！已发送到打印机队列</div>'}else{el.innerHTML='<div class="test-result test-warning">⚠️ 打印机繁忙，请稍后重试</div>'}},1500)}</script></body></html>`))
 	}))
@@ -967,6 +967,11 @@ func Register(
 	}))
 
 	// ─── /admin/system/ai-chat — AI 助手面板 ───
+	r.GET("/admin/system/ai-settings", a(func(w http.ResponseWriter, req *http.Request) {
+		rc.Exec(rc.Tmpl, "ai_settings", w, "ai_settings.html", map[string]any{
+			"Title": "AI 大模型配置", "Breadcrumb": "系统 / AI 大模型配置",
+		})
+	}))
 	r.GET("/admin/system/ai-chat", a(func(w http.ResponseWriter, req *http.Request) {
 		rc.Exec(rc.Tmpl, "ai_chat", w, "ai_chat_page.html", map[string]any{
 			"Title":      "AI 助手",

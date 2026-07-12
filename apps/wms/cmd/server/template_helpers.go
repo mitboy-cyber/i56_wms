@@ -65,6 +65,7 @@ func initTemplates() map[string]*template.Template {
 		{"report_view", "admin/system/report_view.html"},
 		{"api_ezway", "admin/system/api_ezway.html"},
 		{"ai_chat", "admin/system/ai_chat_page.html"},
+		{"ai_settings", "admin/system/ai_settings.html"},
 		// TMS module — data_table-based templates (P3)
 		{"carriers", "admin/tms/carriers.html"},
 		{"couriers", "admin/tms/couriers.html"},

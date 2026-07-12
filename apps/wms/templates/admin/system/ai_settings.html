@@ -1,0 +1,156 @@
+{{template "admin_layout.html" .}}
+{{define "title"}}AI 大模型配置 - I56{{end}}
+{{define "content"}}
+<div class="i56-page-header">
+  <h1 class="i56-page-title">🤖 AI 大模型配置</h1>
+  <p class="i56-page-desc">管理AI模型供应商、API密钥、费用上限和模型参数</p>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">🔑 模型供应商</div>
+  <div class="i56-card-body">
+    <div class="i56-table-wrap">
+    <table class="i56-table">
+      <thead><tr><th>供应商</th><th>模型</th><th>状态</th><th>API端点</th><th>费用($/1K tokens)</th><th>操作</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="i56-badge i56-badge-brand">DeepSeek</span></td>
+          <td>deepseek-chat</td>
+          <td><span class="i56-badge i56-badge-success">已启用</span></td>
+          <td>https://api.deepseek.com/v1</td>
+          <td>$0.00027</td>
+          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('deepseek')">编辑</button></td>
+        </tr>
+        <tr>
+          <td><span class="i56-badge" style="background:#ddd;color:#666">OpenAI</span></td>
+          <td>gpt-4o-mini</td>
+          <td><span class="i56-badge" style="background:#ddd;color:#666">未配置</span></td>
+          <td>https://api.openai.com/v1</td>
+          <td>$0.00015</td>
+          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('openai')">配置</button></td>
+        </tr>
+        <tr>
+          <td><span class="i56-badge" style="background:#ddd;color:#666">Claude</span></td>
+          <td>claude-sonnet-4</td>
+          <td><span class="i56-badge" style="background:#ddd;color:#666">未配置</span></td>
+          <td>https://api.anthropic.com/v1</td>
+          <td>$0.00300</td>
+          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('claude')">配置</button></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">⚙️ 模型参数</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">默认模型</label>
+        <select class="i56-form-select">
+          <option>deepseek-chat</option>
+          <option>gpt-4o-mini</option>
+          <option>claude-sonnet-4</option>
+        </select>
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">路由策略</label>
+        <select class="i56-form-select">
+          <option selected>质量优先 (Quality First)</option>
+          <option>成本优先 (Cost First)</option>
+          <option>速度优先 (Speed First)</option>
+        </select>
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">Temperature (0-2)</label>
+        <input type="number" class="i56-form-input" value="0.7" min="0" max="2" step="0.1" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">最大Token数</label>
+        <input type="number" class="i56-form-input" value="4096" min="256" max="32768" step="256" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">💰 费用控制</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">每租户月费用上限 ($)</label>
+        <input type="number" class="i56-form-input" value="50.00" min="0" step="1" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">单次请求费用上限 ($)</label>
+        <input type="number" class="i56-form-input" value="1.00" min="0" step="0.01" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">费用告警阈值 ($)</label>
+        <input type="number" class="i56-form-input" value="40.00" min="0" step="1" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">超限策略</label>
+        <select class="i56-form-select">
+          <option selected>拒绝请求并通知</option>
+          <option>切换到免费模型</option>
+          <option>仅通知不阻断</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card" style="margin-bottom:16px">
+  <div class="i56-card-header">📊 使用统计（本月）</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">
+      <div>
+        <div style="font-size:28px;font-weight:700;color:var(--i56-brand)">87</div>
+        <div style="font-size:12px;color:var(--i56-text-muted)">AI调用次数</div>
+      </div>
+      <div>
+        <div style="font-size:28px;font-weight:700;color:var(--i56-brand)">¥0.03</div>
+        <div style="font-size:12px;color:var(--i56-text-muted)">累计费用</div>
+      </div>
+      <div>
+        <div style="font-size:28px;font-weight:700;color:var(--i56-brand)">0.2s</div>
+        <div style="font-size:12px;color:var(--i56-text-muted)">平均响应</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="i56-card">
+  <div class="i56-card-header">🛡️ 安全与对齐</div>
+  <div class="i56-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="i56-form-group">
+        <label class="i56-form-label">系统Prompt</label>
+        <textarea class="i56-form-input" style="min-height:100px;font-size:13px">You are an AI assistant for I56 WMS. You help with warehouse operations, order management, parcel tracking, and logistics. Respond in Chinese. Be concise and professional.</textarea>
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">禁止话题（每行一个）</label>
+        <textarea class="i56-form-input" style="min-height:100px;font-size:13px">政治
+色情
+暴力
+金融投资建议
+法律建议</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;text-align:right">
+  <button class="i56-btn" style="margin-right:8px">恢复默认</button>
+  <button class="i56-btn i56-btn-primary">💾 保存配置</button>
+</div>
+
+<script>
+function editProvider(name) {
+  alert('编辑 ' + name + ' API配置（API Key将在后端安全存储）');
+}
+</script>
+{{end}}
