@@ -5,7 +5,7 @@
 <span class="brand">{{.PoolCount}} 任务</span>
 {{end}}
 {{define "content"}}
-<div class="pda-content">
+<div class="pda-content" hx-ext="sse" sse-connect="/pda/sse/task-pool">
   <div id="pull-indicator" class="pull-indicator">↓ 下拉刷新</div>
 
   <!-- Segment tabs -->
@@ -16,6 +16,7 @@
     <a href="#">打包</a>
   </div>
 
+  <div id="task-pool-items" sse-swap="taskPoolUpdate" hx-swap="innerHTML">
   {{if .Tasks}}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div class="text-sm text-muted">共 {{.PoolCount}} 个待抢任务</div>
@@ -51,7 +52,9 @@
     <button onclick="location.reload()" class="pda-btn pda-btn-outline pda-btn-sm" style="margin-top:16px">⟳ 刷新</button>
   </div>
   {{end}}
+  </div>
 </div>
+<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
 <script>
 async function claimTask(taskType, targetId, el) {
   if(el)el.style.opacity='0.5';

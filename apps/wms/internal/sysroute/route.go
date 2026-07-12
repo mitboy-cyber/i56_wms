@@ -544,7 +544,6 @@ func Register(
 		apiSecret := ezCfg.APISecret
 		isActive := ezCfg.IsActive
 		ezMu.RUnlock()
-		common.HtmlOK(w)
 		activeLabel := "未配置"
 		activeClass := "badge badge-secondary"
 		if isActive && apiKey != "" {
@@ -556,27 +555,12 @@ func Register(
 		}
 		secretMask := apiSecret
 		if len(apiSecret) > 4 { secretMask = "••••••••" + apiSecret[len(apiSecret)-4:] }
-		checked := ""
-		if isActive { checked = "checked" }
-		content := `<div class="data-table-wrapper" style="padding:24px;max-width:700px">
-<h1 style="font-size:18px;margin-bottom:4px;color:var(--i56-text-primary)">🏛️ EZ Way 实名认证 API 配置</h1>
-<p style="font-size:12px;color:var(--i56-text-secondary);margin-bottom:16px">台湾关务署 EZ Way 实名认证系统 (TradeVan)</p>
-<span class="` + activeClass + `">` + activeLabel + `</span>
-<form hx-post="/admin/system/api-ezway/save" hx-swap="none" style="margin-top:16px">
-<div class="form-group"><label class="form-label">API Key</label><input name="api_key" value="` + template.HTMLEscapeString(apiKey) + `" class="form-input" placeholder="EZ Way API Key"></div>
-<div class="form-group"><label class="form-label">API Secret</label><input name="api_secret" value="` + template.HTMLEscapeString(secretMask) + `" class="form-input" placeholder="EZ Way API Secret"></div>
-<div class="form-group"><label class="form-label">Base URL</label><input name="base_url" value="` + template.HTMLEscapeString(baseURL) + `" class="form-input" placeholder="https://ezway.tradevan.com.tw/api/v1"></div>
-<div class="form-group"><label class="form-checkbox"><input type="checkbox" name="is_active" value="true" ` + checked + `> 启用</label></div>
-<div style="display:flex;gap:8px;margin-top:16px">
-<button type="submit" class="btn btn-primary">💾 保存配置</button>
-<button type="button" class="btn" onclick="testConn()">🔌 测试连接</button></div></form>
-<div id="test-result" style="margin-top:8px"></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--i56-border)">
-<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">API 文档</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">https://ezway.tradevan.com.tw</div></div>
-<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">认证方式</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">API Key + HMAC-SHA256</div></div>
-<div style="font-size:12px"><div style="color:var(--i56-text-secondary)">可用端点</div><div style="color:var(--i56-text-primary);font-weight:500;font-family:monospace">/realname/verify</div></div></div></div>
-<script>function testConn(){var el=document.getElementById('test-result');el.innerHTML='<div style="color:var(--i56-text-muted);font-size:12px">🔄 正在测试连接...</div>';fetch('/admin/system/api-ezway/test',{method:'POST'}).then(r=>r.json()).then(d=>{if(d.success) el.innerHTML='<div style="color:#22c55e;font-size:12px">✅ 连接成功！延迟: '+d.latency+'ms | EZ Way 服务可用</div>';else el.innerHTML='<div style="color:#ef4444;font-size:12px">❌ '+d.message+'</div>'}).catch(function(e){el.innerHTML='<div style="color:#ef4444;font-size:12px">❌ 连接失败: '+e.message+'</div>'})}</script>`
-		common.RenderAdminPage(w, "EZ Way实名认证配置", "系统 / EZ Way实名认证", content)
+		rc.Exec(rc.Tmpl, "api_ezway", w, "api_ezway.html", map[string]any{
+			"Title": "EZ Way实名认证配置", "Breadcrumb": "系统 / EZ Way实名认证",
+			"ActiveLabel": activeLabel, "ActiveClass": activeClass,
+			"APIKey": apiKey, "APISecret": secretMask, "BaseURL": baseURL,
+			"IsActive": isActive,
+		})
 	}))
 
 	r.POST("/admin/system/api-ezway/save", a(func(w http.ResponseWriter, req *http.Request) {

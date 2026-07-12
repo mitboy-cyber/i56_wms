@@ -1,0 +1,54 @@
+{{template "base.html" .}}
+{{define "breadcrumb"}}{{.Breadcrumb}}{{end}}
+{{define "content"}}
+<h1 style="margin-bottom:16px">📋 操作审计日志</h1>
+
+<form method="GET" style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-end">
+<div>
+  <label style="font-size:13px;color:var(--i56-text-secondary)">操作类型</label>
+  <select name="action" class="form-select" style="min-width:120px">
+    <option value=""{{if eq .ActionFilter ""}} selected{{end}}>全部</option>
+    {{range .ActionOptions}}<option value="{{.}}"{{if eq $.ActionFilter .}} selected{{end}}>{{.}}</option>{{end}}
+  </select>
+</div>
+<div>
+  <label style="font-size:13px;color:var(--i56-text-secondary)">资源类型</label>
+  <select name="resource" class="form-select" style="min-width:120px">
+    <option value=""{{if eq .ResourceFilter ""}} selected{{end}}>全部</option>
+    {{range .ResourceOptions}}<option value="{{.}}"{{if eq $.ResourceFilter .}} selected{{end}}>{{.}}</option>{{end}}
+  </select>
+</div>
+<div>
+  <label style="font-size:13px;color:var(--i56-text-secondary)">开始日期</label>
+  <input type="date" name="from" value="{{.FromStr}}" class="form-input">
+</div>
+<div>
+  <label style="font-size:13px;color:var(--i56-text-secondary)">结束日期</label>
+  <input type="date" name="to" value="{{.ToStr}}" class="form-input">
+</div>
+<button type="submit" class="btn btn-primary">筛选</button>
+</form>
+
+<p style="color:var(--i56-text-secondary);margin-bottom:12px">共 {{.Total}} 条记录</p>
+
+<table class="data-table" style="width:100%">
+<thead>
+  <tr><th>时间</th><th>用户</th><th>操作</th><th>资源</th><th>资源ID</th><th>详情</th><th>IP</th></tr>
+</thead>
+<tbody>
+{{range .Entries}}
+<tr>
+  <td>{{.CreatedAt}}</td>
+  <td>{{.UserID}}</td>
+  <td><span class="badge badge-{{.BadgeClass}}">{{.Action}}</span></td>
+  <td>{{.Resource}}</td>
+  <td>{{.ResourceID}}</td>
+  <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="{{.Detail}}">{{.DetailPreview}}</td>
+  <td>{{.IP}}</td>
+</tr>
+{{else}}
+<tr><td colspan="7" style="text-align:center;color:var(--i56-text-muted)">暂无审计日志</td></tr>
+{{end}}
+</tbody>
+</table>
+{{end}}

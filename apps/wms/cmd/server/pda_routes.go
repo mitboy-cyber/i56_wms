@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"html/template"
@@ -10,12 +11,13 @@ import (
 	"time"
 
 	"github.com/i56/framework/core/router"
+	"github.com/i56/framework/core/sse"
 	pdaRepo "github.com/i56/modules/pda/repository"
 	pdaSvc "github.com/i56/modules/pda/service"
 	parcelDomain "github.com/i56/modules/parcel/domain"
 )
 
-func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.PDAOperations) {
+func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.PDAOperations, hub *sse.Hub) {
 	svc := pdaSvc.NewPDAService(pdaR, nil, nil)
 	tmpl := initPDATemplates()
 
@@ -102,8 +104,38 @@ func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.P
 	}))
 
 	// ==========================================
-	// 1b. TASK POOL (抢单池)
+	// 1b. TASK POOL (抢单池) — SSE + Page
 	// ==========================================
+	// SSE stream for real-time task pool updates
+	r.GET("/pda/sse/task-pool", func(w http.ResponseWriter, req *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		client := hub.Subscribe("pda-task-pool")
+		defer hub.Unsubscribe(client)
+
+		// Send initial state
+		sendTaskPoolSSE(w, flusher, ops, req.Context())
+
+		for {
+			select {
+			case ev := <-client.Events:
+				fmt.Fprintf(w, "event: %s\ndata: %s\n\n", ev.Type, ev.Data)
+				flusher.Flush()
+			case <-req.Context().Done():
+				return
+			}
+		}
+	})
+
+	// Full task pool page
 	r.GET("/pda/task-pool", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
 		stats := ops.WarehouseStats(req.Context())
 		receiveList := ops.PendingReceive(req.Context())
@@ -188,6 +220,9 @@ func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.P
 			return
 		}
 		_ = at
+
+		// Broadcast updated task pool to all SSE clients
+		broadcastTaskPoolUpdate(hub, ops, req.Context())
 
 		// Redirect to the appropriate operation screen
 		switch taskType {
@@ -556,6 +591,119 @@ func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.P
 }
 
 // ---------- Template initialization with custom functions ----------
+// ──────────────────────────────────────────────────────────────────────
+// SSE task pool helpers
+// ──────────────────────────────────────────────────────────────────────
+
+// TaskEntry is a task pool item for SSE serialization
+type TaskEntry struct {
+	ID          string `json:"id"`
+	TaskType    string `json:"task_type"`
+	TaskLabel   string `json:"task_label"`
+	Icon        string `json:"icon"`
+	TargetID    string `json:"target_id"`
+	TargetDesc  string `json:"target_desc"`
+	ParcelCount int    `json:"parcel_count"`
+	Priority    string `json:"priority"`
+	CreatedAt   string `json:"created_at"`
+}
+
+func buildTaskEntries(ops *pdaSvc.PDAOperations, ctx context.Context) []TaskEntry {
+	receiveList := ops.PendingReceive(ctx)
+	pickList := ops.PendingPick(ctx)
+	packList := ops.PendingPack(ctx)
+	loadList := ops.PendingLoad(ctx)
+	putawayList := ops.PendingPutAway(ctx)
+
+	var tasks []TaskEntry
+	for i, p := range receiveList {
+		tasks = append(tasks, TaskEntry{
+			ID: fmt.Sprintf("recv-%d", i+1), TaskType: "receive", TaskLabel: "收货入库",
+			Icon: "📦", TargetID: p.TrackingNumber, TargetDesc: p.ProductName,
+			Priority: "normal", CreatedAt: time.Now().Add(-time.Duration(i) * time.Minute).Format("15:04"),
+		})
+	}
+	for i, o := range pickList {
+		tasks = append(tasks, TaskEntry{
+			ID: fmt.Sprintf("pick-%d", i+1), TaskType: "pick", TaskLabel: "订单拣货",
+			Icon: "🛒", TargetID: o.OrderNo, TargetDesc: o.RecipientName,
+			ParcelCount: o.ParcelCount, Priority: "normal", CreatedAt: time.Now().Add(-time.Duration(i) * 2 * time.Minute).Format("15:04"),
+		})
+	}
+	for i, o := range packList {
+		tasks = append(tasks, TaskEntry{
+			ID: fmt.Sprintf("pack-%d", i+1), TaskType: "pack", TaskLabel: "打包复核",
+			Icon: "📋", TargetID: o.OrderNo, TargetDesc: o.RecipientName,
+			ParcelCount: o.ParcelCount, Priority: "normal", CreatedAt: time.Now().Add(-time.Duration(i) * 3 * time.Minute).Format("15:04"),
+		})
+	}
+	for i, o := range loadList {
+		tasks = append(tasks, TaskEntry{
+			ID: fmt.Sprintf("load-%d", i+1), TaskType: "load", TaskLabel: "装柜发货",
+			Icon: "🚛", TargetID: o.OrderNo, TargetDesc: o.RecipientName,
+			ParcelCount: o.ParcelCount, Priority: "normal", CreatedAt: time.Now().Add(-time.Duration(i) * 5 * time.Minute).Format("15:04"),
+		})
+	}
+	for i, p := range putawayList {
+		tasks = append(tasks, TaskEntry{
+			ID: fmt.Sprintf("put-%d", i+1), TaskType: "putaway", TaskLabel: "上架入库",
+			Icon: "📍", TargetID: p.TrackingNumber, TargetDesc: p.ProductName,
+			Priority: "normal", CreatedAt: time.Now().Add(-time.Duration(i) * time.Minute).Format("15:04"),
+		})
+	}
+	return tasks
+}
+
+func buildTaskPoolFragmentHTML(tasks []TaskEntry) string {
+	var buf bytes.Buffer
+	if len(tasks) == 0 {
+		buf.WriteString(`<div class="pda-empty"><div class="icon">🎉</div><div style="font-size:15px;font-weight:600;margin-bottom:6px">暂无待抢任务</div><div class="text-sm">所有任务已分配，请稍后再来</div></div>`)
+		return buf.String()
+	}
+	buf.WriteString(fmt.Sprintf(`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="text-sm text-muted">共 %d 个待抢任务</div></div>`, len(tasks)))
+	for _, t := range tasks {
+		iconBg := "rgba(59,130,246,.12)"
+		switch t.TaskType {
+		case "receive":
+			iconBg = "rgba(14,165,233,.12)"
+		case "putaway":
+			iconBg = "rgba(16,185,129,.12)"
+		case "pick":
+			iconBg = "rgba(139,92,246,.12)"
+		case "pack":
+			iconBg = "rgba(249,115,22,.12)"
+		}
+		desc := t.TargetID
+		if t.TargetDesc != "" {
+			desc += " · " + t.TargetDesc
+		}
+		if t.ParcelCount > 0 {
+			desc += fmt.Sprintf(" · %d件", t.ParcelCount)
+		}
+		buf.WriteString(fmt.Sprintf(
+			`<div class="pda-task-item w-full" style="border:none;background:var(--pda-surface);width:100%%;text-align:left;cursor:pointer;font-family:var(--pda-font);margin-bottom:8px" onclick="claimTask('%s','%s',this)"><div class="task-icon" style="background:%s">%s</div><div class="task-info"><div class="task-type">%s</div><div class="task-desc">%s</div><div style="font-size:10px;color:var(--pda-text-muted);margin-top:4px">⏱ %s</div></div><div class="task-arrow">抢单 ›</div></div>`,
+			t.TaskType, t.TargetID, iconBg, t.Icon, t.TaskLabel, desc, t.CreatedAt,
+		))
+	}
+	return buf.String()
+}
+
+func sendTaskPoolSSE(w http.ResponseWriter, flusher http.Flusher, ops *pdaSvc.PDAOperations, ctx context.Context) {
+	tasks := buildTaskEntries(ops, ctx)
+	fragment := buildTaskPoolFragmentHTML(tasks)
+	fmt.Fprintf(w, "event: taskPoolUpdate\ndata: %s\n\n", fragment)
+	flusher.Flush()
+}
+
+func broadcastTaskPoolUpdate(hub *sse.Hub, ops *pdaSvc.PDAOperations, ctx context.Context) {
+	tasks := buildTaskEntries(ops, ctx)
+	fragment := buildTaskPoolFragmentHTML(tasks)
+	hub.Publish("pda-task-pool", sse.Event{
+		Type: "taskPoolUpdate",
+		Data: fragment,
+	})
+}
+
 func initPDATemplates() map[string]*template.Template {
 	funcs := template.FuncMap{
 		"statusDisplay": parcelDomain.StatusDisplay,

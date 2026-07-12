@@ -72,7 +72,7 @@ func Register(
 			rows[i] = []string{
 				o.OrderNo, wh, o.RecipientName, cn, mc, rn,
 				fmt.Sprintf("%d", o.ParcelCount),
-				bftOrderStatus(string(o.Status)),
+				common.OrderStatusCN(string(o.Status)),
 				fmt.Sprintf("%.2f", o.TotalActualWeight),
 				fmt.Sprintf("%.2f", o.TotalChargeableWeight),
 				fmt.Sprintf("¥%.2f", o.TotalPrice),
@@ -164,7 +164,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总实重</span><span class="info-value">%.2f kg</span></div>`, order.TotalActualWeight)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总计费重</span><span class="info-value">%.2f kg</span></div>`, order.TotalChargeableWeight)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总价</span><span class="info-value" style="color:var(--i56-brand);font-weight:700">¥%.2f</span></div>`, order.TotalPrice)
-		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, bftOrderStatus(string(order.Status)))
+		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, common.OrderStatusCN(string(order.Status)))
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">件数</span><span class="info-value">%d</span></div>`, order.ParcelCount)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">创建时间</span><span class="info-value">%s</span></div>`, order.CreatedAt.Format("2006-01-02 15:04:05"))
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">更新时间</span><span class="info-value">%s</span></div>`, order.UpdatedAt.Format("2006-01-02 15:04:05"))
@@ -206,7 +206,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		fmt.Fprint(w, `</div><div class="card" style="margin:0;margin-top:12px"><div class="card-header">📅 状态时间线</div>`)
 		fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-brand)">●</span><span>创建订单</span><span style="color:var(--i56-text-muted);margin-left:auto">%s</span></div>`, order.CreatedAt.Format("2006-01-02 15:04"))
 		if order.Status != orderDomain.StatusPendingPicking {
-			fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-success)">●</span><span>状态变更</span><span style="color:var(--i56-text-muted);margin-left:auto">%s → %s</span></div>`, bftOrderStatus(string(orderDomain.StatusPendingPicking)), bftOrderStatus(string(order.Status)))
+			fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-success)">●</span><span>状态变更</span><span style="color:var(--i56-text-muted);margin-left:auto">%s → %s</span></div>`, common.OrderStatusCN(string(orderDomain.StatusPendingPicking)), common.OrderStatusCN(string(order.Status)))
 		}
 		if order.UpdatedAt.After(order.CreatedAt) {
 			fmt.Fprintf(w, `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px"><span style="color:var(--i56-warning)">●</span><span>最近更新</span><span style="color:var(--i56-text-muted);margin-left:auto">%s</span></div>`, order.UpdatedAt.Format("2006-01-02 15:04"))
@@ -396,21 +396,4 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		})
 		common.Redirect(w, "/admin/service-orders")
 	}))
-}
-
-func bftOrderStatus(s string) string {
-	switch s {
-	case "pending_picking": return "待拣货"
-	case "picking": return "拣货中"
-	case "pending_packing": return "待打包"
-	case "pending_loading": return "待装柜"
-	case "loaded": return "已装柜"
-	case "in_transit": return "运输中"
-	case "customs_clearance": return "清关中"
-	case "out_for_delivery": return "派送中"
-	case "completed": return "已完成"
-	case "cancelled": return "已取消"
-	case "shipped": return "已发货"
-	default: return s
-	}
 }

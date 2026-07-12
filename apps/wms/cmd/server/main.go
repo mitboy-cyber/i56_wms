@@ -332,7 +332,7 @@ func main() {
 
 	// PDA API routes (direct on main router)
 	registerPDAAPIRoutesOnRouter(r, pdaOps)
-	registerPDARoutes(r, pdaR, pdaOps)
+	registerPDARoutes(r, pdaR, pdaOps, hub)
 
 	// Task Dispatch Engine routes (抢单池)
 	registerTaskDispatchRoutes(r, td)

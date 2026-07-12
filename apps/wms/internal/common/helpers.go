@@ -61,7 +61,7 @@ func Redirect(w http.ResponseWriter, url string) {
 
 // ModalStart opens a modal overlay div.
 func ModalStart(title string) string {
-	return `<div class="modal-overlay" onclick="event.target===thisevent.target===this&&this.remove()event.target===this&&this.remove()closeI56Modal()"><div class="modal-content"><div class="modal-header"><span class="modal-title">` + title + `</span><button class="modal-close" onclick="closeI56Modal()">&times;</button></div><div class="modal-body">`
+	return `<div class="modal-overlay" onclick="if(event.target===this) closeI56Modal()"><div class="modal-content"><div class="modal-header"><span class="modal-title">` + title + `</span><button class="modal-close" onclick="closeI56Modal()">&times;</button></div><div class="modal-body">`
 }
 
 // ModalEnd closes a modal overlay div.

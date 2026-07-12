@@ -103,16 +103,9 @@ func Register(
 		for _, c := range parcelStatusCounts { totalStatusItems += c }
 		var statusDistribution []statusDist
 		colors := []string{"#6366f1", "#22c55e", "#f59e0b", "#3b82f6", "#ec4899", "#14b8a6", "#8b5cf6", "#f97316", "#06b6d4", "#ef4444"}
-		orderStatusCN := map[string]string{
-			"pre_declared": "预报", "received": "已入仓", "weighed": "已称重",
-			"stored": "已上架", "picked": "已拣货", "packed": "已打包",
-			"loaded": "已装柜", "shipped": "运输中",
-			"delivered": "已签收", "abnormal": "异常", "returned": "已退货",
-			"outbound": "已出货", "delivering": "配送中",
-		}
 		ci := 0
 		for statusKey, count := range parcelStatusCounts {
-			label := orderStatusCN[statusKey]
+			label := common.ParcelStatusCN(statusKey)
 			if label == "" { label = statusKey }
 			pct := 0.0
 			if totalStatusItems > 0 { pct = float64(count) / float64(totalStatusItems) * 100 }
@@ -191,27 +184,10 @@ func Register(
 			Status         string
 			ActualWeight   float64
 		}
-		parcelStatusDisplay := func(s parcelDomain.ParcelStatus) string {
-			switch s {
-			case parcelDomain.StatusPreDeclared: return "预报"
-			case parcelDomain.StatusReceived: return "已入仓"
-			case parcelDomain.StatusWeighed: return "已称重"
-			case parcelDomain.StatusStored: return "已上架"
-			case parcelDomain.StatusPicked: return "已拣货"
-			case parcelDomain.StatusPacked: return "已打包"
-			case parcelDomain.StatusLoaded: return "已装柜"
-			case parcelDomain.StatusOutbound: return "已出货"
-			case parcelDomain.StatusShipped, parcelDomain.StatusDelivering: return "运输中"
-			case parcelDomain.StatusDelivered: return "已签收"
-			case parcelDomain.StatusAbnormal: return "异常"
-			case parcelDomain.StatusReturned: return "已退货"
-			default: return string(s)
-			}
-		}
 		recent := make([]recentData, 0, 8)
 		for i, p := range parcels {
 			if i >= 8 { break }
-			recent = append(recent, recentData{p.TrackingNumber, p.ProductName, parcelStatusDisplay(p.Status), p.ActualWeight})
+			recent = append(recent, recentData{p.TrackingNumber, p.ProductName, common.ParcelStatusCN(string(p.Status)), p.ActualWeight})
 		}
 
 		// 9. Recent orders for table
@@ -227,20 +203,7 @@ func Register(
 		for _, c := range clients { cnMap[c.ID] = c.Name }
 		for i, o := range orders {
 			if i >= 8 { break }
-			ordStatus := string(o.Status)
-			switch o.Status {
-			case orderDomain.StatusPendingPicking: ordStatus = "待拣货"
-			case orderDomain.StatusPicking: ordStatus = "拣货中"
-			case orderDomain.StatusPendingPacking: ordStatus = "待打包"
-			case orderDomain.StatusPendingLoading: ordStatus = "待装柜"
-			case orderDomain.StatusLoaded: ordStatus = "已装柜"
-			case orderDomain.StatusInTransit: ordStatus = "运输中"
-			case orderDomain.StatusCustomsClearance: ordStatus = "清关中"
-			case orderDomain.StatusOutForDelivery: ordStatus = "派送中"
-			case orderDomain.StatusCompleted: ordStatus = "已完成"
-			case orderDomain.StatusCancelled: ordStatus = "已取消"
-			case orderDomain.StatusShipped: ordStatus = "已发货"
-			}
+			ordStatus := common.OrderStatusCN(string(o.Status))
 			cn := cnMap[o.ClientID]
 			if cn == "" { cn = "EZ集运通" }
 			recentOrders = append(recentOrders, recentOrderData{o.OrderNo, cn, o.ParcelCount, ordStatus, o.TotalPrice})
@@ -391,40 +354,8 @@ func Register(
 		allParcels, _, _ := ps.List(ctx, 1, 0, 500)
 		rows := make([][]string, 0, len(allParcels))
 		for _, p := range allParcels {
-			statusCN := string(p.Status)
-			switch p.Status {
-			case parcelDomain.StatusPreDeclared:
-				statusCN = "预报"
-			case parcelDomain.StatusReceived:
-				statusCN = "已入仓"
-			case parcelDomain.StatusWeighed:
-				statusCN = "已称重"
-			case parcelDomain.StatusStored:
-				statusCN = "已上架"
-			case parcelDomain.StatusPicked:
-				statusCN = "已拣货"
-			case parcelDomain.StatusPacked:
-				statusCN = "已打包"
-			case parcelDomain.StatusLoaded:
-				statusCN = "已装柜"
-			case parcelDomain.StatusOutbound:
-				statusCN = "已出货"
-			case parcelDomain.StatusShipped, parcelDomain.StatusDelivering:
-				statusCN = "运输中"
-			case parcelDomain.StatusAbnormal:
-				statusCN = "异常"
-			case parcelDomain.StatusReturned:
-				statusCN = "已退货"
-			}
-			cargoCN := p.CargoType
-			switch p.CargoType {
-			case "general":
-				cargoCN = "普货"
-			case "sensitive":
-				cargoCN = "特货"
-			case "dangerous":
-				cargoCN = "危险品"
-			}
+			statusCN := common.ParcelStatusCN(string(p.Status))
+			cargoCN := common.CargoTypeCN(p.CargoType)
 			dims := "—"
 			if p.Length > 0 {
 				dims = fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height)
@@ -1059,13 +990,7 @@ func Register(
 		var recentInbound []inboundItem
 		for i, p := range parcels {
 			if i >= 8 { break }
-			status := string(p.Status)
-			switch p.Status {
-			case parcelDomain.StatusPreDeclared: status = "预报"
-			case parcelDomain.StatusReceived: status = "已入仓"
-			case parcelDomain.StatusWeighed: status = "已称重"
-			case parcelDomain.StatusStored: status = "已上架"
-			}
+			status := common.ParcelStatusCN(string(p.Status))
 			recentInbound = append(recentInbound, inboundItem{p.TrackingNumber, p.ProductName, status, p.ActualWeight, p.CreatedAt.Format("01-02 15:04")})
 		}
 		rc.Exec(rc.Tmpl, "dashboard", w, "dashboard.html", map[string]any{

@@ -25,6 +25,8 @@ import (
 	tmsRepo "github.com/i56/modules/transport/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
 	woRepo "github.com/i56/modules/workorder/repository"
+
+	"github.com/i56/i56-apps/i56-wms/internal/common"
 )
 
 func adminPages(
@@ -221,7 +223,7 @@ func adminPages(
 				mc,
 				rn,
 				fmt.Sprintf("%d", o.ParcelCount),
-				bftOrderStatus(string(o.Status)),
+				common.OrderStatusCN(string(o.Status)),
 				fmt.Sprintf("%.2f", o.TotalActualWeight),
 				fmt.Sprintf("¥%.2f", o.TotalPrice),
 				o.CreatedAt.Format("01-02 15:04"),
@@ -326,7 +328,7 @@ table.data-table tr:hover td{background:var(--i56-bg-surface-hover)}
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总实重</span><span class="info-value">%.2f kg</span></div>`, order.TotalActualWeight)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总计费重</span><span class="info-value">%.2f kg</span></div>`, order.TotalChargeableWeight)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">总价</span><span class="info-value" style="color:var(--i56-brand);font-weight:700">¥%.2f</span></div>`, order.TotalPrice)
-		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, bftOrderStatus(string(order.Status)))
+		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, common.OrderStatusCN(string(order.Status)))
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">件数</span><span class="info-value">%d</span></div>`, order.ParcelCount)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">创建时间</span><span class="info-value">%s</span></div>`, order.CreatedAt.Format("2006-01-02 15:04:05"))
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">更新时间</span><span class="info-value">%s</span></div>`, order.UpdatedAt.Format("2006-01-02 15:04:05"))
@@ -385,7 +387,7 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 				whs[i].Name, whs[i].Code, whs[i].Address,
 				whs[i].Contact, whs[i].Phone,
 				fmt.Sprintf("%d件", whParcelCount[whs[i].ID]),
-				statusLabelText(whs[i].IsActive),
+				common.StatusLabelText(whs[i].IsActive),
 			}
 		}
 		gp(w, "wms_warehouses", "仓库列表", "building", int(total), []string{"仓库", "编码", "地址", "联系人", "电话", "包裹数", "状态"}, rows, "/admin/warehouses/add-form")
@@ -452,7 +454,7 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">地址</span><span class="info-value">%s</span></div>`, wh.Address)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">联系人</span><span class="info-value">%s</span></div>`, wh.Contact)
 		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">电话</span><span class="info-value">%s</span></div>`, wh.Phone)
-		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, statusLabelText(wh.IsActive))
+		fmt.Fprintf(w, `<div class="info-item"><span class="info-label">状态</span><span class="info-value">%s</span></div>`, common.StatusLabelText(wh.IsActive))
 		fmt.Fprint(w, `</div></div>`)
 		// Section: Parcel Stats
 		fmt.Fprint(w, `<div class="section"><div class="section-title">📦 包裹统计</div><div class="stat-grid">`)
@@ -470,20 +472,7 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 		allParcels, _, _ := ps.List(ctx, 1, 0, 500)
 		rows := make([][]string, 0, len(allParcels))
 		for _, p := range allParcels {
-			statusCN := string(p.Status)
-			switch p.Status {
-			case parcelDomain.StatusPreDeclared: statusCN = "预报"
-			case parcelDomain.StatusReceived: statusCN = "已入仓"
-			case parcelDomain.StatusWeighed: statusCN = "已称重"
-			case parcelDomain.StatusStored: statusCN = "已上架"
-			case parcelDomain.StatusPicked: statusCN = "已拣货"
-			case parcelDomain.StatusPacked: statusCN = "已打包"
-			case parcelDomain.StatusLoaded: statusCN = "已装柜"
-			case parcelDomain.StatusOutbound: statusCN = "已出货"
-			case parcelDomain.StatusShipped, parcelDomain.StatusDelivering: statusCN = "运输中"
-			case parcelDomain.StatusAbnormal: statusCN = "异常"
-			case parcelDomain.StatusReturned: statusCN = "已退货"
-			}
+			statusCN := common.ParcelStatusCN(string(p.Status))
 			dims := "—"
 			if p.Length > 0 { dims = fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height) }
 			rows = append(rows, []string{
