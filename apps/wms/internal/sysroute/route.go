@@ -710,28 +710,31 @@ func Register(
 	// ─── /admin/system-params — 系统参数 (sidebar link target) ───
 	r.GET("/admin/system-params", a(func(w http.ResponseWriter, req *http.Request) {
 		settings := sysCfg.ListSettings(1)
-		rows := make([][]string, len(settings))
-		for i, s := range settings {
-			rows[i] = []string{
-				fmt.Sprintf("%d", s.ID), s.Key, s.Value, s.Type,
-				s.Group, s.Label, s.UpdatedAt.Format("01-02 15:04"),
-			}
+		// Group settings by category
+		groups := map[string][]map[string]any{}
+		for _, s := range settings {
+			groups[s.Group] = append(groups[s.Group], map[string]any{
+				"ID": s.ID, "Key": s.Key, "Value": s.Value, "Type": s.Type,
+				"Group": s.Group, "Label": s.Label,
+			})
 		}
-		if len(rows) == 0 {
-			rows = [][]string{
-				{"1", "company_name", "I56集运通", "string", "branding", "公司名称", "07-01 10:00"},
-				{"2", "company_logo", "I", "string", "branding", "Logo文字", "07-01 10:00"},
-				{"3", "footer_text", "© 2026 I56 Framework. All rights reserved.", "string", "branding", "页脚版权", "07-01 10:00"},
-				{"4", "primary_color", "#1D4ED8", "string", "branding", "主题色", "07-01 10:00"},
-				{"5", "max_parcel_weight", "30", "number", "parcel", "最大包裹重量(kg)", "07-01 10:00"},
-				{"6", "default_currency", "CNY", "string", "general", "默认货币", "07-01 10:00"},
-				{"7", "app_version", "2.4.0", "string", "general", "系统版本", "07-12 15:00"},
-			}
-		}
-		gp(w, "sys_params", "系统参数", len(rows),
-			[]string{"ID", "键名", "值", "类型", "分组", "说明", "更新时间"},
-			rows, "/admin/system-params/add-form",
-		)
+		rc.Exec(rc.Tmpl, "system_params", w, "system_params.html", map[string]any{
+			"Title": "系统参数", "Page": "sys_params", "Groups": groups,
+		})
+	}))
+	r.POST("/admin/system-params/update", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		id, _ := common.ParseID(req.FormValue("id"))
+		key := req.FormValue("key")
+		value := req.FormValue("value")
+		typ := req.FormValue("type")
+		group := req.FormValue("group")
+		label := req.FormValue("label")
+		sysCfg.SaveSetting(1, key, value, typ, group, label)
+		// Re-render just the updated row
+		common.HtmlOK(w)
+		fmt.Fprintf(w, `<tr id="param-row-%d"><td style="font-family:monospace;font-size:12px">%s</td><td><span id="param-val-%d" style="font-size:13px">%s</span><form id="param-edit-form-%d" style="display:none" hx-post="/admin/system-params/update" hx-target="#param-row-%d" hx-swap="outerHTML"><input type="hidden" name="id" value="%d"><input type="hidden" name="key" value="%s"><input type="hidden" name="type" value="%s"><input type="hidden" name="group" value="%s"><input type="hidden" name="label" value="%s"><input type="text" name="value" value="%s" style="width:100%%;padding:4px 8px;border:1px solid var(--i56-brand);border-radius:4px;font-size:13px" autofocus><div style="display:flex;gap:4px;margin-top:4px"><button type="submit" class="i56-btn i56-btn-sm" style="background:var(--i56-brand);color:#fff;border:none">保存</button><button type="button" class="i56-btn i56-btn-sm" onclick="cancelEdit(%d)">取消</button></div></form></td><td><span class="i56-badge" style="font-size:10px;background:var(--i56-bg-base)">%s</span></td><td style="font-size:12px;color:var(--i56-text-muted)">%s</td><td><button type="button" class="i56-btn i56-btn-sm" onclick="editParam(%d)">编辑</button></td></tr>`,
+			id, key, id, value, id, id, id, key, typ, group, label, value, id, typ, label, id)
 	}))
 	r.GET("/admin/system-params/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -970,6 +973,27 @@ func Register(
 	r.GET("/admin/system/ai-settings", a(func(w http.ResponseWriter, req *http.Request) {
 		rc.Exec(rc.Tmpl, "ai_settings", w, "ai_settings.html", map[string]any{
 			"Title": "AI 大模型配置", "Breadcrumb": "系统 / AI 大模型配置",
+			"AIDefaultModel":   sysCfg.GetSettingByKey(1, "ai_default_model"),
+			"AITemperature":    sysCfg.GetSettingByKey(1, "ai_temperature"),
+			"AIMaxTokens":      sysCfg.GetSettingByKey(1, "ai_max_tokens"),
+			"AICostLimit":      sysCfg.GetSettingByKey(1, "ai_cost_limit"),
+			"AIRoutingStrategy": sysCfg.GetSettingByKey(1, "ai_routing_strategy"),
+		})
+	}))
+	r.POST("/admin/system/ai-settings", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		sysCfg.SaveSetting(1, "ai_default_model", req.FormValue("ai_default_model"), "string", "ai", "默认AI模型")
+		sysCfg.SaveSetting(1, "ai_temperature", req.FormValue("ai_temperature"), "string", "ai", "Temperature")
+		sysCfg.SaveSetting(1, "ai_max_tokens", req.FormValue("ai_max_tokens"), "string", "ai", "最大Token数")
+		sysCfg.SaveSetting(1, "ai_cost_limit", req.FormValue("ai_cost_limit"), "string", "ai", "月费用上限($)")
+		sysCfg.SaveSetting(1, "ai_routing_strategy", req.FormValue("ai_routing_strategy"), "string", "ai", "路由策略")
+		rc.Exec(rc.Tmpl, "ai_settings", w, "ai_settings.html", map[string]any{
+			"Title": "AI 大模型配置", "Breadcrumb": "系统 / AI 大模型配置", "SuccessMsg": "AI配置已保存",
+			"AIDefaultModel":   sysCfg.GetSettingByKey(1, "ai_default_model"),
+			"AITemperature":    sysCfg.GetSettingByKey(1, "ai_temperature"),
+			"AIMaxTokens":      sysCfg.GetSettingByKey(1, "ai_max_tokens"),
+			"AICostLimit":      sysCfg.GetSettingByKey(1, "ai_cost_limit"),
+			"AIRoutingStrategy": sysCfg.GetSettingByKey(1, "ai_routing_strategy"),
 		})
 	}))
 
@@ -977,6 +1001,24 @@ func Register(
 	r.GET("/admin/system/brand-settings", a(func(w http.ResponseWriter, req *http.Request) {
 		rc.Exec(rc.Tmpl, "brand_settings", w, "brand_settings.html", map[string]any{
 			"Title": "品牌与外观设置", "Breadcrumb": "系统 / 品牌设置",
+			"CompanyName":  sysCfg.GetSettingByKey(1, "company_name"),
+			"CompanyLogo":  sysCfg.GetSettingByKey(1, "company_logo"),
+			"FooterText":   sysCfg.GetSettingByKey(1, "footer_text"),
+			"PrimaryColor": sysCfg.GetSettingByKey(1, "primary_color"),
+		})
+	}))
+	r.POST("/admin/system/brand-settings", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		sysCfg.SaveSetting(1, "company_name", req.FormValue("company_name"), "string", "branding", "公司名称")
+		sysCfg.SaveSetting(1, "company_logo", req.FormValue("company_logo"), "string", "branding", "Logo文字")
+		sysCfg.SaveSetting(1, "footer_text", req.FormValue("footer_text"), "string", "branding", "页脚版权")
+		sysCfg.SaveSetting(1, "primary_color", req.FormValue("primary_color"), "string", "branding", "主题色")
+		rc.Exec(rc.Tmpl, "brand_settings", w, "brand_settings.html", map[string]any{
+			"Title": "品牌与外观设置", "Breadcrumb": "系统 / 品牌设置", "SuccessMsg": "品牌设置已保存",
+			"CompanyName":  sysCfg.GetSettingByKey(1, "company_name"),
+			"CompanyLogo":  sysCfg.GetSettingByKey(1, "company_logo"),
+			"FooterText":   sysCfg.GetSettingByKey(1, "footer_text"),
+			"PrimaryColor": sysCfg.GetSettingByKey(1, "primary_color"),
 		})
 	}))
 	r.GET("/admin/system/ai-chat", a(func(w http.ResponseWriter, req *http.Request) {

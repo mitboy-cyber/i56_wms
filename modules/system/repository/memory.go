@@ -33,6 +33,17 @@ func (r *MemSystemConfigRepo) seed() {
 	r.settings[4]=&domain.SystemSetting{ID:4,TenantID:1,Key:"pda.auto_refresh_seconds",Value:"30",Type:"int",Group:"pda",Label:"PDA自动刷新间隔(秒)"}
 	r.settings[5]=&domain.SystemSetting{ID:5,TenantID:1,Key:"api.rate_limit_per_minute",Value:"120",Type:"int",Group:"api",Label:"API每秒限流"}
 	r.settings[6]=&domain.SystemSetting{ID:6,TenantID:1,Key:"session.idle_timeout_minutes",Value:"30",Type:"int",Group:"security",Label:"会话空闲超时(分)"}
+	// Branding params
+	r.settings[7]=&domain.SystemSetting{ID:7,TenantID:1,Key:"company_name",Value:"I56 Framework",Type:"string",Group:"branding",Label:"公司名称"}
+	r.settings[8]=&domain.SystemSetting{ID:8,TenantID:1,Key:"company_logo",Value:"I",Type:"string",Group:"branding",Label:"Logo文字"}
+	r.settings[9]=&domain.SystemSetting{ID:9,TenantID:1,Key:"footer_text",Value:"© 2026 I56 Framework. All rights reserved.",Type:"string",Group:"branding",Label:"页脚版权"}
+	r.settings[10]=&domain.SystemSetting{ID:10,TenantID:1,Key:"primary_color",Value:"#1D4ED8",Type:"string",Group:"branding",Label:"主题色"}
+	// AI params
+	r.settings[11]=&domain.SystemSetting{ID:11,TenantID:1,Key:"ai_default_model",Value:"deepseek-chat",Type:"string",Group:"ai",Label:"默认AI模型"}
+	r.settings[12]=&domain.SystemSetting{ID:12,TenantID:1,Key:"ai_temperature",Value:"0.7",Type:"string",Group:"ai",Label:"Temperature"}
+	r.settings[13]=&domain.SystemSetting{ID:13,TenantID:1,Key:"ai_max_tokens",Value:"4096",Type:"string",Group:"ai",Label:"最大Token数"}
+	r.settings[14]=&domain.SystemSetting{ID:14,TenantID:1,Key:"ai_cost_limit",Value:"50.00",Type:"string",Group:"ai",Label:"月费用上限($)"}
+	r.settings[15]=&domain.SystemSetting{ID:15,TenantID:1,Key:"ai_routing_strategy",Value:"quality",Type:"string",Group:"ai",Label:"路由策略"}
 }
 func (r *MemSystemConfigRepo) ListLogisticsAPIs(tenantID int64)([]*domain.LogisticsAPIConfig,int64){r.mu.RLock();defer r.mu.RUnlock();var res []*domain.LogisticsAPIConfig;for _,c:=range r.logisticsAPIs{if c.TenantID==tenantID{res=append(res,c)}};return res,int64(len(res))}
 func (r *MemSystemConfigRepo) ListBrokers(_ context.Context,tenantID int64) []*domain.CustomsBrokerAPIConfig {r.mu.RLock();defer r.mu.RUnlock();var res []*domain.CustomsBrokerAPIConfig;for _,b:=range r.brokers{if b.TenantID==tenantID{res=append(res,b)}};return res}
@@ -106,4 +117,16 @@ func (r *MemSystemConfigRepo) SaveSetting(tenantID int64, key, value, typ, group
 		Key: key, Value: value, Type: typ,
 		Group: group, Label: label,
 	}
+}
+
+// GetSettingByKey returns a setting value by key for a tenant, or empty string if not found.
+func (r *MemSystemConfigRepo) GetSettingByKey(tenantID int64, key string) string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, s := range r.settings {
+		if s.TenantID == tenantID && s.Key == key {
+			return s.Value
+		}
+	}
+	return ""
 }

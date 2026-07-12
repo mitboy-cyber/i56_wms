@@ -3,8 +3,16 @@
 {{define "content"}}
 <div class="i56-page-header">
   <h1 class="i56-page-title">🤖 AI 大模型配置</h1>
-  <p class="i56-page-desc">管理AI模型供应商、API密钥、费用上限和模型参数</p>
+  <p class="i56-page-desc">管理AI模型参数和费用控制</p>
 </div>
+
+{{if .SuccessMsg}}
+<div style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px">
+  ✅ {{.SuccessMsg}}
+</div>
+{{end}}
+
+<form method="POST" action="/admin/system/ai-settings">
 
 <div class="i56-card" style="margin-bottom:16px">
   <div class="i56-card-header">🔑 模型供应商</div>
@@ -19,7 +27,7 @@
           <td><span class="i56-badge i56-badge-success">已启用</span></td>
           <td>https://api.deepseek.com/v1</td>
           <td>$0.00027</td>
-          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('deepseek')">编辑</button></td>
+          <td><button type="button" class="i56-btn i56-btn-sm" onclick="editProvider('deepseek')">编辑</button></td>
         </tr>
         <tr>
           <td><span class="i56-badge" style="background:#ddd;color:#666">OpenAI</span></td>
@@ -27,7 +35,7 @@
           <td><span class="i56-badge" style="background:#ddd;color:#666">未配置</span></td>
           <td>https://api.openai.com/v1</td>
           <td>$0.00015</td>
-          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('openai')">配置</button></td>
+          <td><button type="button" class="i56-btn i56-btn-sm" onclick="editProvider('openai')">配置</button></td>
         </tr>
         <tr>
           <td><span class="i56-badge" style="background:#ddd;color:#666">Claude</span></td>
@@ -35,7 +43,7 @@
           <td><span class="i56-badge" style="background:#ddd;color:#666">未配置</span></td>
           <td>https://api.anthropic.com/v1</td>
           <td>$0.00300</td>
-          <td><button class="i56-btn i56-btn-sm" onclick="editProvider('claude')">配置</button></td>
+          <td><button type="button" class="i56-btn i56-btn-sm" onclick="editProvider('claude')">配置</button></td>
         </tr>
       </tbody>
     </table>
@@ -49,27 +57,27 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="i56-form-group">
         <label class="i56-form-label">默认模型</label>
-        <select class="i56-form-select">
-          <option>deepseek-chat</option>
-          <option>gpt-4o-mini</option>
-          <option>claude-sonnet-4</option>
+        <select name="ai_default_model" class="i56-form-select">
+          <option value="deepseek-chat"{{if eq .AIDefaultModel "deepseek-chat"}} selected{{end}}>deepseek-chat</option>
+          <option value="gpt-4o-mini"{{if eq .AIDefaultModel "gpt-4o-mini"}} selected{{end}}>gpt-4o-mini</option>
+          <option value="claude-sonnet-4"{{if eq .AIDefaultModel "claude-sonnet-4"}} selected{{end}}>claude-sonnet-4</option>
         </select>
       </div>
       <div class="i56-form-group">
         <label class="i56-form-label">路由策略</label>
-        <select class="i56-form-select">
-          <option selected>质量优先 (Quality First)</option>
-          <option>成本优先 (Cost First)</option>
-          <option>速度优先 (Speed First)</option>
+        <select name="ai_routing_strategy" class="i56-form-select">
+          <option value="quality"{{if eq .AIRoutingStrategy "quality"}} selected{{end}}>质量优先 (Quality First)</option>
+          <option value="cost"{{if eq .AIRoutingStrategy "cost"}} selected{{end}}>成本优先 (Cost First)</option>
+          <option value="speed"{{if eq .AIRoutingStrategy "speed"}} selected{{end}}>速度优先 (Speed First)</option>
         </select>
       </div>
       <div class="i56-form-group">
         <label class="i56-form-label">Temperature (0-2)</label>
-        <input type="number" class="i56-form-input" value="0.7" min="0" max="2" step="0.1" />
+        <input type="number" name="ai_temperature" class="i56-form-input" value="{{.AITemperature}}" min="0" max="2" step="0.1" />
       </div>
       <div class="i56-form-group">
         <label class="i56-form-label">最大Token数</label>
-        <input type="number" class="i56-form-input" value="4096" min="256" max="32768" step="256" />
+        <input type="number" name="ai_max_tokens" class="i56-form-input" value="{{.AIMaxTokens}}" min="256" max="32768" step="256" />
       </div>
     </div>
   </div>
@@ -81,23 +89,11 @@
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div class="i56-form-group">
         <label class="i56-form-label">每租户月费用上限 ($)</label>
-        <input type="number" class="i56-form-input" value="50.00" min="0" step="1" />
+        <input type="number" name="ai_cost_limit" class="i56-form-input" value="{{.AICostLimit}}" min="0" step="1" />
       </div>
       <div class="i56-form-group">
         <label class="i56-form-label">单次请求费用上限 ($)</label>
-        <input type="number" class="i56-form-input" value="1.00" min="0" step="0.01" />
-      </div>
-      <div class="i56-form-group">
-        <label class="i56-form-label">费用告警阈值 ($)</label>
-        <input type="number" class="i56-form-input" value="40.00" min="0" step="1" />
-      </div>
-      <div class="i56-form-group">
-        <label class="i56-form-label">超限策略</label>
-        <select class="i56-form-select">
-          <option selected>拒绝请求并通知</option>
-          <option>切换到免费模型</option>
-          <option>仅通知不阻断</option>
-        </select>
+        <input type="number" class="i56-form-input" value="1.00" min="0" step="0.01" readonly />
       </div>
     </div>
   </div>
@@ -123,30 +119,11 @@
   </div>
 </div>
 
-<div class="i56-card">
-  <div class="i56-card-header">🛡️ 安全与对齐</div>
-  <div class="i56-card-body">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="i56-form-group">
-        <label class="i56-form-label">系统Prompt</label>
-        <textarea class="i56-form-input" style="min-height:100px;font-size:13px">You are an AI assistant for I56 WMS. You help with warehouse operations, order management, parcel tracking, and logistics. Respond in Chinese. Be concise and professional.</textarea>
-      </div>
-      <div class="i56-form-group">
-        <label class="i56-form-label">禁止话题（每行一个）</label>
-        <textarea class="i56-form-input" style="min-height:100px;font-size:13px">政治
-色情
-暴力
-金融投资建议
-法律建议</textarea>
-      </div>
-    </div>
-  </div>
+<div style="margin-top:16px;text-align:right">
+  <button type="submit" class="i56-btn i56-btn-primary">💾 保存配置</button>
 </div>
 
-<div style="margin-top:16px;text-align:right">
-  <button class="i56-btn" style="margin-right:8px">恢复默认</button>
-  <button class="i56-btn i56-btn-primary">💾 保存配置</button>
-</div>
+</form>
 
 <script>
 function editProvider(name) {
