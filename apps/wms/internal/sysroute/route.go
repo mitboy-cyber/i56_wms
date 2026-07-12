@@ -49,7 +49,12 @@ func Register(
 				{"小林", "xiaolin", "质检管理", "xiaolin@example.com", "13800003333", "启用"},
 			}
 		}
-		gp(w, "sys_employees", "员工管理", len(rows), []string{"姓名", "账号", "角色", "邮箱", "电话", "状态"}, rows, "/admin/employees/add-form")
+		rc.Exec(rc.Tmpl, "sys_employees", w, "sys_employees.html", map[string]any{
+			"Title": "员工管理", "Page": "sys_employees",
+			"Columns": []string{"姓名", "账号", "角色", "邮箱", "电话", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/employees/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/employees/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		roles, _, _ := rbac.ListRoles(req.Context(), tenant, 0, 50)
@@ -125,7 +130,12 @@ func Register(
 				{"运营人员", "operator", "4", "日常订单操作", "启用"},
 			}
 		}
-		gp(w, "sys_roles", "角色管理", len(rows), []string{"角色名", "Slug", "权限数", "描述", "状态"}, rows, "/admin/roles/add-form")
+		rc.Exec(rc.Tmpl, "sys_roles", w, "sys_roles.html", map[string]any{
+			"Title": "角色管理", "Page": "sys_roles",
+			"Columns": []string{"角色名", "Slug", "权限数", "描述", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/roles/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/roles/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -796,7 +806,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"PRT-1", "顺丰标准面单", "label", "100x150mm", "thermal", "启用", "07-01 10:00"}}
 		}
-		gp(w, "sys_print_templates", "打印模板", len(rows), []string{"编号", "名称", "类型", "纸张规格", "打印机类型", "状态", "创建时间"}, rows, "/admin/print-templates/add-form")
+		rc.Exec(rc.Tmpl, "sys_print_templates", w, "sys_print_templates.html", map[string]any{
+			"Title": "打印模板", "Page": "sys_print_templates",
+			"Columns": []string{"编号", "名称", "类型", "纸张规格", "打印机类型", "状态", "创建时间"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/print-templates/add-form", "HasActions": true,
+		})
 	}))
 
 	// Variable insertion guide modal

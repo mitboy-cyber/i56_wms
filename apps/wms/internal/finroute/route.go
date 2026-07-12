@@ -28,7 +28,12 @@ func Register(
 			{"厦门→台湾(空运)", "ORD-001", "EZ集运通", "王仁照", "空运", "¥150.00", "¥85.00", "¥65.00", "2026-07-10 10:30"},
 			{"厦门→台湾(海快)", "ORD-002", "EZ集运通", "吴欣如", "海快", "¥42.00", "¥25.00", "¥17.00", "2026-07-09 14:20"},
 		}
-		gp(w, "fin_order_profit", "订单利润报表", len(rows), []string{"线路", "订单号", "客户", "收件人", "运输方式", "收入", "成本", "利润", "时间"}, rows, "/admin/report/order-profit/add-form")
+		rc.Exec(rc.Tmpl, "fin_order_profit", w, "fin_order_profit.html", map[string]any{
+			"Title": "订单利润报表", "Page": "fin_order_profit",
+			"Columns": []string{"线路", "订单号", "客户", "收件人", "运输方式", "收入", "成本", "利润", "时间"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/report/order-profit/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/report/order-profit/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -151,7 +156,12 @@ func Register(
 			{"厦门→台湾(海快)", "18", "¥756.00", "¥450.00", "¥306.00", "40.5%", "2026-07"},
 			{"厦门→台湾(海运)", "5", "¥160.00", "¥100.00", "¥60.00", "37.5%", "2026-07"},
 		}
-		gp(w, "fin_route_profit", "线路利润报表", len(rows), []string{"线路", "订单数", "收入", "成本", "利润", "利润率", "月份"}, rows, "/admin/report/route-profit/add-form")
+		rc.Exec(rc.Tmpl, "fin_route_profit", w, "fin_route_profit.html", map[string]any{
+			"Title": "线路利润报表", "Page": "fin_route_profit",
+			"Columns": []string{"线路", "订单数", "收入", "成本", "利润", "利润率", "月份"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/report/route-profit/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/report/route-profit/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)

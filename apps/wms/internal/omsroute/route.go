@@ -37,7 +37,6 @@ func Register(
 	ps *parcelSvc.ParcelService,
 ) {
 	const tenant int64 = 1
-	gp := rc.NewGenericList()
 
 	// ─── /admin/orders — 集运订单 list (from admin_pages.go) ───
 	r.GET("/admin/orders", a(func(w http.ResponseWriter, req *http.Request) {
@@ -84,9 +83,30 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"—", "—", "暂无订单", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—"}}
 		}
-		gp(w, "oms_orders", "集运订单", int(total), []string{
-			"订单号", "仓库", "收件人", "客户", "会员", "线路", "件数", "状态", "实重(kg)", "计费重(kg)", "金额", "清关单号", "承运商单号", "时间",
-		}, rows)
+		rc.Exec(rc.Tmpl, "oms_orders", w, "orders.html", map[string]any{
+			"Page":       "orders",
+			"Title":      "集运订单",
+			"Total":      int(total),
+			"Columns":    []string{"订单号", "仓库", "收件人", "客户", "会员", "线路", "件数", "状态", "实重(kg)", "计费重(kg)", "金额", "清关单号", "承运商单号", "时间"},
+			"Rows":       rows,
+			"HasActions": true,
+			"AddURL":     "/admin/orders/add-form",
+		})
+	}))
+
+	// ─── POST /admin/orders (delete) — I56Table.js compat ───
+	r.POST("/admin/orders", a(func(w http.ResponseWriter, req *http.Request) {
+		idStr := req.URL.Query().Get("delete")
+		if idStr == "" { http.Error(w, "bad request", 400); return }
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			o, _ := osvc.GetByOrderNo(req.Context(), tenant, idStr)
+			if o != nil { id = o.ID }
+		}
+		if id > 0 {
+			osvc.Cancel(req.Context(), tenant, id)
+		}
+		common.Redirect(w, "/admin/orders")
 	}))
 
 	// ─── /admin/orders/{id} — Order Detail View (from admin_pages.go) ───
@@ -344,9 +364,21 @@ function switchTab(e,id){var tabs=e.target.parentElement.children;for(var i=0;i<
 				{"SO-004", "拆箱服务", "EZ集运通", "¥8.00", "已完成", "07-09 16:45"},
 			}
 		}
-		gp(w, "oms_service_orders", "附加服务订单", len(svcOrders),
-			[]string{"编号", "服务类型", "客户", "金额", "状态", "时间"}, rows,
-			"/admin/service-orders/add-form")
+		rc.Exec(rc.Tmpl, "oms_service_orders", w, "service_orders.html", map[string]any{
+			"Page":       "service-orders",
+			"Title":      "附加服务订单",
+			"Total":      len(svcOrders),
+			"Columns":    []string{"编号", "服务类型", "客户", "金额", "状态", "时间"},
+			"Rows":       rows,
+			"HasActions": true,
+			"AddURL":     "/admin/service-orders/add-form",
+		})
+	}))
+
+	// ─── POST /admin/service-orders (delete) — I56Table.js compat ───
+	r.POST("/admin/service-orders", a(func(w http.ResponseWriter, req *http.Request) {
+		// MemServiceRepo has no Delete method; redirect back to list
+		common.Redirect(w, "/admin/service-orders")
 	}))
 	r.GET("/admin/service-orders/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)

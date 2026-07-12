@@ -60,10 +60,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"—", "(暂无客户)", "—", "—", "—", "—", "—"}}
 		}
-		gp(w, "crm_clients", "客户管理", int(total),
-			[]string{"ID", "名称", "编码", "类型", "联系人", "电话", "状态"},
-			rows, "/admin/clients/add-form",
-		)
+		rc.Exec(rc.Tmpl, "crm_clients", w, "crm_clients.html", map[string]any{
+			"Title": "客户管理", "Page": "crm_clients",
+			"Columns": []string{"ID", "名称", "编码", "类型", "联系人", "电话", "状态"},
+			"Rows": rows, "Total": int(total),
+			"AddURL": "/admin/clients/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/clients/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -128,7 +130,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"王仁照", "王仁照", "886912345678", "台北", "信义区", "信义路五段7号", "true"}}
 		}
-		gp(w, "crm_addresses", "客户收件地址", len(rows), []string{"会员", "收件人", "电话", "城市", "区", "详细地址", "默认"}, rows, "/admin/customer-addresses/add-form")
+		rc.Exec(rc.Tmpl, "crm_addresses", w, "crm_addresses.html", map[string]any{
+			"Title": "客户收件地址", "Page": "crm_addresses",
+			"Columns": []string{"会员", "收件人", "电话", "城市", "区", "详细地址", "默认"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/customer-addresses/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/customer-addresses/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -182,7 +189,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"王仁照", "A123456789", "个人", "认证成功", "启用"}}
 		}
-		gp(w, "crm_declarants", "客户申报人", len(decls), []string{"姓名", "证件号", "类型", "认证状态", "状态"}, rows, "/admin/customer-declarants/add-form")
+		rc.Exec(rc.Tmpl, "crm_declarants", w, "crm_declarants.html", map[string]any{
+			"Title": "客户申报人", "Page": "crm_declarants",
+			"Columns": []string{"姓名", "证件号", "类型", "认证状态", "状态"},
+			"Rows": rows, "Total": len(decls),
+			"AddURL": "/admin/customer-declarants/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/customer-declarants/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -231,7 +243,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"EZ集运通", "plat_ezjyt", "运营", "ez@example.com", "启用"}}
 		}
-		gp(w, "crm_accounts", "客户账号", len(rows), []string{"客户", "账号", "角色", "邮箱", "状态"}, rows, "/admin/client-accounts/add-form")
+		rc.Exec(rc.Tmpl, "crm_accounts", w, "crm_accounts.html", map[string]any{
+			"Title": "客户账号", "Page": "crm_accounts",
+			"Columns": []string{"客户", "账号", "角色", "邮箱", "状态"},
+			"Rows": rows, "Total": len(rows),
+			"AddURL": "/admin/client-accounts/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/client-accounts/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -280,7 +297,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"王仁照", "127518", "886912345678", "wang@example.com", "EZ集运通", "启用"}}
 		}
-		gp(w, "crm_members", "客户会员", len(members), []string{"姓名", "会员编号", "电话", "邮箱", "客户", "状态"}, rows, "/admin/client-members/add-form")
+		rc.Exec(rc.Tmpl, "crm_members", w, "crm_members.html", map[string]any{
+			"Title": "客户会员", "Page": "crm_members",
+			"Columns": []string{"姓名", "会员编号", "电话", "邮箱", "客户", "状态"},
+			"Rows": rows, "Total": len(members),
+			"AddURL": "/admin/client-members/add-form", "HasActions": true,
+		})
 	}))
 	r.GET("/admin/client-members/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)

@@ -241,7 +241,12 @@ func Register(
 			rows[i] = []string{whs[i].Name, whs[i].Code, whs[i].Address, whs[i].Contact, whs[i].Phone,
 				fmt.Sprintf("%d件", whParcelCount[whs[i].ID]), common.StatusLabelText(whs[i].IsActive)}
 		}
-		gp(w, "wms_warehouses", "仓库列表", int(total), []string{"仓库", "编码", "地址", "联系人", "电话", "包裹数", "状态"}, rows, "/admin/warehouses/add-form")
+		rc.Exec(rc.Tmpl, "wms_warehouses", w, "warehouses.html", map[string]any{
+			"Page": "warehouses", "Title": "仓库列表", "Total": int(total),
+			"Columns":    []string{"仓库", "编码", "地址", "联系人", "电话", "包裹数", "状态"},
+			"Rows":       rows,
+			"HasActions": true, "AddURL": "/admin/warehouses/add-form",
+		})
 	}))
 
 	// ─── /admin/warehouses/{id} — 仓库详情 (from admin_pages.go) ───
@@ -369,7 +374,7 @@ func Register(
 				{"ZTO9876543210", "运动鞋", "普货", "已入仓", "0.80", "30×20×10", "1", "2026-07-10"},
 			}
 		}
-		rc.Exec(rc.Tmpl, "generic_list", w, "generic_list.html", map[string]any{
+		rc.Exec(rc.Tmpl, "wms_parcels", w, "parcels.html", map[string]any{
 			"Page": "parcels", "Title": "包裹列表", "Total": len(rows),
 			"Columns":    []string{"快递单号", "品名", "货类", "状态", "实重(kg)", "尺寸(cm)", "数量", "到仓时间"},
 			"Rows":       rows,
@@ -529,7 +534,12 @@ func Register(
 				{"WO-004", "拆箱合箱", "待处理", "厦门仓", "07-11 10:00"},
 			}
 		}
-		gp(w, "wms_service_wos", "附加服务工单", len(workOrders), []string{"工单号", "标题", "状态", "仓库", "时间"}, rows, "/admin/service-workorders/add-form")
+		rc.Exec(rc.Tmpl, "wms_service_workorders", w, "service_workorders.html", map[string]any{
+			"Page": "service-workorders", "Title": "附加服务工单", "Total": len(workOrders),
+			"Columns":    []string{"工单号", "标题", "状态", "仓库", "时间"},
+			"Rows":       rows,
+			"HasActions": true, "AddURL": "/admin/service-workorders/add-form",
+		})
 	}))
 	r.GET("/admin/service-workorders/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -597,7 +607,12 @@ func Register(
 		if len(rows) == 0 {
 			rows = [][]string{{"开箱验货", "OPEN_INSPECT", "开箱类", "¥0.00", "fixed"}, {"拍照存证", "PHOTO", "拍照类", "¥5.00", "per_item"}}
 		}
-		gp(w, "wms_service_templates", "附加服务模板", len(rows), []string{"服务项", "编码", "分类", "单价", "计费模式"}, rows, "/admin/service-templates/add-form")
+		rc.Exec(rc.Tmpl, "wms_service_templates", w, "service_templates.html", map[string]any{
+			"Page": "service-templates", "Title": "附加服务模板", "Total": len(rows),
+			"Columns":    []string{"服务项", "编码", "分类", "单价", "计费模式"},
+			"Rows":       rows,
+			"HasActions": true, "AddURL": "/admin/service-templates/add-form",
+		})
 	}))
 	r.GET("/admin/service-templates/add-form", a(func(w http.ResponseWriter, req *http.Request) {
 		common.HtmlOK(w)
@@ -870,9 +885,12 @@ func Register(
 			{"EXC-20260711-004", "标签错误", "一般", "ORDER-8002", "小林", "已解决", "否"},
 			{"EXC-20260711-005", "其他", "严重", "SF1111111111", "大宝", "处理中", "是"},
 		}
-		gp(w, "wms_exceptions", "异常记录", len(rows),
-			[]string{"异常编号", "异常类型", "严重程度", "关联包裹/订单", "处理人", "处理状态", "附件"},
-			rows, "/admin/exceptions/add-form")
+		rc.Exec(rc.Tmpl, "wms_exceptions", w, "exceptions.html", map[string]any{
+			"Page": "exceptions", "Title": "异常记录", "Total": len(rows),
+			"Columns":    []string{"异常编号", "异常类型", "严重程度", "关联包裹/订单", "处理人", "处理状态", "附件"},
+			"Rows":       rows,
+			"HasActions": true, "AddURL": "/admin/exceptions/add-form",
+		})
 	}))
 	r.GET("/admin/exception-reports", a(func(w http.ResponseWriter, req *http.Request) {
 		http.Redirect(w, req, "/admin/exceptions", http.StatusFound)

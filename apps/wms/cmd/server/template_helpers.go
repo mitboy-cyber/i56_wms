@@ -69,8 +69,35 @@ func initTemplates() map[string]*template.Template {
 		{"couriers", "admin/tms/couriers.html"},
 		{"area_groups", "admin/tms/area_groups.html"},
 		{"route_templates", "admin/tms/route_templates.html"},
+		// OMS module — data_table-based templates (P3b)
+		{"oms_orders", "admin/oms/orders.html"},
+		{"oms_service_orders", "admin/oms/service_orders.html"},
+		// WMS module — data_table-based templates (P3c)
+		{"wms_parcels", "admin/wms/parcels.html"},
+		{"wms_warehouses", "admin/wms/warehouses.html"},
+		{"wms_exceptions", "admin/wms/exceptions.html"},
+		{"wms_service_workorders", "admin/wms/service_workorders.html"},
+		{"wms_service_templates", "admin/wms/service_templates.html"},
+		// CRM module — data_table-based templates (P3d)
+		{"crm_clients", "admin/crm/crm_clients.html"},
+		{"crm_accounts", "admin/crm/crm_accounts.html"},
+		{"crm_members", "admin/crm/crm_members.html"},
+		{"crm_addresses", "admin/crm/crm_addresses.html"},
+		{"crm_declarants", "admin/crm/crm_declarants.html"},
+		// SYS module — data_table-based templates (P3d)
+		{"sys_roles", "admin/sys/sys_roles.html"},
+		{"sys_employees", "admin/sys/sys_employees.html"},
+		{"sys_print_templates", "admin/sys/sys_print_templates.html"},
+		// FIN module — data_table-based templates (P3d)
+		{"fin_order_profit", "admin/fin/fin_order_profit.html"},
+		{"fin_route_profit", "admin/fin/fin_route_profit.html"},
 	} {
-		if p.k == "carriers" || p.k == "couriers" || p.k == "area_groups" || p.k == "route_templates" {
+		if p.k == "carriers" || p.k == "couriers" || p.k == "area_groups" || p.k == "route_templates" ||
+			p.k == "oms_orders" || p.k == "oms_service_orders" ||
+			p.k == "wms_parcels" || p.k == "wms_warehouses" || p.k == "wms_exceptions" || p.k == "wms_service_workorders" || p.k == "wms_service_templates" ||
+			p.k == "crm_clients" || p.k == "crm_accounts" || p.k == "crm_members" || p.k == "crm_addresses" || p.k == "crm_declarants" ||
+			p.k == "sys_roles" || p.k == "sys_employees" || p.k == "sys_print_templates" ||
+			p.k == "fin_order_profit" || p.k == "fin_route_profit" {
 			files := []string{"templates/base.html", "templates/sidebar.html", "templates/admin/admin_layout.html", "templates/admin/partials/data_table.html", "templates/" + p.file}
 			tmpl[p.k] = template.Must(template.New(p.k).Funcs(fm).ParseFiles(files...))
 		} else if p.k == "base_new" {
