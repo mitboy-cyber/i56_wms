@@ -19,9 +19,10 @@ func NewOrderService(repo repository.OrderRepository) *OrderService {
 }
 
 func (s *OrderService) Create(ctx context.Context, o *domain.Order) (*domain.Order, error) {
-	o.OrderNo = fmt.Sprintf("%s%08d", time.Now().Format("20060102150405"), time.Now().UnixNano()%100000000)
+	o.OrderNo = fmt.Sprintf("ORD-%s%04d", time.Now().Format("20060102"), time.Now().UnixNano()%10000)
 	o.Status = domain.StatusPendingPicking
-	o.ParcelCount = 1 // simplified
+	o.ParcelCount = 1
+	if o.TotalPrice <= 0 { o.TotalPrice = 25.0 }
 	if err := s.repo.Create(ctx, o); err != nil { return nil, err }
 	return o, nil
 }
