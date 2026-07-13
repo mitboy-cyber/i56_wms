@@ -8,6 +8,7 @@ import (
 	custRepo "github.com/i56/modules/customer/repository"
 	orderDomain "github.com/i56/modules/order/domain"
 	orderRepo "github.com/i56/modules/order/repository"
+	rbacRepo "github.com/i56/modules/rbac/repository"
 	parcelDomain "github.com/i56/modules/parcel/domain"
 	parcelRepo "github.com/i56/modules/parcel/repository"
 	psRepo "github.com/i56/modules/parcel_service/repository"
@@ -23,6 +24,7 @@ import (
 
 // seed populates in-memory repositories with demo data for development.
 func seed(
+	rbac *rbacRepo.MemRBACRepo,
 	cr *custRepo.MemClientRepo,
 	wr *whRepo.MemWarehouseRepo,
 	rr *tmsRepo.MemRouteRepo,

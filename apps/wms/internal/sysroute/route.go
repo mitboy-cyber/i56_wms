@@ -44,9 +44,7 @@ func Register(
 		}
 		if len(rows) == 0 {
 			rows = [][]string{
-				{"大宝", "dabao", "仓库管理", "dabao@example.com", "13800001111", "启用"},
-				{"安冉", "anran", "仓库管理", "anran@example.com", "13800002222", "启用"},
-				{"小林", "xiaolin", "质检管理", "xiaolin@example.com", "13800003333", "启用"},
+				{"暂无数据", "—", "—", "—", "—", "—"},
 			}
 		}
 		rc.Exec(rc.Tmpl, "sys_employees", w, "sys_employees.html", map[string]any{

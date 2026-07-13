@@ -311,7 +311,7 @@ func Register(
 			rows[i] = []string{rt.Name, fmt.Sprintf("%d", rt.WarehouseID), rt.TransportType, fmt.Sprintf("%d-%d天", rt.MinDays, rt.MaxDays), "台湾", func()string{if rt.IsActive{return "启用"};return "停用"}()}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"厦门→台湾空运", "厦门仓", "空运", "3-5天", "台湾", "启用"}, {"深圳→台湾海快", "深圳仓", "海快", "5-7天", "台湾", "启用"}, {"厦门→台湾海运", "厦门仓", "海运", "7-10天", "台湾", "启用"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—"}}
 		}
 		rc.Tmpl["route_templates"].ExecuteTemplate(w, "route_templates.html", map[string]any{
 			"Title": "线路模板", "Page": "route_templates",

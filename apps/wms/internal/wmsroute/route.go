@@ -634,7 +634,7 @@ func Register(
 		}
 		if len(rows) == 0 {
 			rows = [][]string{
-				{"WO-001", "开箱验货", "待处理", "厦门仓", "07-11 08:00"},
+				{"暂无数据", "—", "—", "—", "—"},
 				{"WO-002", "拍照存证", "进行中", "厦门仓", "07-11 09:15"},
 				{"WO-003", "打木箱加固", "已完成", "厦门仓", "07-10 16:30"},
 				{"WO-004", "拆箱合箱", "待处理", "厦门仓", "07-11 10:00"},
@@ -711,7 +711,7 @@ func Register(
 			rows[i] = []string{t.Name, t.Code, t.Category, fmt.Sprintf("¥%.2f", t.UnitPrice), t.PriceMode}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"开箱验货", "OPEN_INSPECT", "开箱类", "¥0.00", "fixed"}, {"拍照存证", "PHOTO", "拍照类", "¥5.00", "per_item"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "wms_service_templates", w, "service_templates.html", map[string]any{
 			"Page": "service-templates", "Title": "附加服务模板", "Total": len(rows),
@@ -773,7 +773,7 @@ func Register(
 		}
 		if len(rows) == 0 {
 			rows = [][]string{
-				{"开箱验货", "OPEN_INSPECT", "开箱类", "¥0.00"},
+				{"暂无数据", "—", "—", "—", "—"},
 				{"拍照存证", "PHOTO", "拍照类", "¥5.00"},
 				{"打木箱加固", "WOODEN_CRATE", "加固类", "¥80.00"},
 				{"拆箱服务", "UNPACK", "拆箱类", "¥8.00"},
@@ -909,7 +909,7 @@ func Register(
 			rows[i] = []string{u.RealName, u.Username, rn, "0", "0", "在线"}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"大宝", "dabao", "仓库管理", "3", "2", "在线"}, {"安冉", "anran", "仓库管理", "1", "0", "在线"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "wms_tasks", "员工任务监控", len(rows), []string{"员工", "账号", "角色", "待处理", "处理中", "状态"}, rows, "")
 	}))

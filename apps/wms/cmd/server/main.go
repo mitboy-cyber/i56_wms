@@ -174,7 +174,7 @@ func main() {
 	})
 
 	// Seed data
-	seed(cr, wr, rr, pr, or, cour, lr, sr, wor, ppr, whr, rpt)
+	seed(rbac, cr, wr, rr, pr, or, cour, lr, sr, wor, ppr, whr, rpt)
 
 	// Templates
 	tmpl := initTemplates()
