@@ -188,6 +188,17 @@ func Register(
 			memberDisplay = fmt.Sprintf("%s (%s)", member.Name, member.MemberCode)
 		} else if member != nil { memberDisplay = member.Name }
 
+		// Calculate weights from associated parcels
+		var totalActualWeight, totalChargeableWeight float64
+		for _, p := range allParcels {
+			if p.ClientID == order.ClientID {
+				totalActualWeight += p.ActualWeight
+				totalChargeableWeight += p.ChargeableWeight()
+			}
+		}
+		order.TotalActualWeight = totalActualWeight
+		order.TotalChargeableWeight = totalChargeableWeight
+
 		baseFreight := 0.0
 		if route != nil && route.BaseWeightPrice > 0 && order.TotalChargeableWeight > 0 {
 			baseFreight = route.BaseWeightPrice * order.TotalChargeableWeight
