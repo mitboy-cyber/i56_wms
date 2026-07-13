@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/i56/framework/core/router"
@@ -34,6 +35,25 @@ import (
 	whRepo "github.com/i56/modules/warehouse/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
 )
+
+// Mutable in-memory data stores for admin CRUD pages that use hardcoded seed data.
+var pdaWOTemplatesMu sync.Mutex
+var pdaWOTemplates = [][]string{
+	{"标准入库", "receiving", "收货→称重→上架", "启用"},
+	{"标准出库", "picking", "拣货→打包→出库", "启用"},
+	{"异常处理", "qc", "拍照→登记→处理", "启用"},
+	{"盘点流程", "counting", "扫描→核对→确认", "启用"},
+	{"退货处理", "returns", "签收→检查→上架", "停用"},
+}
+
+var exceptionsMu sync.Mutex
+var exceptionsData = [][]string{
+	{"EXC-20260711-001", "包裹破损", "严重", "SF1234567890", "大宝", "处理中", "是"},
+	{"EXC-20260711-002", "数量不符", "一般", "ZTO9876543210", "安冉", "已解决", "否"},
+	{"EXC-20260711-003", "重量异常", "轻微", "YTO1111222233", "—", "待处理", "是"},
+	{"EXC-20260711-004", "标签错误", "一般", "ORDER-8002", "小林", "已解决", "否"},
+	{"EXC-20260711-005", "其他", "严重", "SF1111111111", "大宝", "处理中", "是"},
+}
 
 // Register WMS admin routes (~13 list pages + CRUD).
 func Register(
@@ -714,6 +734,9 @@ func Register(
 		))
 	}))
 	r.POST("/admin/service-templates/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		price, _ := common.ParseFloat(req.FormValue("unit_price"))
+		sr.AddType(req.FormValue("name"), req.FormValue("code"), req.FormValue("category"), price, req.FormValue("price_mode"))
 		common.Redirect(w, "/admin/service-templates")
 	}))
 	r.GET("/admin/service-templates/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -758,6 +781,24 @@ func Register(
 			}
 		}
 		gp(w, "wms_service_types", "附加服务类型", len(rows), []string{"名称", "编码", "分类", "单价"}, rows, "/admin/service-types/add-form")
+	}))
+	r.GET("/admin/service-types/add-form", a(func(w http.ResponseWriter, req *http.Request) {
+		common.HtmlOK(w)
+		fmt.Fprint(w, formBuild(
+			common.ModalStart("新增服务类型"),
+			common.FormSave("/admin/service-types/save"),
+			common.FormField("名称", "name", "", "如: 开箱验货"),
+			common.FormField("编码", "code", "", "如: OPEN_INSPECT"),
+			common.FormField("分类", "category", "", "如: 开箱类"),
+			common.FormField("单价", "unit_price", "", "如: 5.00"),
+			common.FormFooter(), common.ModalEnd(),
+		))
+	}))
+	r.POST("/admin/service-types/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		price, _ := common.ParseFloat(req.FormValue("unit_price"))
+		sr.AddType(req.FormValue("name"), req.FormValue("code"), req.FormValue("category"), price, "fixed")
+		common.Redirect(w, "/admin/service-types")
 	}))
 	r.GET("/admin/service-types/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		code := req.URL.Query().Get("id")
@@ -875,13 +916,10 @@ func Register(
 
 	// ─── /admin/pda-workorder-templates — PDA工单模板 (from admin_modules.go WMS) ───
 	r.GET("/admin/pda-workorder-templates", a(func(w http.ResponseWriter, req *http.Request) {
-		rows := [][]string{
-			{"标准入库", "收货", "收货→称重→上架", "启用"},
-			{"标准出库", "拣货", "拣货→打包→出库", "启用"},
-			{"异常处理", "质检", "拍照→登记→处理", "启用"},
-			{"盘点流程", "盘点", "扫描→核对→确认", "启用"},
-			{"退货处理", "退货", "签收→检查→上架", "停用"},
-		}
+		pdaWOTemplatesMu.Lock()
+		rows := make([][]string, len(pdaWOTemplates))
+		copy(rows, pdaWOTemplates)
+		pdaWOTemplatesMu.Unlock()
 		gp(w, "wms_wo_templates", "PDA工单模板", len(rows), []string{"模板名", "工种", "流程", "状态"}, rows, "/admin/pda-workorder-templates/add-form")
 	}))
 	r.GET("/admin/pda-workorder-templates/add-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -896,6 +934,10 @@ func Register(
 		))
 	}))
 	r.POST("/admin/pda-workorder-templates/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		pdaWOTemplatesMu.Lock()
+		pdaWOTemplates = append(pdaWOTemplates, []string{req.FormValue("name"), req.FormValue("category"), req.FormValue("flow"), "启用"})
+		pdaWOTemplatesMu.Unlock()
 		common.Redirect(w, "/admin/pda-workorder-templates")
 	}))
 
@@ -959,20 +1001,27 @@ func Register(
 		))
 	}))
 	r.POST("/admin/workflow-management/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		stepsStr := req.FormValue("steps")
+		stepNames := strings.Split(stepsStr, "→")
+		var steps []wfDomain.WorkflowStep
+		for i, name := range stepNames {
+			name = strings.TrimSpace(name)
+			if name == "" { continue }
+			steps = append(steps, wfDomain.WorkflowStep{Name: name, DisplayName: name, OrderIndex: i + 1, Required: true, Assignable: true, TimeoutMinutes: 60})
+		}
+		wfr.CreateProcess(req.Context(), &wfDomain.WorkflowProcess{TenantID: tenant, Name: req.FormValue("name"), Code: req.FormValue("code"), TriggerEvent: req.FormValue("trigger_event"), Steps: steps, IsActive: true})
 		common.Redirect(w, "/admin/workflow-management")
 	}))
 
 	// ─── /admin/exceptions — BFT56 异常记录 + AI 异常检测 ───
 	r.GET("/admin/exceptions", a(func(w http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-		// Existing hardcoded exceptions
-		rows := [][]string{
-			{"EXC-20260711-001", "包裹破损", "严重", "SF1234567890", "大宝", "处理中", "是"},
-			{"EXC-20260711-002", "数量不符", "一般", "ZTO9876543210", "安冉", "已解决", "否"},
-			{"EXC-20260711-003", "重量异常", "轻微", "YTO1111222233", "—", "待处理", "是"},
-			{"EXC-20260711-004", "标签错误", "一般", "ORDER-8002", "小林", "已解决", "否"},
-			{"EXC-20260711-005", "其他", "严重", "SF1111111111", "大宝", "处理中", "是"},
-		}
+		// Existing hardcoded exceptions from mutable data store
+		exceptionsMu.Lock()
+		rows := make([][]string, len(exceptionsData))
+		copy(rows, exceptionsData)
+		exceptionsMu.Unlock()
 
 		// AI Anomaly Detection results
 		parcels, _, _ := ps.List(ctx, 1, 0, 200)
@@ -1081,6 +1130,11 @@ func Register(
 		))
 	}))
 	r.POST("/admin/exceptions/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		exceptionsMu.Lock()
+		excID := fmt.Sprintf("EXC-%s-%03d", time.Now().Format("20060102"), len(exceptionsData)+1)
+		exceptionsData = append(exceptionsData, []string{excID, req.FormValue("exc_type"), req.FormValue("severity"), req.FormValue("ref_no"), req.FormValue("handler"), "待处理", "否"})
+		exceptionsMu.Unlock()
 		common.Redirect(w, "/admin/exceptions")
 	}))
 

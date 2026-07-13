@@ -260,6 +260,10 @@ func Register(
 			common.FormFooter()+common.ModalEnd())
 	}))
 	r.POST("/admin/client-accounts/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		cid, _ := common.ParseID(req.FormValue("client_id"))
+		cr.Create(req.Context(), tenant, &custDomain.Client{TenantID: tenant, Name: req.FormValue("username"), Code: req.FormValue("username"), ContactEmail: req.FormValue("email"), ClientType: custDomain.ClientTypeNormal, IsActive: true})
+		_ = cid
 		common.Redirect(w, "/admin/client-accounts")
 	}))
 	r.GET("/admin/client-accounts/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -466,6 +470,16 @@ func Register(
 			common.FormSelect("方式", "method", "bank_transfer", [2]string{"bank_transfer", "银行转账"}, [2]string{"wechat", "微信支付"}, [2]string{"alipay", "支付宝"}, [2]string{"cash", "现金"})+
 			common.FormFooter()+common.ModalEnd())
 	}))
+	r.POST("/admin/recharge-records/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		cid, _ := common.ParseID(req.FormValue("client_id"))
+		amt, _ := common.ParseFloat(req.FormValue("amount"))
+		c, _ := cr.GetByID(req.Context(), tenant, cid)
+		balanceAfter := amt
+		if c != nil { balanceAfter = c.Balance + amt; c.Balance = balanceAfter; cr.Update(req.Context(), tenant, cid, c) }
+		lr.Add(req.Context(), &custRepo.LedgerEntry{TenantID: tenant, ClientID: cid, Amount: amt, BalanceAfter: balanceAfter, Type: req.FormValue("method"), Description: ""})
+		common.Redirect(w, "/admin/recharge-records")
+	}))
 
 	// ─── /admin/client-pricing (from admin_modules.go CRM) ───
 	r.GET("/admin/client-pricing", a(func(w http.ResponseWriter, req *http.Request) {
@@ -556,6 +570,13 @@ func Register(
 			common.FormField("期末余额", "ending_balance", "", "")+
 			common.FormField("已结算金额", "settled_amount", "", "")+
 			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/monthly-statements/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		cid, _ := common.ParseID(req.FormValue("client_id"))
+		amt, _ := common.ParseFloat(req.FormValue("ending_balance"))
+		lr.Add(req.Context(), &custRepo.LedgerEntry{TenantID: tenant, ClientID: cid, Amount: amt, BalanceAfter: amt, Type: "statement", Description: "月结账单 " + req.FormValue("period")})
+		common.Redirect(w, "/admin/monthly-statements")
 	}))
 
 	// ─── /admin/client-ledgers CRUD (from admin_crud.go) ───

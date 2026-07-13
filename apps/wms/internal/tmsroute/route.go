@@ -756,14 +756,19 @@ func Register(
 	}))
 
 	// ─── /admin/logistics-tracking — 物流追踪 ───
+	var logisticsDataMu sync.Mutex
+	var logisticsData = [][]string{
+		{"CT-8837291", "运输中", "台北配送站", "新竹物流", "07-11 09:30"},
+		{"CT-8837292", "已签收", "台中", "黑猫宅急便", "07-10 15:00"},
+		{"CT-8837293", "清关中", "台北港", "新竹物流", "07-10 11:00"},
+		{"CT-8837294", "运输中", "基隆港", "顺丰速运", "07-09 18:20"},
+		{"CT-8837295", "已装柜", "厦门仓", "新竹物流", "07-11 08:00"},
+	}
 	r.GET("/admin/logistics-tracking", a(func(w http.ResponseWriter, req *http.Request) {
-		rows := [][]string{
-			{"CT-8837291", "运输中", "台北配送站", "新竹物流", "07-11 09:30"},
-			{"CT-8837292", "已签收", "台中", "黑猫宅急便", "07-10 15:00"},
-			{"CT-8837293", "清关中", "台北港", "新竹物流", "07-10 11:00"},
-			{"CT-8837294", "运输中", "基隆港", "顺丰速运", "07-09 18:20"},
-			{"CT-8837295", "已装柜", "厦门仓", "新竹物流", "07-11 08:00"},
-		}
+		logisticsDataMu.Lock()
+		rows := make([][]string, len(logisticsData))
+		copy(rows, logisticsData)
+		logisticsDataMu.Unlock()
 		gp(w, "tms_tracking", "物流追踪", len(rows), []string{"运单号", "状态", "位置", "承运商", "更新时间"}, rows, "/admin/logistics-tracking/add-form")
 	}))
 	r.GET("/admin/logistics-tracking/add-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -774,6 +779,13 @@ func Register(
 			common.FormField("位置", "location", "", "当前位置")+
 			common.FormField("承运商", "carrier", "", "承运商名称")+
 			common.FormFooter()+common.ModalEnd())
+	}))
+	r.POST("/admin/logistics-tracking/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		logisticsDataMu.Lock()
+		logisticsData = append(logisticsData, []string{req.FormValue("tracking_no"), req.FormValue("status"), req.FormValue("location"), req.FormValue("carrier"), time.Now().Format("01-02 15:04")})
+		logisticsDataMu.Unlock()
+		common.Redirect(w, "/admin/logistics-tracking")
 	}))
 	r.GET("/admin/logistics-tracking/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		id := req.URL.Query().Get("id")
@@ -789,13 +801,18 @@ func Register(
 	r.POST("/admin/logistics-tracking/update", a(func(w http.ResponseWriter, req *http.Request) { common.Redirect(w, "/admin/logistics-tracking") }))
 
 	// ─── /admin/container-loadings — 装柜记录 ───
+	var containerDataMu sync.Mutex
+	var containerData = [][]string{
+		{"CTNR-001", "20GP", "MSC-1234", "厦门仓", "7", "2026-07-11 08:00", "已装柜"},
+		{"CTNR-002", "40HQ", "MSK-5678", "厦门仓", "12", "2026-07-10 14:30", "已装柜"},
+		{"CTNR-003", "20GP", "COSCO-9012", "厦门仓", "5", "2026-07-11 10:00", "待装柜"},
+		{"CTNR-004", "40GP", "OOCL-3456", "厦门仓", "8", "2026-07-09 16:00", "运输中"},
+	}
 	r.GET("/admin/container-loadings", a(func(w http.ResponseWriter, req *http.Request) {
-		rows := [][]string{
-			{"CTNR-001", "20GP", "MSC-1234", "厦门仓", "7", "2026-07-11 08:00", "已装柜"},
-			{"CTNR-002", "40HQ", "MSK-5678", "厦门仓", "12", "2026-07-10 14:30", "已装柜"},
-			{"CTNR-003", "20GP", "COSCO-9012", "厦门仓", "5", "2026-07-11 10:00", "待装柜"},
-			{"CTNR-004", "40GP", "OOCL-3456", "厦门仓", "8", "2026-07-09 16:00", "运输中"},
-		}
+		containerDataMu.Lock()
+		rows := make([][]string, len(containerData))
+		copy(rows, containerData)
+		containerDataMu.Unlock()
 		gp(w, "tms_containers", "装柜记录", len(rows), []string{"柜号", "柜型", "船名航次", "装柜仓库", "包裹数", "装柜时间", "状态"}, rows, "/admin/container-loadings/add-form")
 	}))
 	r.GET("/admin/container-loadings/add-form", a(func(w http.ResponseWriter, req *http.Request) {
@@ -808,7 +825,13 @@ func Register(
 			common.FormField("包裹数", "parcel_count", "", "")+
 			common.FormFooter()+common.ModalEnd())
 	}))
-	r.POST("/admin/container-loadings/save", a(func(w http.ResponseWriter, req *http.Request) { common.Redirect(w, "/admin/container-loadings") }))
+	r.POST("/admin/container-loadings/save", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		containerDataMu.Lock()
+		containerData = append(containerData, []string{req.FormValue("container_no"), req.FormValue("container_type"), req.FormValue("vessel"), req.FormValue("warehouse"), req.FormValue("parcel_count"), time.Now().Format("2006-01-02 15:04"), "待装柜"})
+		containerDataMu.Unlock()
+		common.Redirect(w, "/admin/container-loadings")
+	}))
 	r.GET("/admin/container-loadings/edit-form", a(func(w http.ResponseWriter, req *http.Request) {
 		id := req.URL.Query().Get("id")
 		common.HtmlOK(w)
