@@ -859,7 +859,7 @@ func Register(
 			}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"WO-20260711-001", "标准入库流程", "收货确认", "高", "大宝", "系统", "待处理", "07-11 08:00"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "wms_wo_list", "工单列表", int(total),
 			[]string{"WO-ID", "流程", "当前步骤", "优先级", "经办人", "创建人", "状态", "创建时间"},
@@ -1100,7 +1100,7 @@ func Register(
 			rows[i] = []string{ar.ID, ar.Type, ar.Severity, ar.ParcelRef, ar.Message}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"—", "无异常", "—", "—", "AI检测未发现异常"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "wms_exceptions", w, "exceptions.html", map[string]any{
 			"Page": "exceptions", "Title": "AI异常检测结果", "Total": len(rows),

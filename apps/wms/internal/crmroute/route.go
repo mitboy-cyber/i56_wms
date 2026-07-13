@@ -58,7 +58,7 @@ func Register(
 			})
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"—", "(暂无客户)", "—", "—", "—", "—", "—"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "crm_clients", w, "crm_clients.html", map[string]any{
 			"Title": "客户管理", "Page": "crm_clients",
@@ -128,7 +128,7 @@ func Register(
 			rows[i] = []string{mn, a.RecipientName, a.Phone, a.City, a.District, a.Address, fmt.Sprintf("%v", a.IsDefault)}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"王仁照", "王仁照", "886912345678", "台北", "信义区", "信义路五段7号", "true"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "crm_addresses", w, "crm_addresses.html", map[string]any{
 			"Title": "客户收件地址", "Page": "crm_addresses",
@@ -187,7 +187,7 @@ func Register(
 			rows[i] = []string{d.Name, d.IDNumber, string(d.Type), string(d.AuthStatus), common.StatusLabelText(d.IsActive)}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"王仁照", "A123456789", "个人", "认证成功", "启用"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "crm_declarants", w, "crm_declarants.html", map[string]any{
 			"Title": "客户申报人", "Page": "crm_declarants",
@@ -241,7 +241,7 @@ func Register(
 			rows = append(rows, []string{c.Name, c.Code, "运营", c.ContactEmail, common.StatusLabelText(c.IsActive)})
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"EZ集运通", "plat_ezjyt", "运营", "ez@example.com", "启用"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "crm_accounts", w, "crm_accounts.html", map[string]any{
 			"Title": "客户账号", "Page": "crm_accounts",
@@ -299,7 +299,7 @@ func Register(
 			rows[i] = []string{m.Name, m.MemberCode, m.Phone, m.Email, cn, common.StatusLabelText(m.IsActive)}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"王仁照", "127518", "886912345678", "wang@example.com", "EZ集运通", "启用"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Exec(rc.Tmpl, "crm_members", w, "crm_members.html", map[string]any{
 			"Title": "客户会员", "Page": "crm_members",
@@ -398,7 +398,7 @@ func Register(
 			rows[i] = []string{cn, typ, fmt.Sprintf("¥%.2f", e.Amount), fmt.Sprintf("¥%.2f", e.BalanceAfter), e.Description, e.CreatedAt.Format("01-02 15:04")}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"EZ集运通", "充值", "¥5000.00", "¥5000.00", "初始充值", "07-01 10:00"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_ledgers", "余额日志", len(rows), []string{"客户", "类型", "金额", "余额", "描述", "时间"}, rows, "/admin/balance-logs/add-form")
 	}))
@@ -458,7 +458,7 @@ func Register(
 			}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"EZ集运通", "¥5,000", "银行转账", "07-01 10:00", "已完成"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_recharge_records", "充值记录", len(rows), []string{"客户", "金额", "方式", "时间", "状态"}, rows, "/admin/recharge-records/add-form")
 	}))
@@ -489,7 +489,7 @@ func Register(
 			rows[i] = []string{p.RouteName, p.TransportType, p.CargoType, p.TaxType, p.FirstWeightPrice, p.AdditionalWeightPrice, p.MinCharge}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"厦门→台湾(空运)", "air", "普货", "全包税", "¥20/kg", "¥20/kg", "¥50起"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_pricing", "客户价格", len(rows), []string{"线路", "运输方式", "货类", "税档", "首重价", "续重价", "最低收费"}, rows, "/admin/client-pricing/add-form")
 	}))
@@ -602,7 +602,7 @@ func Register(
 			}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"—", "EZ集运通", "充值", "¥5000.00", "¥5000.00", "初始充值", "07-01 10:00"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_client_ledgers", "余额流水", len(rows),
 			[]string{"ID", "客户", "类型", "金额", "余额", "描述", "时间"},
@@ -653,7 +653,7 @@ func Register(
 			}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"EZ集运通", "¥5,000.00", "银行转账", "初始充值", "2026-07-01 10:00", "已完成"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_client_recharges", "客户充值记录", len(rows), []string{"客户", "金额", "方式", "备注", "时间", "状态"}, rows, "/admin/client-recharges/add-form")
 	}))
@@ -711,7 +711,7 @@ func Register(
 			}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"—", "王仁照", "A123456789", "个人", "认证成功", "启用"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		gp(w, "crm_declarants2", "申报人管理", int(total),
 			[]string{"ID", "姓名", "证件号", "类型", "认证状态", "状态"},

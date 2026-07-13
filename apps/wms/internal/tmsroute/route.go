@@ -67,7 +67,7 @@ func Register(
 			rows[i] = []string{c.Name, c.Code, c.CountryRegion, "启用", time.Now().Format("01-02")}
 		}
 		if len(rows) == 0 {
-			rows = [][]string{{"顺丰速运", "SF", "中国大陆", "启用", "07-01"}}
+			rows = [][]string{{"暂无数据", "—", "—", "—", "—", "—", "—", "—"}}
 		}
 		rc.Tmpl["couriers"].ExecuteTemplate(w, "couriers.html", map[string]any{
 			"Title": "快递公司", "Page": "tms_couriers",
