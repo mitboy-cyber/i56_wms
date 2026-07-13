@@ -409,10 +409,10 @@ async function pdaApi(url, method, body) {
   {{end}}
 </div>
 {{block "content" .}}{{end}}
-<footer style="text-align:center;padding:8px;font-size:10px;color:var(--pda-text-muted);border-top:1px solid var(--pda-border);margin-top:auto">
+{{if not .IsLogin}}<footer style="text-align:center;padding:8px;font-size:10px;color:var(--pda-text-muted);border-top:1px solid var(--pda-border);margin-top:auto">
   &copy; 2026 I56 Framework v2.4.2
-</footer>
-<div class="pda-bottom">
+</footer>{{end}}
+{{if not .IsLogin}}<div class="pda-bottom">
   <a href="/pda" {{if eq .Active "dashboard"}}class="active"{{end}}>
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     首页
@@ -433,7 +433,7 @@ async function pdaApi(url, method, body) {
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     查询
   </a>
-</div>
+</div>{{end}}
 <!-- I56 AI Assistant Bubble -->
 <style>
 .i56-ai-bubble{position:fixed;bottom:20px;right:20px;z-index:9998}

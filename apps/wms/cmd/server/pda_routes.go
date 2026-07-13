@@ -53,14 +53,14 @@ func registerPDARoutes(r *router.Router, pdaR *pdaRepo.MemPDARepo, ops *pdaSvc.P
 	// 0. LOGIN
 	// ==========================================
 	r.GET("/pda/login", func(w http.ResponseWriter, req *http.Request) {
-		tmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{"Active": "login"})
+		tmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{"Active": "login", "IsLogin": true})
 	})
 	r.POST("/pda/login", func(w http.ResponseWriter, req *http.Request) {
 		code := req.FormValue("code")
 		pin := req.FormValue("pin")
 		sess, err := svc.Login(code, pin, req.RemoteAddr)
 		if err != nil {
-			tmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": err.Error(), "Code": code, "Active": "login"})
+			tmpl["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": err.Error(), "Code": code, "Active": "login", "IsLogin": true})
 			return
 		}
 		http.SetCookie(w, &http.Cookie{Name: "pda_token", Value: sess.Token, Path: "/pda", HttpOnly: true, MaxAge: 43200})
