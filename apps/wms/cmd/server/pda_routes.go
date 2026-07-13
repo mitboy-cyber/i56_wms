@@ -764,7 +764,7 @@ func initPDATemplates() map[string]*template.Template {
 	}
 	for _, p := range templateKeys {
 		t := template.New(p).Funcs(funcs)
-		t = template.Must(t.ParseFiles("templates/pda/base.html", "templates/pda/"+p+".html"))
+		t = template.Must(t.ParseFiles("templates/pda/base.html", "templates/pda/camera_scanner.html", "templates/pda/"+p+".html"))
 		tmpl[p] = t
 	}
 	return tmpl
