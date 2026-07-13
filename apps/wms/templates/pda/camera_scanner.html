@@ -1,149 +1,176 @@
 {{define "camera_scanner"}}
-<!-- I56 PDA Camera Scanner -->
+<!-- I56 PDA Real Camera Scanner (html5-qrcode) -->
 <style>
-.pda-camera-container{position:relative;width:100%;max-width:320px;margin:0 auto;border-radius:12px;overflow:hidden;background:#000}
-.pda-camera-container video{width:100%;display:block}
-.pda-camera-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.pda-scan-frame{width:200px;height:80px;border:2px solid #10B981;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);animation:pda-scan-pulse 2s infinite}
-@keyframes pda-scan-pulse{0%,100%{border-color:#10B981}50%{border-color:#34D399}}
-.pda-camera-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--pda-brand);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin:8px 4px}
-.pda-camera-btn.stop{background:var(--pda-danger)}
-.pda-camera-btn:hover{opacity:0.9}
-.pda-scan-result{text-align:center;padding:8px;font-size:13px;margin-top:8px;border-radius:6px;font-weight:600}
-.pda-scan-result.success{background:rgba(16,185,129,0.1);color:#10B981}
-.pda-scan-result.error{background:rgba(239,68,68,0.1);color:#EF4444}
+.i56-scan-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:99999;flex-direction:column}
+.i56-scan-overlay.active{display:flex}
+.i56-scan-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:#fff;font-size:15px;font-weight:600}
+.i56-scan-top button{background:none;border:none;color:#fff;font-size:28px;cursor:pointer;padding:4px 8px;line-height:1}
+.i56-scan-top button:hover{opacity:0.7}
+.i56-scan-view{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.i56-scan-view #reader{width:100%;height:100%}
+.i56-scan-view video{object-fit:cover!important}
+.i56-scan-frame-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;pointer-events:none}
+.i56-scan-frame{width:260px;height:100px;position:relative}
+.i56-scan-frame::before,.i56-scan-frame::after{content:'';position:absolute;width:24px;height:24px;border-color:#10B981}
+.i56-scan-frame::before{top:0;left:0;border-top:3px solid #10B981;border-left:3px solid #10B981}
+.i56-scan-frame::after{top:0;right:0;border-top:3px solid #10B981;border-right:3px solid #10B981}
+.i56-scan-frame-corners{position:relative;width:100%;height:100%}
+.i56-scan-frame-corners::before,.i56-scan-frame-corners::after{content:'';position:absolute;width:24px;height:24px;border-color:#10B981}
+.i56-scan-frame-corners::before{bottom:0;left:0;border-bottom:3px solid #10B981;border-left:3px solid #10B981}
+.i56-scan-frame-corners::after{bottom:0;right:0;border-bottom:3px solid #10B981;border-right:3px solid #10B981}
+.i56-scan-line{position:absolute;top:0;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,#10B981,transparent);animation:i56ScanLine 2s ease-in-out infinite}
+@keyframes i56ScanLine{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
+.i56-scan-hint{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:rgba(255,255,255,0.7);font-size:13px;z-index:1;pointer-events:none}
+.i56-scan-result-popup{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100001;background:rgba(0,0,0,.9);border:2px solid #10B981;border-radius:12px;padding:20px 30px;text-align:center;color:#fff;min-width:220px}
+.i56-scan-result-popup .code{font-size:18px;font-family:monospace;font-weight:700;color:#10B981;margin:8px 0}
+.i56-scan-result-popup .ok{display:inline-block;margin-top:8px;padding:8px 24px;background:#10B981;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer}
+.i56-scan-input-wrapper{position:relative}
+.i56-scan-input-wrapper input.scan-input{padding-right:44px!important}
+.i56-scan-icon-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:22px;cursor:pointer;padding:6px;line-height:1;color:var(--pda-text-muted);transition:color .2s}
+.i56-scan-icon-btn:hover{color:var(--pda-brand)}
+.i56-scan-icon-btn.active{color:#10B981;animation:i56Pulse .8s infinite}
+@keyframes i56Pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 </style>
 
-<div id="pda-camera-scanner" style="display:none;margin-bottom:12px">
-  <div class="pda-camera-container">
-    <video id="pda-camera-video" autoplay playsinline></video>
-    <div class="pda-camera-overlay">
-      <div class="pda-scan-frame"></div>
+<div class="i56-scan-overlay" id="i56-scan-overlay">
+  <div class="i56-scan-top">
+    <span>📷 条码扫描</span>
+    <button onclick="I56Scanner.close()" title="关闭">✕</button>
+  </div>
+  <div class="i56-scan-view">
+    <div id="reader"></div>
+    <div class="i56-scan-frame-box">
+      <div class="i56-scan-frame">
+        <div class="i56-scan-frame-corners"></div>
+        <div class="i56-scan-line"></div>
+      </div>
     </div>
   </div>
-  <div style="text-align:center;margin-top:8px">
-    <button class="pda-camera-btn stop" onclick="PDA_Scanner.stop()">📷 关闭摄像头</button>
-  </div>
-  <div id="pda-scan-result" class="pda-scan-result" style="display:none"></div>
+  <div class="i56-scan-hint">将条码对准框内 · 自动识别</div>
 </div>
 
-<div style="text-align:center;margin-bottom:8px">
-  <button id="pda-camera-launch" class="pda-camera-btn" onclick="PDA_Scanner.start()" style="width:100%;max-width:320px">
-    📷 打开摄像头扫码
+<div class="i56-scan-result-popup" id="i56-scan-popup">
+  <div style="font-size:32px">✅</div>
+  <div>扫描成功</div>
+  <div class="code" id="i56-scan-code"></div>
+  <button class="ok" onclick="I56Scanner.confirm()">确认使用</button>
+</div>
+
+<div class="i56-scan-input-wrapper">
+  <input type="text" name="scan" class="scan-input" placeholder="扫描运单号..." autofocus autocomplete="off"
+         style="font-size:18px;text-align:center;display:block;width:100%;height:52px;padding:0 44px 0 14px;
+                border:2px solid var(--pda-border);border-radius:10px;background:var(--pda-surface-raised);
+                color:var(--pda-text);font-family:inherit;outline:none;box-sizing:border-box;
+                transition:border-color .2s"
+         onfocus="this.select()"
+         onkeydown="if(event.key==='Enter'){event.preventDefault();I56Scanner.submit(this.value.trim())}">
+  <button class="i56-scan-icon-btn" onclick="I56Scanner.start()" title="📷 扫码">
+    📷
   </button>
 </div>
 
 <script>
-var PDA_Scanner = {
-  _stream: null,
+var I56Scanner = {
+  _scanner: null,
+  _lastResult: null,
   _active: false,
-  _detector: null,
-  _interval: null,
-  
-  async start() {
-    var launch = document.getElementById('pda-camera-launch');
-    var container = document.getElementById('pda-camera-scanner');
-    var video = document.getElementById('pda-camera-video');
-    var result = document.getElementById('pda-scan-result');
-    
-    // Check BarcodeDetector support
-    if ('BarcodeDetector' in window) {
-      this._detector = new BarcodeDetector({formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code']});
-    } else {
-      result.style.display = 'block';
-      result.className = 'pda-scan-result error';
-      result.textContent = '当前浏览器不支持扫码，请手动输入';
-      return;
-    }
-    
-    try {
-      this._stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}});
-      video.srcObject = this._stream;
-      container.style.display = 'block';
-      launch.style.display = 'none';
-      result.style.display = 'none';
-      this._active = true;
-      
-      // Start scanning loop
-      this._interval = setInterval(this._scan.bind(this), 200);
-    } catch(e) {
-      result.style.display = 'block';
-      result.className = 'pda-scan-result error';
-      result.textContent = '无法访问摄像头: ' + (e.message || '权限被拒');
-    }
+
+  start: function() {
+    var overlay = document.getElementById('i56-scan-overlay');
+    overlay.classList.add('active');
+
+    // Create scanner
+    this._scanner = new Html5Qrcode("reader");
+    this._active = true;
+
+    this._scanner.start(
+      {facingMode: "environment"},  // rear camera
+      {
+        fps: 10,
+        qrbox: {width: 260, height: 100},
+        aspectRatio: 1.0,
+        disableFlip: false
+      },
+      this._onScan.bind(this),
+      function(){}  // ignore errors
+    ).catch(function(err) {
+      console.error('Camera error:', err);
+      overlay.classList.remove('active');
+      alert('无法打开摄像头: ' + (err.message || '权限被拒，请在设置中允许摄像头'));
+    });
   },
-  
-  async _scan() {
-    if (!this._active || !this._detector) return;
-    var video = document.getElementById('pda-camera-video');
-    var result = document.getElementById('pda-scan-result');
-    try {
-      var codes = await this._detector.detect(video);
-      if (codes.length > 0) {
-        var value = codes[0].rawValue.trim();
-        this.stop();
-        result.style.display = 'block';
-        result.className = 'pda-scan-result success';
-        result.textContent = '✅ 扫描成功: ' + value;
-        this._onScan(value);
-      }
-    } catch(e) {}
-  },
-  
-  _onScan(value) {
-    var inp = document.querySelector('input[name="scan"], #scan-input');
-    if (inp) {
-      inp.value = value;
-      // Auto-submit the scan form
-      var form = document.querySelector('#scan-form');
-      if (form) {
-        form.dispatchEvent(new Event('submit'));
-      } else {
-        // Navigate with scan param
-        var path = window.location.pathname;
-        if (path.indexOf('?') > -1) {
-          var base = path.split('?')[0];
-          window.location.href = base + '?scan=' + encodeURIComponent(value);
-        } else {
-          window.location.href = path + '?scan=' + encodeURIComponent(value);
-        }
-      }
-    }
-  },
-  
-  stop() {
+
+  _onScan: function(decodedText) {
+    if (!this._active || !decodedText) return;
     this._active = false;
-    if (this._interval) { clearInterval(this._interval); this._interval = null; }
-    if (this._stream) { this._stream.getTracks().forEach(function(t){t.stop()}); this._stream = null; }
-    var video = document.getElementById('pda-camera-video');
-    if (video) video.srcObject = null;
-    document.getElementById('pda-camera-scanner').style.display = 'none';
-    var launch = document.getElementById('pda-camera-launch');
-    if (launch) launch.style.display = 'block';
+
+    // Auto-stop camera
+    if (this._scanner) {
+      this._scanner.stop().catch(function(){});
+      this._scanner = null;
+    }
+
+    this._lastResult = decodedText.trim();
+
+    // Hide overlay
+    document.getElementById('i56-scan-overlay').classList.remove('active');
+
+    // Focus scan input
+    var inputs = document.querySelectorAll('input[name="scan"], input.scan-input');
+    var targetInput = inputs.length > 0 ? inputs[inputs.length-1] : null;
+
+    if (targetInput) {
+      targetInput.value = this._lastResult;
+      targetInput.focus();
+
+      // Short flash effect
+      targetInput.style.borderColor = '#10B981';
+      targetInput.style.background = 'rgba(16,185,129,0.08)';
+      setTimeout(function() {
+        targetInput.style.borderColor = '';
+        targetInput.style.background = '';
+      }, 800);
+
+      // Auto-submit after brief delay
+      var self = this;
+      setTimeout(function(){ self.submit(self._lastResult) }, 600);
+    }
+  },
+
+  submit: function(value) {
+    if (!value) return;
+    var path = window.location.pathname.split('?')[0];
+    window.location.href = path + '?scan=' + encodeURIComponent(value);
+  },
+
+  confirm: function() {
+    document.getElementById('i56-scan-popup').style.display = 'none';
+    this.submit(this._lastResult);
+  },
+
+  close: function() {
+    this._active = false;
+    if (this._scanner) {
+      this._scanner.stop().catch(function(){});
+      this._scanner = null;
+    }
+    document.getElementById('i56-scan-overlay').classList.remove('active');
   }
 };
 
-// Handle scan form submissions
+// Also allow clicking the scan input to open camera
 document.addEventListener('DOMContentLoaded', function() {
-  var scanForm = document.querySelector('#scan-form');
-  if (scanForm) {
-    scanForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      var inp = this.querySelector('input[name="scan"]');
-      if (!inp || !inp.value.trim()) return;
-      var val = inp.value.trim();
-      inp.disabled = true;
-      inp.value = '';
-      // Navigate to scan handler
-      var path = window.location.pathname;
-      if (path.indexOf('?') > -1) {
-        var base = path.split('?')[0];
-        window.location.href = base + '?scan=' + encodeURIComponent(val);
-      } else {
-        window.location.href = path + '?scan=' + encodeURIComponent(val);
-      }
-    });
-  }
+  var scanInputs = document.querySelectorAll('input[name="scan"], input.scan-input');
+  scanInputs.forEach(function(inp) {
+    // Don't trigger on every focus — only explicit click
+    var iconBtn = inp.parentElement ? inp.parentElement.querySelector('.i56-scan-icon-btn') : null;
+    if (iconBtn) {
+      iconBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        I56Scanner.start();
+      });
+    }
+  });
 });
 </script>
 {{end}}
