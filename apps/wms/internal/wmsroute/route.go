@@ -450,7 +450,11 @@ func Register(
 			if p.Length > 0 {
 				dims = fmt.Sprintf("%.0f×%.0f×%.0f", p.Length, p.Width, p.Height)
 			}
-			rows = append(rows, []string{p.TrackingNumber, p.ProductName, cargoCN, statusCN,
+			productDisplay := p.ProductName
+			if len(p.ImageURLs) > 0 && p.ImageURLs[0] != "" {
+				productDisplay = fmt.Sprintf(`<img src="%s" style="width:32px;height:32px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:6px" />%s`, p.ImageURLs[0], p.ProductName)
+			}
+			rows = append(rows, []string{p.TrackingNumber, productDisplay, cargoCN, statusCN,
 				fmt.Sprintf("%.2f", p.ActualWeight), dims, "1", p.CreatedAt.Format("2006-01-02")})
 		}
 		if len(rows) == 0 {
@@ -484,6 +488,7 @@ func Register(
 			common.FormField("宽(cm)", "width", "", "宽度"),
 			common.FormField("高(cm)", "height", "", "高度"),
 			common.FormField("申报价值(¥)", "declared_value", "", "申报价值"),
+			common.FormField("物品图片URL", "image_url", "", "https://... (可选,逗号分隔)"),
 			common.FormField("库位", "location_code", "", "库位编码"),
 			common.FormField("备注", "remark", "", "备注信息"),
 			common.FormFooter(), common.ModalEnd(),
@@ -509,7 +514,9 @@ func Register(
 				cargoType = "general"
 			}
 		}
-		p := &parcelDomain.Parcel{TenantID: tenant, WarehouseID: 1, ClientID: 1, TrackingNumber: req.FormValue("tracking_number"), ProductName: productName, ParcelName: productName, ActualWeight: wgt, Length: l, Width: wi, Height: hi, LocationCode: req.FormValue("location_code"), Status: parcelDomain.StatusPreDeclared, CourierCode: "SF", CargoType: cargoType}
+		imageURLs := strings.Split(req.FormValue("image_url"), ","); for i := range imageURLs { imageURLs[i] = strings.TrimSpace(imageURLs[i]) }
+		if len(imageURLs) == 1 && imageURLs[0] == "" { imageURLs = nil }
+		p := &parcelDomain.Parcel{TenantID: tenant, WarehouseID: 1, ClientID: 1, ImageURLs: imageURLs, TrackingNumber: req.FormValue("tracking_number"), ProductName: productName, ParcelName: productName, ActualWeight: wgt, Length: l, Width: wi, Height: hi, LocationCode: req.FormValue("location_code"), Status: parcelDomain.StatusPreDeclared, CourierCode: "SF", CargoType: cargoType}
 		if _, err := ps.PreDeclare(req.Context(), p); err == nil {
 			events.PublishParcelCreated(p.ID, p.TrackingNumber, p.WarehouseID, p.ClientID, p.ProductName)
 		}

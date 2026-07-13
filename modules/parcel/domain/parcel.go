@@ -39,6 +39,7 @@ type Parcel struct {
 	Status          ParcelStatus `json:"status"`
 	IsAbnormal      bool         `json:"is_abnormal"`
 	LocationCode    string       `json:"location_code"`
+	ImageURLs       []string     `json:"image_urls"`
 	OrderID         *int64       `json:"order_id"`
 	CreatedAt       time.Time    `json:"created_at"`
 	UpdatedAt       time.Time    `json:"updated_at"`
