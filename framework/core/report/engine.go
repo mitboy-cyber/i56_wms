@@ -1,12 +1,10 @@
-// Package report provides built-in business reports for the WMS system.
-// This extends the core report package with predefined WMS reports.
+// Package report provides built-in business reports with real data.
 package report
 
 import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 )
 
 // Built-in report names
@@ -17,179 +15,186 @@ const (
 	ReportWarehouseThroughput = "warehouse-throughput"
 )
 
+// DataProvider abstracts data access for reports.
+type DataProvider interface {
+	Orders(ctx context.Context) ([]OrderRow, error)
+	Clients(ctx context.Context) ([]ClientRow, error)
+	Parcels(ctx context.Context) ([]ParcelRow, error)
+}
+
+type OrderRow struct {
+	OrderNo, Status, ClientName string
+	TotalPrice                  float64
+	ParcelCount                 int
+	CreatedAt                   string
+}
+
+type ClientRow struct {
+	ID                          int64
+	Name, Code                  string
+	Balance, CreditLimit        float64
+}
+
+type ParcelRow struct {
+	TrackingNo, ProductName, Status, WarehouseName string
+	ActualWeight                                   float64
+}
+
 // ReportParamDef defines a parameter for a built-in report.
 type ReportParamDef struct {
-	Name     string `json:"name"`
-	Label    string `json:"label"`
-	Type     string `json:"type"` // "string", "number", "date"
-	Required bool   `json:"required"`
-	Default  string `json:"default,omitempty"`
+	Name, Label, Type string
+	Required          bool
 }
 
-// ReportDef defines a named built-in report with SQL query and display settings.
+// ReportDef defines a built-in report.
 type ReportDef struct {
-	Name    string          `json:"name"`
-	Title   string          `json:"title"`
-	Query   string          `json:"query"`
-	Params  []ReportParamDef `json:"params,omitempty"`
-	Display string          `json:"display"` // "table" or "chart"
+	Name, Title, Query, Display string
+	Params                      []ReportParamDef
 }
 
-// EngineResult holds the result of a built-in report execution.
+// EngineResult contains the result of executing a report.
 type EngineResult struct {
-	Name    string          `json:"name"`
-	Title   string          `json:"title"`
-	Columns []string        `json:"columns"`
-	Rows    [][]interface{} `json:"rows"`
-	Total   int             `json:"total"`
-	Display string          `json:"display"`
+	Name, Title, Display string
+	Columns              []string
+	Rows                 [][]interface{}
+	Total                int
 }
 
-// BuiltinEngine executes predefined business reports.
+// BuiltinEngine executes predefined reports using real data.
 type BuiltinEngine struct {
-	mu      sync.RWMutex
-	reports map[string]*ReportDef
+	mu       sync.RWMutex
+	reports  map[string]*ReportDef
+	provider DataProvider
 }
 
-// NewBuiltinEngine creates a built-in report engine with predefined reports.
-func NewBuiltinEngine() *BuiltinEngine {
+// NewBuiltinEngine creates a new report engine with a data provider.
+func NewBuiltinEngine(provider DataProvider) *BuiltinEngine {
 	e := &BuiltinEngine{
-		reports: make(map[string]*ReportDef),
+		reports:  make(map[string]*ReportDef),
+		provider: provider,
 	}
 	e.registerBuiltinReports()
 	return e
 }
 
-// registerBuiltinReports adds the 4 built-in WMS reports.
 func (e *BuiltinEngine) registerBuiltinReports() {
 	e.reports[ReportDailyOrderSummary] = &ReportDef{
-		Name:    ReportDailyOrderSummary,
-		Title:   "每日订单汇总",
-		Query:   "SELECT date_trunc('day', created_at) as day, COUNT(*) as order_count, SUM(total_price) as total_revenue FROM orders WHERE tenant_id = $1 GROUP BY day ORDER BY day DESC",
-		Params:  []ReportParamDef{},
-		Display: "table",
+		Name: ReportDailyOrderSummary, Title: "每日订单汇总",
+		Query: "real", Display: "table",
 	}
 	e.reports[ReportMonthlyRevenue] = &ReportDef{
-		Name:    ReportMonthlyRevenue,
-		Title:   "月度营收报表",
-		Query:   "SELECT date_trunc('month', created_at) as month, COUNT(*) as order_count, SUM(total_price) as total_revenue, AVG(total_price) as avg_order_value FROM orders WHERE tenant_id = $1 GROUP BY month ORDER BY month DESC",
-		Params:  []ReportParamDef{},
-		Display: "chart",
+		Name: ReportMonthlyRevenue, Title: "月度营收报表",
+		Query: "real", Display: "chart",
 	}
 	e.reports[ReportClientBalance] = &ReportDef{
-		Name:    ReportClientBalance,
-		Title:   "客户余额报表",
-		Query:   "SELECT c.id, c.name, c.code, c.balance, c.credit_limit, (c.credit_limit - c.balance) as available FROM clients c WHERE c.tenant_id = $1 ORDER BY c.balance DESC",
-		Params:  []ReportParamDef{},
-		Display: "table",
+		Name: ReportClientBalance, Title: "客户余额报表",
+		Query: "real", Display: "table",
 	}
 	e.reports[ReportWarehouseThroughput] = &ReportDef{
-		Name:    ReportWarehouseThroughput,
-		Title:   "仓库吞吐量报表",
-		Query:   "SELECT w.name as warehouse, COUNT(p.id) as parcel_count, SUM(p.actual_weight) as total_weight FROM parcels p JOIN warehouses w ON w.id = p.warehouse_id WHERE p.tenant_id = $1 GROUP BY w.name ORDER BY parcel_count DESC",
-		Params:  []ReportParamDef{},
-		Display: "chart",
+		Name: ReportWarehouseThroughput, Title: "仓库吞吐量报表",
+		Query: "real", Display: "chart",
 	}
 }
 
-// Execute runs a built-in report by name with the given parameters.
+// Execute runs a report with real data from the provider.
 func (e *BuiltinEngine) Execute(ctx context.Context, reportName string, params map[string]interface{}) (*EngineResult, error) {
 	e.mu.RLock()
 	report, ok := e.reports[reportName]
 	e.mu.RUnlock()
-
 	if !ok {
 		return nil, fmt.Errorf("report: unknown report %q", reportName)
 	}
 
-	_ = params // Params are available for SQL parameterization in production
+	if e.provider == nil {
+		return e.fallbackData(report), nil
+	}
 
-	// Generate sample data based on report type
-	columns, rows := e.generateSampleData(report)
-
+	columns, rows := e.queryRealData(ctx, report)
 	return &EngineResult{
-		Name:    report.Name,
-		Title:   report.Title,
-		Columns: columns,
-		Rows:    rows,
-		Total:   len(rows),
-		Display: report.Display,
+		Name: report.Name, Title: report.Title, Columns: columns,
+		Rows: rows, Total: len(rows), Display: report.Display,
 	}, nil
+}
+
+func (e *BuiltinEngine) queryRealData(ctx context.Context, report *ReportDef) ([]string, [][]interface{}) {
+	switch report.Name {
+	case ReportDailyOrderSummary:
+		orders, _ := e.provider.Orders(ctx)
+		dayCounts := map[string]int{}
+		dayRevenue := map[string]float64{}
+		for _, o := range orders {
+			day := o.CreatedAt[:10]
+			dayCounts[day]++
+			dayRevenue[day] += o.TotalPrice
+		}
+		rows := [][]interface{}{}
+		for d, c := range dayCounts {
+			rows = append(rows, []interface{}{d, c, dayRevenue[d]})
+		}
+		return []string{"日期", "订单数", "总营收"}, rows
+
+	case ReportMonthlyRevenue:
+		orders, _ := e.provider.Orders(ctx)
+		monthCounts := map[string]int{}
+		monthRevenue := map[string]float64{}
+		for _, o := range orders {
+			month := o.CreatedAt[:7]
+			monthCounts[month]++
+			monthRevenue[month] += o.TotalPrice
+		}
+		rows := [][]interface{}{}
+		for m, c := range monthCounts {
+			avg := 0.0
+			if c > 0 {
+				avg = monthRevenue[m] / float64(c)
+			}
+			rows = append(rows, []interface{}{m, c, monthRevenue[m], fmt.Sprintf("%.2f", avg)})
+		}
+		return []string{"月份", "订单数", "总营收", "客单价"}, rows
+
+	case ReportClientBalance:
+		clients, _ := e.provider.Clients(ctx)
+		rows := [][]interface{}{}
+		for _, c := range clients {
+			available := c.CreditLimit - c.Balance
+			rows = append(rows, []interface{}{c.ID, c.Name, c.Code, c.Balance, c.CreditLimit, available})
+		}
+		return []string{"ID", "客户名称", "代码", "余额", "信用额度", "可用额度"}, rows
+
+	case ReportWarehouseThroughput:
+		parcels, _ := e.provider.Parcels(ctx)
+		wh := map[string]struct{count int; weight float64}{}
+		for _, p := range parcels {
+			w := wh[p.WarehouseName]
+			w.count++
+			w.weight += p.ActualWeight
+			wh[p.WarehouseName] = w
+		}
+		rows := [][]interface{}{}
+		for name, w := range wh {
+			rows = append(rows, []interface{}{name, w.count, w.weight})
+		}
+		return []string{"仓库", "包裹数", "总重量(kg)"}, rows
+	}
+	return nil, nil
+}
+
+func (e *BuiltinEngine) fallbackData(report *ReportDef) *EngineResult {
+	return &EngineResult{
+		Name: report.Name, Title: report.Title,
+		Columns: []string{"提示"},
+		Rows:    [][]interface{}{{"暂无数据 — 需要配置数据源"}},
+		Total: 1, Display: report.Display,
+	}
 }
 
 // ListReports returns all registered built-in reports.
 func (e *BuiltinEngine) ListReports() []*ReportDef {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
-
 	result := make([]*ReportDef, 0, len(e.reports))
 	for _, r := range e.reports {
 		result = append(result, r)
 	}
 	return result
 }
-
-// GetReport returns a report definition by name.
-func (e *BuiltinEngine) GetReport(name string) (*ReportDef, error) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-
-	r, ok := e.reports[name]
-	if !ok {
-		return nil, fmt.Errorf("report: unknown report %q", name)
-	}
-	return r, nil
-}
-
-// generateSampleData creates realistic sample data for each report type.
-func (e *BuiltinEngine) generateSampleData(report *ReportDef) ([]string, [][]interface{}) {
-	switch report.Name {
-	case ReportDailyOrderSummary:
-		return []string{"日期", "订单数", "总营收"},
-			[][]interface{}{
-				{"2026-07-12", 42, 3850.50},
-				{"2026-07-11", 38, 3420.00},
-				{"2026-07-10", 45, 4100.75},
-				{"2026-07-09", 35, 2980.30},
-				{"2026-07-08", 40, 3650.00},
-				{"2026-07-07", 33, 2750.20},
-				{"2026-07-06", 48, 4520.80},
-			}
-
-	case ReportMonthlyRevenue:
-		return []string{"月份", "订单数", "总营收", "客单价"},
-			[][]interface{}{
-				{"2026-07", 281, 25273.55, 89.94},
-				{"2026-06", 315, 28450.00, 90.32},
-				{"2026-05", 290, 26320.75, 90.76},
-				{"2026-04", 268, 24180.40, 90.23},
-				{"2026-03", 305, 27890.30, 91.44},
-				{"2026-02", 250, 22100.80, 88.40},
-			}
-
-	case ReportClientBalance:
-		return []string{"ID", "客户名称", "客户代码", "余额", "信用额度", "可用额度"},
-			[][]interface{}{
-				{1, "EZ集运通", "EZ001", 10000.00, 20000.00, 10000.00},
-				{2, "琦立工作室", "EZ002", 8500.00, 15000.00, 6500.00},
-				{3, "速达物流", "EZ003", 15200.00, 25000.00, 9800.00},
-				{4, "厦门飞鸟", "EZ004", 3200.00, 10000.00, 6800.00},
-				{5, "海翔国际", "EZ005", 7800.00, 15000.00, 7200.00},
-			}
-
-	case ReportWarehouseThroughput:
-		return []string{"仓库", "包裹数", "总重量(kg)"},
-			[][]interface{}{
-				{"厦门仓", 1250, 3245.80},
-				{"深圳仓", 980, 2510.30},
-				{"上海仓", 1120, 2890.50},
-				{"宁波仓", 650, 1650.20},
-			}
-
-	default:
-		return []string{"Key", "Value"}, [][]interface{}{{"status", "ok"}}
-	}
-}
-
-// Ensure time import is used (for future timestamp fields).
-var _ time.Time

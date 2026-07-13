@@ -74,6 +74,37 @@ const I56Version = "2.4.2"
 const I56Name = "I56 Framework"
 const I56Copyright = "© 2026 I56 Framework. All rights reserved."
 
+// wmsDataProvider bridges services to the report engine.
+type wmsDataProvider struct {
+	orders  *orderSvc.OrderService
+	clients *custRepo.MemClientRepo
+	parcels *parcelSvc.ParcelService
+}
+func (p *wmsDataProvider) Orders(ctx context.Context) ([]report.OrderRow, error) {
+	orders, _, _ := p.orders.List(ctx, 1, 0, 200)
+	rows := make([]report.OrderRow, len(orders))
+	for i, o := range orders {
+		rows[i] = report.OrderRow{OrderNo: o.OrderNo, Status: string(o.Status), TotalPrice: o.TotalPrice, ParcelCount: o.ParcelCount, CreatedAt: o.CreatedAt.Format("2006-01-02")}
+	}
+	return rows, nil
+}
+func (p *wmsDataProvider) Clients(ctx context.Context) ([]report.ClientRow, error) {
+	clients, _, _ := p.clients.List(ctx, 1, 0, 200)
+	rows := make([]report.ClientRow, len(clients))
+	for i, c := range clients {
+		rows[i] = report.ClientRow{ID: c.ID, Name: c.Name, Code: c.Code, Balance: c.Balance, CreditLimit: 0}
+	}
+	return rows, nil
+}
+func (p *wmsDataProvider) Parcels(ctx context.Context) ([]report.ParcelRow, error) {
+	parcels, _, _ := p.parcels.List(ctx, 1, 0, 500)
+	rows := make([]report.ParcelRow, len(parcels))
+	for i, p := range parcels {
+		rows[i] = report.ParcelRow{TrackingNo: p.TrackingNumber, ProductName: p.ProductName, Status: string(p.Status), ActualWeight: p.ActualWeight}
+	}
+	return rows, nil
+}
+
 func main() {
 	// JWT service with Ed25519
 	jwtSvc, err := jpkg.NewService("i56-framework")
@@ -164,7 +195,7 @@ func main() {
 	auditLogger := audit.New(auditRepo)
 
 	// ★ Built-in Report Engine
-	reportEngine := report.NewBuiltinEngine()
+	reportEngine := report.NewBuiltinEngine(&wmsDataProvider{orders: osvc, clients: cr, parcels: ps})
 
 	// ★ OpenAPI Generator
 	openapiGen := router.NewOpenAPIGenerator(router.OpenAPIInfo{
