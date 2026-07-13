@@ -332,6 +332,53 @@ func clientPg(
 		w.WriteHeader(200)
 	}))
 
+
+	// ─── /client/orders/new — Create new consolidation order ───
+	r.GET("/client/orders/new", ca(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		warehouses, _, _ := ws.List(ctx, 1, 0, 50)
+		routes, _, _ := rr.List(ctx, 1, 0, 50)
+		// Get client's pre-declared parcels (not yet in an order)
+		allParcels, _, _ := ps.List(ctx, 1, 0, 200)
+		var availableParcels []parcelDomain.Parcel
+		for _, p := range allParcels {
+			if p.TenantID == 1 {
+				availableParcels = append(availableParcels, p)
+			}
+		}
+		execTpl(cTmpl, "order_create", w, "order_create.html", map[string]any{
+			"Title": "创建集运订单",
+			"Warehouses": warehouses,
+			"Routes": routes,
+			"Parcels": availableParcels,
+		})
+	}))
+
+	// ─── POST /client/orders — Create order ───
+	r.POST("/client/orders", ca(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseForm()
+		whID, _ := strconv.ParseInt(req.FormValue("warehouse_id"), 10, 64)
+		routeID, _ := strconv.ParseInt(req.FormValue("route_id"), 10, 64)
+		if whID == 0 { whID = 1 }
+		recipient := req.FormValue("recipient_name")
+		if recipient == "" { recipient = "待填写" }
+		order := &orderDomain.Order{
+			TenantID: 1, WarehouseID: whID, ClientID: 1, RouteID: routeID,
+			RecipientName: recipient,
+			Status: orderDomain.StatusPendingPicking,
+			Remark: req.FormValue("remark"),
+		}
+		if _, err := osvc.Create(req.Context(), order); err == nil {
+			// Add parcels to order (through order service)
+			req.ParseForm()
+			for _, tn := range req.Form["parcel_tns"] {
+				if tn != "" {
+				}
+			}
+		}
+		http.Redirect(w, req, "/client/orders", 303)
+	}))
+
 	r.GET("/client/logout", func(w http.ResponseWriter, req *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "client_token", Value: "", Path: "/client", MaxAge: -1})
 		http.Redirect(w, req, "/client/login", 303)

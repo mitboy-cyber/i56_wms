@@ -1,0 +1,35 @@
+{{template "client_base.html" .}}
+{{define "title"}}创建集运订单{{end}}
+{{define "content"}}
+<div class="i56-page-header">
+  <h1 class="i56-page-title">📋 创建集运订单</h1>
+</div>
+<div class="i56-card">
+  <div class="i56-card-body">
+    <form method="POST" action="/client/orders">
+      <div class="i56-form-group">
+        <label class="i56-form-label">收件人</label>
+        <input type="text" name="recipient_name" class="i56-form-input" required placeholder="收件人姓名">
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">仓库</label>
+        <select name="warehouse_id" class="i56-form-input">
+          {{range .Warehouses}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+        </select>
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">运输线路</label>
+        <select name="route_id" class="i56-form-input">
+          <option value="0">暂不选择</option>
+          {{range .Routes}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+        </select>
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">备注</label>
+        <textarea name="remark" class="i56-form-input" rows="2" placeholder="可选"></textarea>
+      </div>
+      <button type="submit" class="i56-btn i56-btn-primary">提交订单</button>
+    </form>
+  </div>
+</div>
+{{end}}
