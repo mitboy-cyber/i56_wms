@@ -34,7 +34,9 @@ import (
 	whDomain "github.com/i56/modules/warehouse/domain"
 	whRepo "github.com/i56/modules/warehouse/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
-)
+
+	"io"
+	"os")
 
 // Mutable in-memory data stores for admin CRUD pages that use hardcoded seed data.
 var pdaWOTemplatesMu sync.Mutex
@@ -488,12 +490,49 @@ func Register(
 			common.FormField("宽(cm)", "width", "", "宽度"),
 			common.FormField("高(cm)", "height", "", "高度"),
 			common.FormField("申报价值(¥)", "declared_value", "", "申报价值"),
+			common.FormImageUpload("物品图片"),
 			common.FormField("物品图片URL", "image_url", "", "https://... (可选,逗号分隔)"),
 			common.FormField("库位", "location_code", "", "库位编码"),
 			common.FormField("备注", "remark", "", "备注信息"),
 			common.FormFooter(), common.ModalEnd(),
 		))
 	}))
+
+	// ─── POST /admin/upload/parcel-image — Real file upload ───
+	r.POST("/admin/upload/parcel-image", a(func(w http.ResponseWriter, req *http.Request) {
+		if err := req.ParseMultipartForm(10 << 20); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"error":"file too large"}`))
+			return
+		}
+		files := req.MultipartForm.File["images"]
+		if len(files) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"error":"no file"}`))
+			return
+		}
+		os.MkdirAll("./static/uploads", 0755)
+		var urls []string
+		for _, fh := range files {
+			f, _ := fh.Open()
+			if f == nil { continue }
+			defer f.Close()
+			ext := ""
+			if i := strings.LastIndex(fh.Filename, "."); i != -1 {
+				ext = fh.Filename[i:]
+			}
+			name := fmt.Sprintf("./static/uploads/%d%s", time.Now().UnixNano(), ext)
+			dst, err := os.Create(name)
+			if err == nil {
+				io.Copy(dst, f)
+				dst.Close()
+				urls = append(urls, "/"+name)
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"ok": true, "urls": urls})
+	}))
+
 	r.POST("/admin/parcels/save", a(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		wgt, _ := strconv.ParseFloat(req.FormValue("actual_weight"), 64)
@@ -514,9 +553,10 @@ func Register(
 				cargoType = "general"
 			}
 		}
-		imageURLs := strings.Split(req.FormValue("image_url"), ","); for i := range imageURLs { imageURLs[i] = strings.TrimSpace(imageURLs[i]) }
+		imageURLs := strings.Split(req.FormValue("uploaded_urls"), ",")
+		for i := range imageURLs { imageURLs[i] = strings.TrimSpace(imageURLs[i]) }
 		if len(imageURLs) == 1 && imageURLs[0] == "" { imageURLs = nil }
-		p := &parcelDomain.Parcel{TenantID: tenant, WarehouseID: 1, ClientID: 1, ImageURLs: imageURLs, TrackingNumber: req.FormValue("tracking_number"), ProductName: productName, ParcelName: productName, ActualWeight: wgt, Length: l, Width: wi, Height: hi, LocationCode: req.FormValue("location_code"), Status: parcelDomain.StatusPreDeclared, CourierCode: "SF", CargoType: cargoType}
+		p := &parcelDomain.Parcel{TenantID: tenant, ImageURLs: imageURLs, WarehouseID: 1, ClientID: 1, TrackingNumber: req.FormValue("tracking_number"), ProductName: productName, ParcelName: productName, ActualWeight: wgt, Length: l, Width: wi, Height: hi, LocationCode: req.FormValue("location_code"), Status: parcelDomain.StatusPreDeclared, CourierCode: "SF", CargoType: cargoType}
 		if _, err := ps.PreDeclare(req.Context(), p); err == nil {
 			events.PublishParcelCreated(p.ID, p.TrackingNumber, p.WarehouseID, p.ClientID, p.ProductName)
 		}

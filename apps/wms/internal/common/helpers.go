@@ -358,3 +358,40 @@ func (rc *RenderCtx) NewGenericList() GenericListFunc {
 		rc.Exec(rc.Tmpl, "generic_list", w, "generic_list.html", data)
 	}
 }
+
+// FormImageUpload renders a file input for image upload.
+// Files are auto-uploaded via JS fetch to /admin/upload/parcel-image.
+// URLs are stored in a hidden field "uploaded_urls" for form submission.
+func FormImageUpload(label string) string {
+	return fmt.Sprintf(`<div class="form-group">
+		<label class="form-label">%s</label>
+		<input type="file" accept="image/*" multiple
+			style="display:block;font-size:12px;margin-bottom:4px"
+			onchange="i56UploadImages(this)" />
+		<div class="i56-preview-row" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px"></div>
+		<input type="hidden" name="uploaded_urls" value="" />
+	</div>
+	<script>
+	if(!window._i56UploadInit){
+		window._i56UploadInit=true;
+		async function i56UploadImages(el){
+			var files=el.files;if(!files.length)return;
+			var fd=new FormData();
+			for(var f of files)fd.append("images",f);
+			var r=await fetch("/admin/upload/parcel-image",{method:"POST",body:fd});
+			var d=await r.json();
+			if(d.ok&&d.urls){
+				var h=el.parentElement.querySelector("[name=uploaded_urls]");
+				if(h.value)h.value+=",";
+				h.value+=d.urls.join(",");
+				var pv=el.parentElement.querySelector(".i56-preview-row");
+				for(var u of d.urls){
+					var img=document.createElement("img");
+					img.src=u;img.style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid #ddd";
+					pv.appendChild(img);
+				}
+			}
+		}
+	}
+	</script>`, label)
+}
