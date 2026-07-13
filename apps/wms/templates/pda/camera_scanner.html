@@ -1,0 +1,149 @@
+{{define "camera_scanner"}}
+<!-- I56 PDA Camera Scanner -->
+<style>
+.pda-camera-container{position:relative;width:100%;max-width:320px;margin:0 auto;border-radius:12px;overflow:hidden;background:#000}
+.pda-camera-container video{width:100%;display:block}
+.pda-camera-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.pda-scan-frame{width:200px;height:80px;border:2px solid #10B981;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,0.45);animation:pda-scan-pulse 2s infinite}
+@keyframes pda-scan-pulse{0%,100%{border-color:#10B981}50%{border-color:#34D399}}
+.pda-camera-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--pda-brand);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin:8px 4px}
+.pda-camera-btn.stop{background:var(--pda-danger)}
+.pda-camera-btn:hover{opacity:0.9}
+.pda-scan-result{text-align:center;padding:8px;font-size:13px;margin-top:8px;border-radius:6px;font-weight:600}
+.pda-scan-result.success{background:rgba(16,185,129,0.1);color:#10B981}
+.pda-scan-result.error{background:rgba(239,68,68,0.1);color:#EF4444}
+</style>
+
+<div id="pda-camera-scanner" style="display:none;margin-bottom:12px">
+  <div class="pda-camera-container">
+    <video id="pda-camera-video" autoplay playsinline></video>
+    <div class="pda-camera-overlay">
+      <div class="pda-scan-frame"></div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:8px">
+    <button class="pda-camera-btn stop" onclick="PDA_Scanner.stop()">📷 关闭摄像头</button>
+  </div>
+  <div id="pda-scan-result" class="pda-scan-result" style="display:none"></div>
+</div>
+
+<div style="text-align:center;margin-bottom:8px">
+  <button id="pda-camera-launch" class="pda-camera-btn" onclick="PDA_Scanner.start()" style="width:100%;max-width:320px">
+    📷 打开摄像头扫码
+  </button>
+</div>
+
+<script>
+var PDA_Scanner = {
+  _stream: null,
+  _active: false,
+  _detector: null,
+  _interval: null,
+  
+  async start() {
+    var launch = document.getElementById('pda-camera-launch');
+    var container = document.getElementById('pda-camera-scanner');
+    var video = document.getElementById('pda-camera-video');
+    var result = document.getElementById('pda-scan-result');
+    
+    // Check BarcodeDetector support
+    if ('BarcodeDetector' in window) {
+      this._detector = new BarcodeDetector({formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'qr_code']});
+    } else {
+      result.style.display = 'block';
+      result.className = 'pda-scan-result error';
+      result.textContent = '当前浏览器不支持扫码，请手动输入';
+      return;
+    }
+    
+    try {
+      this._stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}});
+      video.srcObject = this._stream;
+      container.style.display = 'block';
+      launch.style.display = 'none';
+      result.style.display = 'none';
+      this._active = true;
+      
+      // Start scanning loop
+      this._interval = setInterval(this._scan.bind(this), 200);
+    } catch(e) {
+      result.style.display = 'block';
+      result.className = 'pda-scan-result error';
+      result.textContent = '无法访问摄像头: ' + (e.message || '权限被拒');
+    }
+  },
+  
+  async _scan() {
+    if (!this._active || !this._detector) return;
+    var video = document.getElementById('pda-camera-video');
+    var result = document.getElementById('pda-scan-result');
+    try {
+      var codes = await this._detector.detect(video);
+      if (codes.length > 0) {
+        var value = codes[0].rawValue.trim();
+        this.stop();
+        result.style.display = 'block';
+        result.className = 'pda-scan-result success';
+        result.textContent = '✅ 扫描成功: ' + value;
+        this._onScan(value);
+      }
+    } catch(e) {}
+  },
+  
+  _onScan(value) {
+    var inp = document.querySelector('input[name="scan"], #scan-input');
+    if (inp) {
+      inp.value = value;
+      // Auto-submit the scan form
+      var form = document.querySelector('#scan-form');
+      if (form) {
+        form.dispatchEvent(new Event('submit'));
+      } else {
+        // Navigate with scan param
+        var path = window.location.pathname;
+        if (path.indexOf('?') > -1) {
+          var base = path.split('?')[0];
+          window.location.href = base + '?scan=' + encodeURIComponent(value);
+        } else {
+          window.location.href = path + '?scan=' + encodeURIComponent(value);
+        }
+      }
+    }
+  },
+  
+  stop() {
+    this._active = false;
+    if (this._interval) { clearInterval(this._interval); this._interval = null; }
+    if (this._stream) { this._stream.getTracks().forEach(function(t){t.stop()}); this._stream = null; }
+    var video = document.getElementById('pda-camera-video');
+    if (video) video.srcObject = null;
+    document.getElementById('pda-camera-scanner').style.display = 'none';
+    var launch = document.getElementById('pda-camera-launch');
+    if (launch) launch.style.display = 'block';
+  }
+};
+
+// Handle scan form submissions
+document.addEventListener('DOMContentLoaded', function() {
+  var scanForm = document.querySelector('#scan-form');
+  if (scanForm) {
+    scanForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var inp = this.querySelector('input[name="scan"]');
+      if (!inp || !inp.value.trim()) return;
+      var val = inp.value.trim();
+      inp.disabled = true;
+      inp.value = '';
+      // Navigate to scan handler
+      var path = window.location.pathname;
+      if (path.indexOf('?') > -1) {
+        var base = path.split('?')[0];
+        window.location.href = base + '?scan=' + encodeURIComponent(val);
+      } else {
+        window.location.href = path + '?scan=' + encodeURIComponent(val);
+      }
+    });
+  }
+});
+</script>
+{{end}}
