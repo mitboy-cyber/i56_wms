@@ -1,3 +1,10 @@
+
+/* ── Modal Helper ── */
+function closeI56Modal() {
+  var mc = document.getElementById('modal-container');
+  if (mc) { mc.style.display = 'none'; mc.innerHTML = ''; }
+}
+
 /**
  * I56 Table Component — BFT56 Interaction Patterns
  * All features work client-side without Go backend changes.
