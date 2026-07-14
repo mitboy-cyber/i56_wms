@@ -317,12 +317,12 @@ func Register(
 		}
 		rows := make([][]string, len(whs))
 		for i := range whs {
-			rows[i] = []string{whs[i].Name, whs[i].Code, whs[i].Address, whs[i].Contact, whs[i].Phone,
+			rows[i] = []string{fmt.Sprintf("%d", whs[i].ID), whs[i].Name, whs[i].Code, whs[i].Address, whs[i].Contact, whs[i].Phone,
 				fmt.Sprintf("%d件", whParcelCount[whs[i].ID]), common.StatusLabelText(whs[i].IsActive)}
 		}
 		rc.Exec(rc.Tmpl, "wms_warehouses", w, "warehouses.html", map[string]any{
 			"Page": "warehouses", "Title": "仓库列表", "Total": int(total),
-			"Columns":    []string{"仓库", "编码", "地址", "联系人", "电话", "包裹数", "状态"},
+			"Columns":    []string{"id", "仓库", "编码", "地址", "联系人", "电话", "包裹数", "状态"},
 			"Rows":       rows,
 			"HasActions": true, "AddURL": "/admin/warehouses/add-form",
 		})
