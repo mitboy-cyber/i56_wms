@@ -533,6 +533,22 @@ func Register(
 		json.NewEncoder(w).Encode(map[string]any{"ok": true, "urls": urls})
 	}))
 
+	// ─── DELETE handlers ───
+	r.POST("/admin/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
+		id := req.URL.Query().Get("delete")
+		if id == "" { http.Error(w, "missing id", 400); return }
+		idVal, _ := strconv.ParseInt(id, 10, 64)
+		wr.Delete(req.Context(), 1, idVal)
+		w.Header().Set("HX-Refresh", "true"); w.WriteHeader(200)
+	}))
+	r.POST("/admin/parcels", a(func(w http.ResponseWriter, req *http.Request) {
+		id := req.URL.Query().Get("delete")
+		if id == "" { http.Error(w, "missing id", 400); return }
+		idVal, _ := strconv.ParseInt(id, 10, 64)
+		pr.Delete(req.Context(), 1, idVal)
+		w.Header().Set("HX-Refresh", "true"); w.WriteHeader(200)
+	}))
+
 	r.POST("/admin/parcels/save", a(func(w http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		wgt, _ := strconv.ParseFloat(req.FormValue("actual_weight"), 64)

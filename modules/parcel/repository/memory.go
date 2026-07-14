@@ -81,3 +81,10 @@ func filterAndPaginate(m map[int64]*domain.Parcel, fn func(*domain.Parcel) bool,
 }
 
 var _ ParcelRepository = (*MemParcelRepo)(nil)
+
+func (r *MemParcelRepo) Delete(ctx context.Context, tenantID, id int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.parcels, id)
+	return nil
+}

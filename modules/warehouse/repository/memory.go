@@ -69,3 +69,10 @@ func (r *MemWarehouseRepo) Update(ctx context.Context, tenantID, id int64, w *do
 }
 
 var _ WarehouseRepository = (*MemWarehouseRepo)(nil)
+
+func (r *MemWarehouseRepo) Delete(ctx context.Context, tenantID, id int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.warehouses, id)
+	return nil
+}
