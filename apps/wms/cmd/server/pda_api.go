@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/i56/framework/core/router"
+	orderRepo "github.com/i56/modules/order/repository"
+	parcelRepo "github.com/i56/modules/parcel/repository"
 	pdaRepo "github.com/i56/modules/pda/repository"
 	pdaSvc "github.com/i56/modules/pda/service"
 )
@@ -13,8 +15,10 @@ func registerPDAJSONAPI(
 	r *router.Router,
 	pdaR *pdaRepo.MemPDARepo,
 	ops *pdaSvc.PDAOperations,
+	pr *parcelRepo.MemParcelRepo,
+	or *orderRepo.MemOrderRepo,
 ) {
-	svc := pdaSvc.NewPDAService(pdaR, nil, nil)
+	svc := pdaSvc.NewPDAService(pdaR, pr, or)
 
 	pdaAuth := func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {

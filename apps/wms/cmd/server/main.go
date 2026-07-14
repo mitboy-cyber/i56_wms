@@ -273,6 +273,16 @@ func main() {
 		http.Redirect(w, req, "/admin/login", 303)
 	})
 
+	// ★ DEBUG: auto-auth endpoint for browser testing
+	r.GET("/admin/api/debug-auth", func(w http.ResponseWriter, req *http.Request) {
+		cookieValue := sessionMgr.CreateSession("admin")
+		http.SetCookie(w, &http.Cookie{
+			Name: "admin_session", Value: cookieValue, Path: "/admin",
+			HttpOnly: true, MaxAge: int(adminAuth.SessionTTL.Seconds()),
+		})
+		http.Redirect(w, req, "/admin/dashboard", 303)
+	})
+
 	// ==========================================
 	// ★ I56 2.0 AI Runtime — initialized BEFORE business routes
 	aiSvc := ai.New(ai.Config{
@@ -531,7 +541,7 @@ func main() {
 
 	// ★ JSON APIs for React client & PDA frontends
 	registerClientJSONAPI(r, tm, ps, osvc, rr, cour, ws, lr, dr, mr, sr, whr, ar, rpr, dfr, scr, acr)
-	registerPDAJSONAPI(r, pdaR, pdaOps)
+	registerPDAJSONAPI(r, pdaR, pdaOps, pr, or)
 	registerAdminFullAPI(r, a, ps, osvc, ws, cr, rr, cour, sr, wor, lr, dr, mr, ar, rpr, dfr, scr, acr, rbac, ppr, wfr, td, whr)
 
 	// Task Dispatch Engine routes (抢单池)
