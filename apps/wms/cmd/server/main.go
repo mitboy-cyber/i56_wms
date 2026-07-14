@@ -143,6 +143,7 @@ func main() {
 	dfr := pricingRepo.NewMemDeliveryFeeRepo()
 	scr := pricingRepo.NewMemSurchargeRepo()
 	acr := pricingRepo.NewMemApiCredentialRepo()
+	seedAll() // Admin seed data for all modules
 
 	// ★ PostgreSQL repos (when connected, services use these for real data)
 	var ppg *parcelRepo.PgParcelRepo
