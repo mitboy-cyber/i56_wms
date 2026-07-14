@@ -18,7 +18,9 @@ import (
 	rbacRepo "github.com/i56/modules/rbac/repository"
 	sysDomain "github.com/i56/modules/system/domain"
 	sysRepo "github.com/i56/modules/system/repository"
-)
+
+	"os"
+	"io")
 
 // Register SYS admin routes (~12 list pages + CRUD).
 func Register(
@@ -1000,20 +1002,35 @@ func Register(
 		rc.Exec(rc.Tmpl, "brand_settings", w, "brand_settings.html", map[string]any{
 			"Title": "品牌与外观设置", "Breadcrumb": "系统 / 品牌设置",
 			"CompanyName":  sysCfg.GetSettingByKey(1, "company_name"),
+			"LogoURL":      sysCfg.GetSettingByKey(1, "logo_url"),
 			"CompanyLogo":  sysCfg.GetSettingByKey(1, "company_logo"),
 			"FooterText":   sysCfg.GetSettingByKey(1, "footer_text"),
 			"PrimaryColor": sysCfg.GetSettingByKey(1, "primary_color"),
 		})
 	}))
 	r.POST("/admin/system/brand-settings", a(func(w http.ResponseWriter, req *http.Request) {
-		req.ParseForm()
+		req.ParseMultipartForm(10 << 20)
 		sysCfg.SaveSetting(1, "company_name", req.FormValue("company_name"), "string", "branding", "公司名称")
 		sysCfg.SaveSetting(1, "company_logo", req.FormValue("company_logo"), "string", "branding", "Logo文字")
 		sysCfg.SaveSetting(1, "footer_text", req.FormValue("footer_text"), "string", "branding", "页脚版权")
 		sysCfg.SaveSetting(1, "primary_color", req.FormValue("primary_color"), "string", "branding", "主题色")
+		// Handle logo file upload
+		if file, header, err := req.FormFile("logo_file"); err == nil {
+			defer file.Close()
+			os.MkdirAll("./static/uploads", 0755)
+			ext := ""
+			if i := strings.LastIndex(header.Filename, "."); i != -1 { ext = header.Filename[i:] }
+			name := fmt.Sprintf("./static/uploads/logo_%d%s", time.Now().UnixNano(), ext)
+			if dst, err := os.Create(name); err == nil {
+				io.Copy(dst, file)
+				dst.Close()
+				sysCfg.SaveSetting(1, "logo_url", "/"+name, "string", "branding", "Logo图片路径")
+			}
+		}
 		rc.Exec(rc.Tmpl, "brand_settings", w, "brand_settings.html", map[string]any{
 			"Title": "品牌与外观设置", "Breadcrumb": "系统 / 品牌设置", "SuccessMsg": "品牌设置已保存",
 			"CompanyName":  sysCfg.GetSettingByKey(1, "company_name"),
+			"LogoURL":      sysCfg.GetSettingByKey(1, "logo_url"),
 			"CompanyLogo":  sysCfg.GetSettingByKey(1, "company_logo"),
 			"FooterText":   sysCfg.GetSettingByKey(1, "footer_text"),
 			"PrimaryColor": sysCfg.GetSettingByKey(1, "primary_color"),

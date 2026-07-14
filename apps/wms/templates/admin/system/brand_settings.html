@@ -12,7 +12,7 @@
 </div>
 {{end}}
 
-<form method="POST" action="/admin/system/brand-settings">
+<form method="POST" action="/admin/system/brand-settings" enctype="multipart/form-data">
 
 <div class="i56-card" style="margin-bottom:16px">
   <div class="i56-card-header">🏢 品牌信息</div>
@@ -23,8 +23,13 @@
         <input type="text" name="company_name" class="i56-form-input" value="{{.CompanyName}}" />
       </div>
       <div class="i56-form-group">
-        <label class="i56-form-label">Logo 文字</label>
+        <label class="i56-form-label">🏷️ Logo 文字</label>
         <input type="text" name="company_logo" class="i56-form-input" value="{{.CompanyLogo}}" />
+      </div>
+      <div class="i56-form-group">
+        <label class="i56-form-label">🖼️ Logo 图片上传</label>
+        <input type="file" name="logo_file" accept="image/*" class="i56-form-input" style="font-size:12px" />
+        {{if .LogoURL}}<img src="{{.LogoURL}}" style="max-height:40px;margin-top:4px;border-radius:4px" />{{end}}
       </div>
       <div class="i56-form-group">
         <label class="i56-form-label">主题色 (Primary Color)</label>
