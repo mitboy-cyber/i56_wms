@@ -598,6 +598,7 @@ func Register(
 			common.FormField("宽(cm)", "width", fmt.Sprintf("%.0f", p.Width), ""),
 			common.FormField("高(cm)", "height", fmt.Sprintf("%.0f", p.Height), ""),
 			common.FormField("申报价值(¥)", "declared_value", "", ""),
+			common.FormImageUpload("物品图片"),
 			common.FormField("库位", "location_code", p.LocationCode, ""),
 			common.FormField("备注", "remark", "", ""),
 			common.FormFooter(), common.ModalEnd(),
@@ -608,6 +609,10 @@ func Register(
 		id, _ := strconv.ParseInt(req.FormValue("id"), 10, 64)
 		p, _ := pr.GetByID(req.Context(), tenant, id)
 		if p != nil {
+			imageURLs := strings.Split(req.FormValue("uploaded_urls"), ",")
+			for i := range imageURLs { imageURLs[i] = strings.TrimSpace(imageURLs[i]) }
+			if len(imageURLs) == 1 && imageURLs[0] == "" { imageURLs = nil }
+			p.ImageURLs = imageURLs
 			wgt, _ := strconv.ParseFloat(req.FormValue("actual_weight"), 64)
 			l, _ := strconv.ParseFloat(req.FormValue("length"), 64)
 			wi, _ := strconv.ParseFloat(req.FormValue("width"), 64)
