@@ -49,10 +49,11 @@ func HtmlOK(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
 
-// Redirect sends an HTMX HX-Redirect response.
+// Redirect sends an HTMX HX-Location response.
+// HX-Location is preferred over HX-Redirect because it supports
+// target/swap, avoiding conflicts with form hx-target attributes.
 func Redirect(w http.ResponseWriter, url string) {
-	w.Header().Set("HX-Redirect", url)
-	w.WriteHeader(200)
+	w.Header().Set("HX-Location", `{"path":"`+url+`","target":"#main-content","swap":"innerHTML"}`)
 }
 
 // ===================================================================
