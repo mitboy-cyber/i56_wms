@@ -6,7 +6,7 @@ export default function ApiEZWayPage() {
     <GenericListPage
       title="EZWay API"
       queryKey={['admin-api-ezway']}
-      queryFn={() => client.get('/admin/api/api-ezway')}
+      queryFn={() => client.get('/admin/api/system/api-ezway')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

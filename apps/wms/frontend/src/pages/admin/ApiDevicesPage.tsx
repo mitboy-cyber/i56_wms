@@ -6,7 +6,7 @@ export default function ApiDevicesPage() {
     <GenericListPage
       title="设备API"
       queryKey={['admin-api-devices']}
-      queryFn={() => client.get('/admin/api/api-devices')}
+      queryFn={() => client.get('/admin/api/system/api-devices')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

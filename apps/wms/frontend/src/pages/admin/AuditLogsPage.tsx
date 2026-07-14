@@ -6,7 +6,7 @@ export default function AuditLogsPage() {
     <GenericListPage
       title="审计日志"
       queryKey={['admin-audit-logs']}
-      queryFn={() => client.get('/admin/api/audit-logs')}
+      queryFn={() => client.get('/admin/api/system/audit-logs')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'user', label: '操作人' },

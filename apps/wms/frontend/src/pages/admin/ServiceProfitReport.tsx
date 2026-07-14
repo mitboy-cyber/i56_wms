@@ -6,7 +6,7 @@ export default function ServiceProfitReport() {
     <GenericListPage
       title="服务利润报表"
       queryKey={['admin-service-profit']}
-      queryFn={() => client.get('/admin/api/service-profit')}
+      queryFn={() => client.get('/admin/api/report/service-profit')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'service_type', label: '服务类型' },

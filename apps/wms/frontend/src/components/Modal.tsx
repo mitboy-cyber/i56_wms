@@ -1,26 +1,26 @@
-import { useState } from "react"
-import { X } from "lucide-react"
+import type { ReactNode } from 'react';
 
 interface ModalProps {
-  open: boolean
-  onClose: () => void
-  title: string
-  children: React.ReactNode
-  footer?: React.ReactNode
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
 }
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
-  if (!open) return null
+export default function Modal({ open, title, onClose, children, footer }: ModalProps) {
+  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-lg mx-4 max-h-[85vh] overflow-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
         </div>
         <div className="px-6 py-4">{children}</div>
-        {footer && <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-2">{footer}</div>}
+        {footer && <div className="px-6 py-4 border-t border-gray-100">{footer}</div>}
       </div>
     </div>
-  )
+  );
 }

@@ -6,7 +6,7 @@ export default function AIChatPage() {
     <GenericListPage
       title="AI对话"
       queryKey={['admin-ai-chat']}
-      queryFn={() => client.get('/admin/api/ai-chat')}
+      queryFn={() => client.get('/admin/api/system/ai-chat')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'session_id', label: '会话ID' },

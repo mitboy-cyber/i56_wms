@@ -6,7 +6,7 @@ export default function AISettingsPage() {
     <GenericListPage
       title="AI设置"
       queryKey={['admin-ai-settings']}
-      queryFn={() => client.get('/admin/api/ai-settings')}
+      queryFn={() => client.get('/admin/api/system/ai-settings')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'key', label: '配置项' },

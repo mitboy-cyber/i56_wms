@@ -6,7 +6,7 @@ export default function BrandSettingsPage() {
     <GenericListPage
       title="品牌设置"
       queryKey={['admin-brand-settings']}
-      queryFn={() => client.get('/admin/api/brand-settings')}
+      queryFn={() => client.get('/admin/api/system/brand')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'key', label: '配置项' },

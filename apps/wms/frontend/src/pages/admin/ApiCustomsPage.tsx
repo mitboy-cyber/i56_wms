@@ -6,7 +6,7 @@ export default function ApiCustomsPage() {
     <GenericListPage
       title="报关API"
       queryKey={['admin-api-customs']}
-      queryFn={() => client.get('/admin/api/api-customs')}
+      queryFn={() => client.get('/admin/api/system/api-customs')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

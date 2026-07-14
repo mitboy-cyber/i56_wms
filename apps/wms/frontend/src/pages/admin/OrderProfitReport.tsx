@@ -6,7 +6,7 @@ export default function OrderProfitReport() {
     <GenericListPage
       title="订单利润报表"
       queryKey={['admin-order-profit']}
-      queryFn={() => client.get('/admin/api/order-profit')}
+      queryFn={() => client.get('/admin/api/report/order-profit')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'order_no', label: '订单号' },

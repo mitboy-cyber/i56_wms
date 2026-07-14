@@ -6,7 +6,7 @@ export default function ApiCouriersPage() {
     <GenericListPage
       title="快递API"
       queryKey={['admin-api-couriers']}
-      queryFn={() => client.get('/admin/api/api-couriers')}
+      queryFn={() => client.get('/admin/api/system/api-couriers')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

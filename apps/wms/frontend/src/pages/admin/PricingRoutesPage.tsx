@@ -6,7 +6,7 @@ export default function PricingRoutesPage() {
     <GenericListPage
       title="路线报价"
       queryKey={['admin-pricing-routes']}
-      queryFn={() => client.get('/admin/api/pricing-routes')}
+      queryFn={() => client.get('/admin/api/pricing/routes')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'origin', label: '起运地' },

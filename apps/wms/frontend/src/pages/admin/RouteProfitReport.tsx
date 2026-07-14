@@ -6,7 +6,7 @@ export default function RouteProfitReport() {
     <GenericListPage
       title="路线利润报表"
       queryKey={['admin-route-profit']}
-      queryFn={() => client.get('/admin/api/route-profit')}
+      queryFn={() => client.get('/admin/api/report/route-profit')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'route', label: '路线' },

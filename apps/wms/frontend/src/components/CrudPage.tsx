@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Table } from "@/components/Table"
-import { Modal } from "@/components/Modal"
+import Modal from "@/components/Modal"
 import { Button } from "@/components/Button"
 import { InputField, SelectField } from "@/components/Form"
 import { Plus, Pencil, Trash2, Search } from "lucide-react"

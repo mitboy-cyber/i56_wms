@@ -6,7 +6,7 @@ export default function SchedulerPage() {
     <GenericListPage
       title="定时任务"
       queryKey={['admin-scheduler']}
-      queryFn={() => client.get('/admin/api/scheduler')}
+      queryFn={() => client.get('/admin/api/system/scheduler')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'job_name', label: '任务名称' },

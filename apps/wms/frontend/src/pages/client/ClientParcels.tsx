@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import clientApi from '@/api/clientApi';
-import { Modal } from '@/components/Modal';
+import Modal from '@/components/Modal';
 
 export default function ClientParcels() {
   const qc = useQueryClient();

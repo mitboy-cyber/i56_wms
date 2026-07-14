@@ -6,7 +6,7 @@ export default function ClientProfitReport() {
     <GenericListPage
       title="客户利润报表"
       queryKey={['admin-client-profit']}
-      queryFn={() => client.get('/admin/api/client-profit')}
+      queryFn={() => client.get('/admin/api/report/client-profit')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'client_name', label: '客户' },

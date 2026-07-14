@@ -6,7 +6,7 @@ export default function ApiStoragePage() {
     <GenericListPage
       title="仓储API"
       queryKey={['admin-api-storage']}
-      queryFn={() => client.get('/admin/api/api-storage')}
+      queryFn={() => client.get('/admin/api/system/api-storage')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

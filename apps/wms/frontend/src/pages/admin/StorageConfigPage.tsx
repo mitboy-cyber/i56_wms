@@ -6,7 +6,7 @@ export default function StorageConfigPage() {
     <GenericListPage
       title="仓储配置"
       queryKey={['admin-storage-config']}
-      queryFn={() => client.get('/admin/api/storage-config')}
+      queryFn={() => client.get('/admin/api/storage')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'warehouse_name', label: '仓库' },

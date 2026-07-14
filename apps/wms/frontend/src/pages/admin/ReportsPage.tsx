@@ -6,7 +6,7 @@ export default function ReportsPage() {
     <GenericListPage
       title="报表管理"
       queryKey={['admin-reports']}
-      queryFn={() => client.get('/admin/api/reports')}
+      queryFn={() => client.get('/admin/api/system/reports')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

@@ -6,7 +6,7 @@ export default function SystemParamsPage() {
     <GenericListPage
       title="系统参数"
       queryKey={['admin-system-params']}
-      queryFn={() => client.get('/admin/api/system-params')}
+      queryFn={() => client.get('/admin/api/system/params')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'key', label: '参数键' },

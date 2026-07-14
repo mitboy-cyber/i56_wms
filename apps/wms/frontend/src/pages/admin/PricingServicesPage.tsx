@@ -6,7 +6,7 @@ export default function PricingServicesPage() {
     <GenericListPage
       title="服务报价"
       queryKey={['admin-pricing-services']}
-      queryFn={() => client.get('/admin/api/pricing-services')}
+      queryFn={() => client.get('/admin/api/pricing/services')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

@@ -6,7 +6,7 @@ export default function PricingSurchargesPage() {
     <GenericListPage
       title="附加费报价"
       queryKey={['admin-pricing-surcharges']}
-      queryFn={() => client.get('/admin/api/pricing-surcharges')}
+      queryFn={() => client.get('/admin/api/pricing/surcharges')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

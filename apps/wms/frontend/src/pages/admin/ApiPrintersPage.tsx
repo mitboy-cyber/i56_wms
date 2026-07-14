@@ -6,7 +6,7 @@ export default function ApiPrintersPage() {
     <GenericListPage
       title="打印机API"
       queryKey={['admin-api-printers']}
-      queryFn={() => client.get('/admin/api/api-printers')}
+      queryFn={() => client.get('/admin/api/system/api-printers')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },

@@ -6,7 +6,7 @@ export default function ApiNotificationsPage() {
     <GenericListPage
       title="通知API"
       queryKey={['admin-api-notifications']}
-      queryFn={() => client.get('/admin/api/api-notifications')}
+      queryFn={() => client.get('/admin/api/system/api-notifications')}
       columns={[
         { key: 'id', label: 'ID' },
         { key: 'name', label: '名称' },
