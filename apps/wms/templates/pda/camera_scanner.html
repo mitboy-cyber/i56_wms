@@ -115,8 +115,8 @@ var I56Scanner = {
     // Hide overlay
     document.getElementById('i56-scan-overlay').classList.remove('active');
 
-    // Focus scan input
-    var inputs = document.querySelectorAll('input[name="scan"], input.scan-input');
+    // Focus scan input — check both scan and location_barcode
+    var inputs = document.querySelectorAll('input[name="scan"], input.scan-input, input[name="location_barcode"], input#location-input');
     var targetInput = inputs.length > 0 ? inputs[inputs.length-1] : null;
 
     if (targetInput) {
