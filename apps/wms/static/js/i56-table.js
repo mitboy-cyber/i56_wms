@@ -36,9 +36,11 @@ function closeI56Modal() {
       modal.innerHTML = '<div class="modal-overlay"><div class="modal-content"><div class="modal-body" style="text-align:center;padding:40px"><p>⚡ 加载中...</p></div></div></div>';
       fetch(url).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function(html) {
         modal.innerHTML = html;
+        // ★ CRITICAL: htmx.process() so HTMX recognizes hx-post/hx-get attributes on dynamically inserted forms
+        var form = modal.querySelector('form');
+        if (form && typeof htmx !== 'undefined') { htmx.process(form); }
         // Add submit handler validation
         setTimeout(function() {
-          var form = modal.querySelector('form');
           if (form) {
             form.addEventListener('submit', function(e) {
               var required = form.querySelectorAll('[required]');
@@ -143,6 +145,8 @@ function closeI56Modal() {
       modal.innerHTML = '<div class="modal-overlay" onclick="closeI56Modal()"><div class="modal-content"><div class="modal-body" style="text-align:center;padding:40px"><div style="font-size:20px">⚡</div><p>加载中...</p></div></div></div>';
       fetch(url).then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }).then(function(html) {
         modal.innerHTML = html;
+        var form = modal.querySelector('form');
+        if (form && typeof htmx !== 'undefined') { htmx.process(form); }
       }).catch(function(e) {
         modal.innerHTML = '<div class="modal-overlay" onclick="closeI56Modal()"><div class="modal-content"><div class="modal-header"><span class="modal-title">错误</span><button class="modal-close" onclick="this.closest(\'div.modal-overlay\').remove()">&times;</button></div><div class="modal-body"><p>加载编辑表单失败: ' + e.message + '</p></div></div></div>';
       });
