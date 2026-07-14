@@ -8,12 +8,12 @@ export default function ClientMembersPage() {
       queryKey={['admin-client-members']}
       queryFn={() => client.get('/admin/api/client-members')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'username', label: '用户名' },
-        { key: 'role', label: '角色' },
-        { key: 'phone', label: '电话' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'client_id', label: 'Client Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'phone', label: 'Phone' },
+        { key: 'email', label: 'Email' },
+        { key: 'role', label: 'Role' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

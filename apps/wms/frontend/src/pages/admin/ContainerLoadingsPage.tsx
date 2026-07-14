@@ -8,12 +8,13 @@ export default function ContainerLoadingsPage() {
       queryKey={['admin-container-loadings']}
       queryFn={() => client.get('/admin/api/container-loadings')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'container_no', label: '箱号' },
-        { key: 'order_no', label: '订单号' },
-        { key: 'seal_no', label: '封条号' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'container_no', label: 'Container No' },
+        { key: 'vessel', label: 'Vessel' },
+        { key: 'port_from', label: 'Port From' },
+        { key: 'port_to', label: 'Port To' },
+        { key: 'parcel_count', label: 'Parcel Count' },
+        { key: 'loaded_at', label: 'Loaded At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

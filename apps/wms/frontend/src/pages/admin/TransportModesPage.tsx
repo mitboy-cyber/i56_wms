@@ -8,10 +8,9 @@ export default function TransportModesPage() {
       queryKey={['admin-transport-modes']}
       queryFn={() => client.get('/admin/api/transport-modes')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'code', label: '编码' },
-        { key: 'description', label: '描述' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'code', label: 'Code' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

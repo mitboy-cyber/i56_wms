@@ -8,11 +8,12 @@ export default function ApiDevicesPage() {
       queryKey={['admin-api-devices']}
       queryFn={() => client.get('/admin/api/system/api-devices')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'type', label: '类型' },
-        { key: 'serial_no', label: '序列号' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'provider', label: 'Provider' },
+        { key: 'endpoint', label: 'Endpoint' },
+        { key: 'api_key', label: 'Api Key' },
+        { key: 'status', label: 'Status' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

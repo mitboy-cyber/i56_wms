@@ -8,12 +8,12 @@ export default function WorkOrdersPage() {
       queryKey={['admin-work-orders']}
       queryFn={() => client.get('/admin/api/work-orders')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'wo_no', label: '工单号' },
-        { key: 'type', label: '类型' },
-        { key: 'assignee', label: '负责人' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'order_no', label: 'Order No' },
+        { key: 'type', label: 'Type' },
+        { key: 'status', label: 'Status' },
+        { key: 'assigned_to', label: 'Assigned To' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

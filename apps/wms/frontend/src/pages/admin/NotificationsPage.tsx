@@ -8,12 +8,13 @@ export default function NotificationsPage() {
       queryKey={['admin-notifications']}
       queryFn={() => client.get('/admin/api/notifications')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'title', label: '标题' },
-        { key: 'type', label: '类型' },
-        { key: 'recipient', label: '接收人' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'title', label: 'Title' },
+        { key: 'content', label: 'Content' },
+        { key: 'channel', label: 'Channel' },
+        { key: 'recipient', label: 'Recipient' },
+        { key: 'sent', label: 'Sent' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

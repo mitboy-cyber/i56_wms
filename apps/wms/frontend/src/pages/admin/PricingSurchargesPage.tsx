@@ -8,11 +8,11 @@ export default function PricingSurchargesPage() {
       queryKey={['admin-pricing-surcharges']}
       queryFn={() => client.get('/admin/api/pricing/surcharges')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'type', label: '类型' },
-        { key: 'amount', label: '金额' },
-        { key: 'applicable_to', label: '适用范围' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'amount', label: 'Amount' },
+        { key: 'applicable_to', label: 'Applicable To' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

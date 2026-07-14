@@ -8,11 +8,11 @@ export default function ReportsPage() {
       queryKey={['admin-reports']}
       queryFn={() => client.get('/admin/api/system/reports')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'type', label: '类型' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'status', label: 'Status' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

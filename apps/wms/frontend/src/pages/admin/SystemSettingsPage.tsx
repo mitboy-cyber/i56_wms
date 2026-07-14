@@ -7,7 +7,13 @@ export default function SystemSettingsPage() {
       title="系统设置"
       queryKey={['admin-SystemSettingsPage']}
       queryFn={() => client.get('/admin/api/system/settings')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'key', label: 'Key' },
+        { key: 'value', label: 'Value' },
+        { key: 'group', label: 'Group' },
+        { key: 'label', label: 'Label' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

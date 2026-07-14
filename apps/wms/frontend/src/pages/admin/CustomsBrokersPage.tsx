@@ -8,12 +8,11 @@ export default function CustomsBrokersPage() {
       queryKey={['admin-customs-brokers']}
       queryFn={() => client.get('/admin/api/customs-brokers')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'code', label: '编码' },
-        { key: 'contact', label: '联系人' },
-        { key: 'phone', label: '电话' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'license', label: 'License' },
+        { key: 'contact', label: 'Contact' },
+        { key: 'phone', label: 'Phone' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

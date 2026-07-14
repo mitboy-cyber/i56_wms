@@ -7,7 +7,11 @@ export default function ServiceTypesPage() {
       title="服务类型"
       queryKey={['admin-ServiceTypesPage']}
       queryFn={() => client.get('/admin/api/service-types')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'code', label: 'Code' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

@@ -8,12 +8,11 @@ export default function ServiceOrdersPage() {
       queryKey={['admin-service-orders']}
       queryFn={() => client.get('/admin/api/service-orders')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'order_no', label: '订单号' },
-        { key: 'service_type', label: '服务类型' },
-        { key: 'client_name', label: '客户' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'order_no', label: 'Order No' },
+        { key: 'type', label: 'Type' },
+        { key: 'status', label: 'Status' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

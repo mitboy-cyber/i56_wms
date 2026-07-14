@@ -8,11 +8,10 @@ export default function AIChatPage() {
       queryKey={['admin-ai-chat']}
       queryFn={() => client.get('/admin/api/system/ai-chat')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'session_id', label: '会话ID' },
-        { key: 'user', label: '用户' },
-        { key: 'message', label: '消息' },
-        { key: 'created_at', label: '时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'role', label: 'Role' },
+        { key: 'content', label: 'Content' },
+        { key: 'time', label: 'Time' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

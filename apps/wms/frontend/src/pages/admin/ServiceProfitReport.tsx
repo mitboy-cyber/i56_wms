@@ -8,11 +8,11 @@ export default function ServiceProfitReport() {
       queryKey={['admin-service-profit']}
       queryFn={() => client.get('/admin/api/report/service-profit')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'service_type', label: '服务类型' },
-        { key: 'revenue', label: '收入' },
-        { key: 'cost', label: '成本' },
-        { key: 'profit', label: '利润' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'status', label: 'Status' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

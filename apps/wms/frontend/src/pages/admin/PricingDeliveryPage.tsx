@@ -8,10 +8,11 @@ export default function PricingDeliveryPage() {
       queryKey={['admin-pricing-delivery']}
       queryFn={() => client.get('/admin/api/pricing/delivery')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'zone', label: '区域' },
-        { key: 'weight_range', label: '重量区间' },
-        { key: 'price', label: '价格' },
+        { key: 'id', label: 'Id' },
+        { key: 'carrier_name', label: 'Carrier Name' },
+        { key: 'route', label: 'Route' },
+        { key: 'delivery_zone', label: 'Delivery Zone' },
+        { key: 'price', label: 'Price' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

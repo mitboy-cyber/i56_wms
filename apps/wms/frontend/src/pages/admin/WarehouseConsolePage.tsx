@@ -8,11 +8,11 @@ export default function WarehouseConsolePage() {
       queryKey={['admin-warehouse-console']}
       queryFn={() => client.get('/admin/api/warehouse-console')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'warehouse', label: '仓库' },
-        { key: 'status', label: '状态' },
-        { key: 'devices', label: '设备数' },
-        { key: 'last_heartbeat', label: '最后心跳' },
+        { key: 'id', label: 'Id' },
+        { key: 'warehouse_id', label: 'Warehouse Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'machine', label: 'Machine' },
+        { key: 'status', label: 'Status' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

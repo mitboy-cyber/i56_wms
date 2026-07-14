@@ -8,12 +8,12 @@ export default function ClientRechargesPage() {
       queryKey={['admin-client-recharges']}
       queryFn={() => client.get('/admin/api/client-recharges')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'amount', label: '金额' },
-        { key: 'method', label: '充值方式' },
-        { key: 'status', label: '状态' },
-        { key: 'created_at', label: '充值时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'client_id', label: 'Client Id' },
+        { key: 'amount', label: 'Amount' },
+        { key: 'method', label: 'Method' },
+        { key: 'remark', label: 'Remark' },
+        { key: 'time', label: 'Time' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

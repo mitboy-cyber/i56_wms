@@ -7,7 +7,14 @@ export default function AiExceptionsPage() {
       title="AI异常"
       queryKey={['admin-AiExceptionsPage']}
       queryFn={() => client.get('/admin/api/ai-exceptions')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'parcel_id', label: 'Parcel Id' },
+        { key: 'reason', label: 'Reason' },
+        { key: 'confidence', label: 'Confidence' },
+        { key: 'reviewed', label: 'Reviewed' },
+        { key: 'created_at', label: 'Created At' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

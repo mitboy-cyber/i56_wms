@@ -7,7 +7,13 @@ export default function ExceptionReportsPage() {
       title="异常报告"
       queryKey={['admin-ExceptionReportsPage']}
       queryFn={() => client.get('/admin/api/exception-reports')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'type', label: 'Type' },
+        { key: 'count', label: 'Count' },
+        { key: 'period', label: 'Period' },
+        { key: 'created_at', label: 'Created At' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

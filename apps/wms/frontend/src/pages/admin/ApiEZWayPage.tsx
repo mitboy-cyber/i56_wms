@@ -8,11 +8,12 @@ export default function ApiEZWayPage() {
       queryKey={['admin-api-ezway']}
       queryFn={() => client.get('/admin/api/system/api-ezway')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'endpoint', label: '接口地址' },
-        { key: 'api_key', label: 'API Key' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'provider', label: 'Provider' },
+        { key: 'endpoint', label: 'Endpoint' },
+        { key: 'api_key', label: 'Api Key' },
+        { key: 'status', label: 'Status' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

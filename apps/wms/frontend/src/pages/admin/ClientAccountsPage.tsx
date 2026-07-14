@@ -8,11 +8,12 @@ export default function ClientAccountsPage() {
       queryKey={['admin-client-accounts']}
       queryFn={() => client.get('/admin/api/client-accounts')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'balance', label: '余额' },
-        { key: 'currency', label: '币种' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'username', label: 'Username' },
+        { key: 'real_name', label: 'Real Name' },
+        { key: 'email', label: 'Email' },
+        { key: 'balance', label: 'Balance' },
+        { key: 'status', label: 'Status' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

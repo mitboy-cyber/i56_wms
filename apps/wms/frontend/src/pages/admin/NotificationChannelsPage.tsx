@@ -7,7 +7,12 @@ export default function NotificationChannelsPage() {
       title="通知渠道"
       queryKey={['admin-NotificationChannelsPage']}
       queryFn={() => client.get('/admin/api/system/notification-channels')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'config', label: 'Config' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

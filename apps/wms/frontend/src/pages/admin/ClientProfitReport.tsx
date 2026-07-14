@@ -8,11 +8,11 @@ export default function ClientProfitReport() {
       queryKey={['admin-client-profit']}
       queryFn={() => client.get('/admin/api/report/client-profit')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'revenue', label: '收入' },
-        { key: 'cost', label: '成本' },
-        { key: 'profit', label: '利润' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'status', label: 'Status' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

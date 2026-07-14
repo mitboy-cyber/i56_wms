@@ -7,7 +7,12 @@ export default function PrintersPage() {
       title="打印机管理"
       queryKey={['admin-PrintersPage']}
       queryFn={() => client.get('/admin/api/printers')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'type', label: 'Type' },
+        { key: 'ip', label: 'Ip' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );

@@ -8,11 +8,12 @@ export default function CustomerDeclarantsPage() {
       queryKey={['admin-customer-declarants']}
       queryFn={() => client.get('/admin/api/customer-declarants')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'name', label: '姓名' },
-        { key: 'id_number', label: '证件号' },
-        { key: 'phone', label: '电话' },
+        { key: 'id', label: 'Id' },
+        { key: 'client_id', label: 'Client Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'id_number', label: 'Id Number' },
+        { key: 'phone', label: 'Phone' },
+        { key: 'country', label: 'Country' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

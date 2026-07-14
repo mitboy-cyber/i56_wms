@@ -8,12 +8,10 @@ export default function ShippingProvidersPage() {
       queryKey={['admin-shipping-providers']}
       queryFn={() => client.get('/admin/api/shipping-providers')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'code', label: '编码' },
-        { key: 'contact', label: '联系人' },
-        { key: 'phone', label: '电话' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'code', label: 'Code' },
+        { key: 'contact', label: 'Contact' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

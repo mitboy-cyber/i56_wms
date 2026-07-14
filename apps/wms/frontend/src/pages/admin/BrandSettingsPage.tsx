@@ -8,10 +8,10 @@ export default function BrandSettingsPage() {
       queryKey={['admin-brand-settings']}
       queryFn={() => client.get('/admin/api/system/brand')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'key', label: '配置项' },
-        { key: 'value', label: '配置值' },
-        { key: 'description', label: '描述' },
+        { key: 'id', label: 'Id' },
+        { key: 'key', label: 'Key' },
+        { key: 'value', label: 'Value' },
+        { key: 'group', label: 'Group' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

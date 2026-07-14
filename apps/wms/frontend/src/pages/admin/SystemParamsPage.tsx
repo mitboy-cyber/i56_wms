@@ -8,10 +8,11 @@ export default function SystemParamsPage() {
       queryKey={['admin-system-params']}
       queryFn={() => client.get('/admin/api/system/params')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'key', label: '参数键' },
-        { key: 'value', label: '参数值' },
-        { key: 'description', label: '描述' },
+        { key: 'id', label: 'Id' },
+        { key: 'key', label: 'Key' },
+        { key: 'value', label: 'Value' },
+        { key: 'group', label: 'Group' },
+        { key: 'label', label: 'Label' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

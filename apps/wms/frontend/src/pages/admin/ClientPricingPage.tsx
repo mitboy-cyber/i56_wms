@@ -8,11 +8,11 @@ export default function ClientPricingPage() {
       queryKey={['admin-client-pricing']}
       queryFn={() => client.get('/admin/api/client-pricing')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'route', label: '路线' },
-        { key: 'price', label: '价格' },
-        { key: 'effective_date', label: '生效日期' },
+        { key: 'id', label: 'Id' },
+        { key: 'client_id', label: 'Client Id' },
+        { key: 'route_id', label: 'Route Id' },
+        { key: 'price', label: 'Price' },
+        { key: 'discount', label: 'Discount' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

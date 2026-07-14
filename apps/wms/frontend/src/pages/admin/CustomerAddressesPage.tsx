@@ -8,12 +8,12 @@ export default function CustomerAddressesPage() {
       queryKey={['admin-customer-addresses']}
       queryFn={() => client.get('/admin/api/customer-addresses')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'address', label: '地址' },
-        { key: 'city', label: '城市' },
-        { key: 'country', label: '国家' },
-        { key: 'is_default', label: '默认' },
+        { key: 'id', label: 'Id' },
+        { key: 'recipient_name', label: 'Recipient Name' },
+        { key: 'phone', label: 'Phone' },
+        { key: 'city', label: 'City' },
+        { key: 'address', label: 'Address' },
+        { key: 'is_default', label: 'Is Default' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

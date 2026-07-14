@@ -8,11 +8,11 @@ export default function CustomsPointsPage() {
       queryKey={['admin-customs-points']}
       queryFn={() => client.get('/admin/api/customs-points')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'name', label: '名称' },
-        { key: 'code', label: '编码' },
-        { key: 'country', label: '国家' },
-        { key: 'port_type', label: '口岸类型' },
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'code', label: 'Code' },
+        { key: 'port', label: 'Port' },
+        { key: 'country', label: 'Country' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

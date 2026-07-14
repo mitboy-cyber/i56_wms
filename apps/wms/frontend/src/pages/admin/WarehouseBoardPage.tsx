@@ -8,11 +8,11 @@ export default function WarehouseBoardPage() {
       queryKey={['admin-warehouse-board']}
       queryFn={() => client.get('/admin/api/warehouse-board')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'warehouse', label: '仓库' },
-        { key: 'inbound', label: '入库' },
-        { key: 'outbound', label: '出库' },
-        { key: 'stock', label: '库存' },
+        { key: 'id', label: 'Id' },
+        { key: 'pending_receive', label: 'Pending Receive' },
+        { key: 'in_stock', label: 'In Stock' },
+        { key: 'picking', label: 'Picking' },
+        { key: 'outbound', label: 'Outbound' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

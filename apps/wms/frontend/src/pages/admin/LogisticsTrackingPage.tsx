@@ -8,12 +8,11 @@ export default function LogisticsTrackingPage() {
       queryKey={['admin-logistics-tracking']}
       queryFn={() => client.get('/admin/api/logistics-tracking')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'tracking_no', label: '运单号' },
-        { key: 'order_no', label: '订单号' },
-        { key: 'status', label: '状态' },
-        { key: 'location', label: '当前位置' },
-        { key: 'updated_at', label: '更新时间' },
+        { key: 'id', label: 'Id' },
+        { key: 'tracking_no', label: 'Tracking No' },
+        { key: 'location', label: 'Location' },
+        { key: 'status', label: 'Status' },
+        { key: 'updated_at', label: 'Updated At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

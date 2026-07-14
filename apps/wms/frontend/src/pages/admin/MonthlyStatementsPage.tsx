@@ -8,11 +8,13 @@ export default function MonthlyStatementsPage() {
       queryKey={['admin-monthly-statements']}
       queryFn={() => client.get('/admin/api/monthly-statements')}
       columns={[
-        { key: 'id', label: 'ID' },
-        { key: 'client_name', label: '客户' },
-        { key: 'period', label: '账期' },
-        { key: 'total_amount', label: '总金额' },
-        { key: 'status', label: '状态' },
+        { key: 'id', label: 'Id' },
+        { key: 'client_id', label: 'Client Id' },
+        { key: 'period', label: 'Period' },
+        { key: 'total', label: 'Total' },
+        { key: 'paid_amount', label: 'Paid Amount' },
+        { key: 'status', label: 'Status' },
+        { key: 'created_at', label: 'Created At' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />

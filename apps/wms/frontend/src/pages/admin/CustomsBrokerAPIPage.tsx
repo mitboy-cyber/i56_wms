@@ -7,7 +7,14 @@ export default function CustomsBrokerAPIPage() {
       title="报关API"
       queryKey={['admin-CustomsBrokerAPIPage']}
       queryFn={() => client.get('/admin/api/system/customs-broker-api')}
-      columns={[{ key: 'id', label: 'ID' }, { key: 'name', label: '名称' }]}
+      columns={[
+        { key: 'id', label: 'Id' },
+        { key: 'name', label: 'Name' },
+        { key: 'provider', label: 'Provider' },
+        { key: 'endpoint', label: 'Endpoint' },
+        { key: 'api_key', label: 'Api Key' },
+        { key: 'status', label: 'Status' },
+      ]}
       getRowId={(_, i) => String(i)}
     />
   );
