@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"os"
 	"os/signal"
@@ -508,6 +509,27 @@ func main() {
 	router.RegisterOpenAPIEndpoint(r, openapiGen)
 	registerSchedulerRoutes(r, sch, a, tmpl)
 	registerAuditRoutes(r, auditLogger, a, tmpl)
+
+	// ─── Generic Admin Delete (covers all modules) ───
+	r.POST("/admin/delete", a(func(w http.ResponseWriter, req *http.Request) {
+		page, idStr := req.URL.Query().Get("page"), req.URL.Query().Get("id")
+		if page == "" || idStr == "" { http.Error(w, "missing page or id", 400); return }
+		id, _ := strconv.ParseInt(idStr, 10, 64)
+		switch page {
+		case "warehouses": wr.Delete(req.Context(), 1, id)
+		case "parcels": pr.Delete(req.Context(), 1, id)
+		case "route-templates": rr.Delete(req.Context(), 1, id)
+		case "couriers": cour.Delete(req.Context(), idStr)
+		case "clients": cr.Delete(req.Context(), 1, id)
+		case "employees": rbac.DeleteUser(req.Context(), 1, id)
+		case "roles": rbac.DeleteRole(req.Context(), 1, id)
+		default:
+			http.Error(w, "unsupported page: "+page, 400); return
+		}
+		w.Header().Set("HX-Refresh", "true")
+		w.WriteHeader(200)
+	}))
+
 	registerReportRoutes(r, reportEngine, a, tmpl)
 	// Register some demo routes for OpenAPI documentation
 	registerOpenAPIDemoRoutes(r, openapiGen, a)

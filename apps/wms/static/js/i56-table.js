@@ -143,8 +143,7 @@
     deleteRow: function(btn) {
       var id = btn.getAttribute('data-id');
       if (confirm('确认删除 "' + id + '" ？此操作不可撤销。')) {
-        var base = '/admin/' + STATE.page;
-        fetch(base + '?delete=' + encodeURIComponent(id), { method: 'POST' })
+        fetch('/admin/delete?page=' + STATE.page + '&id=' + encodeURIComponent(id), { method: 'POST' })
           .then(function(r) {
             if (r.ok) window.location.reload();
             else alert('删除失败');
