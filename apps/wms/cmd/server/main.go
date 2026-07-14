@@ -531,6 +531,7 @@ func main() {
 	// ★ JSON APIs for React client & PDA frontends
 	registerClientJSONAPI(r, tm, ps, osvc, rr, cour, ws, lr, dr, mr, sr, whr, ar, rpr, dfr, scr, acr)
 	registerPDAJSONAPI(r, pdaR, pdaOps)
+	registerAdminFullAPI(r, a, ps, osvc, ws, cr, rr, cour, sr, wor, lr, dr, mr, ar, rpr, dfr, scr, acr, rbac)
 
 	// Task Dispatch Engine routes (抢单池)
 	registerTaskDispatchRoutes(r, td)

@@ -33,6 +33,82 @@ import ClientRoutePrices from '@/pages/client/ClientRoutePrices';
 import ClientDeliveryFees from '@/pages/client/ClientDeliveryFees';
 import ClientSurcharges from '@/pages/client/ClientSurcharges';
 import ClientWebhooks from '@/pages/client/ClientWebhooks';
+import ClientOrderNew from '@/pages/client/ClientOrderNew';
+import ClientOrderDetail from '@/pages/client/ClientOrderDetail';
+import ClientWeightDashboard from '@/pages/client/ClientWeightDashboard';
+
+// PDA pages
+import PDALogin from '@/pages/pda/PDALogin';
+import PDALayout from '@/pages/pda/PDALayout';
+import PDADashboard from '@/pages/pda/PDADashboard';
+import PDAReceive from '@/pages/pda/PDAReceive';
+import PDAWeigh from '@/pages/pda/PDAWeigh';
+import PDAPutaway from '@/pages/pda/PDAPutaway';
+import PDAPick from '@/pages/pda/PDAPick';
+import PDAPack from '@/pages/pda/PDAPack';
+import PDALoad from '@/pages/pda/PDALoad';
+import PDAException from '@/pages/pda/PDAException';
+import PDAQuery from '@/pages/pda/PDAQuery';
+import { usePDAAuth } from '@/stores/pdaAuth';
+
+// Admin full pages (dynamically imported)
+import { lazy, Suspense } from 'react';
+const Lazy = (imp: () => Promise<any>) => {
+  const Comp = lazy(imp);
+  return <Suspense fallback={<div className="p-8 text-gray-400">加载中...</div>}><Comp /></Suspense>;
+};
+
+// Generate all admin module routes from page registry
+const adminModuleRoutes = [
+  { path: 'orders', page: () => import('@/pages/admin/OrdersPage') },
+  { path: 'service-orders', page: () => import('@/pages/admin/ServiceOrdersPage') },
+  { path: 'work-orders', page: () => import('@/pages/admin/WorkOrdersPage') },
+  { path: 'route-templates', page: () => import('@/pages/admin/RouteTemplatesPage') },
+  { path: 'area-groups', page: () => import('@/pages/admin/AreaGroupsPage') },
+  { path: 'cargo-types', page: () => import('@/pages/admin/CargoTypesPage') },
+  { path: 'transport-modes', page: () => import('@/pages/admin/TransportModesPage') },
+  { path: 'container-loadings', page: () => import('@/pages/admin/ContainerLoadingsPage') },
+  { path: 'shipping-providers', page: () => import('@/pages/admin/ShippingProvidersPage') },
+  { path: 'customs-brokers', page: () => import('@/pages/admin/CustomsBrokersPage') },
+  { path: 'customs-points', page: () => import('@/pages/admin/CustomsPointsPage') },
+  { path: 'client-accounts', page: () => import('@/pages/admin/ClientAccountsPage') },
+  { path: 'client-members', page: () => import('@/pages/admin/ClientMembersPage') },
+  { path: 'client-recharges', page: () => import('@/pages/admin/ClientRechargesPage') },
+  { path: 'balance-logs', page: () => import('@/pages/admin/BalanceLogsPage') },
+  { path: 'client-pricing', page: () => import('@/pages/admin/ClientPricingPage') },
+  { path: 'pricing/routes', page: () => import('@/pages/admin/PricingRoutesPage') },
+  { path: 'pricing/delivery', page: () => import('@/pages/admin/PricingDeliveryPage') },
+  { path: 'pricing/surcharges', page: () => import('@/pages/admin/PricingSurchargesPage') },
+  { path: 'pricing/services', page: () => import('@/pages/admin/PricingServicesPage') },
+  { path: 'monthly-statements', page: () => import('@/pages/admin/MonthlyStatementsPage') },
+  { path: 'customer-addresses', page: () => import('@/pages/admin/CustomerAddressesPage') },
+  { path: 'customer-declarants', page: () => import('@/pages/admin/CustomerDeclarantsPage') },
+  { path: 'notifications', page: () => import('@/pages/admin/NotificationsPage') },
+  { path: 'print-templates', page: () => import('@/pages/admin/PrintTemplatesPage') },
+  { path: 'storage', page: () => import('@/pages/admin/StorageConfigPage') },
+  { path: 'system/params', page: () => import('@/pages/admin/SystemParamsPage') },
+  { path: 'system/api-couriers', page: () => import('@/pages/admin/ApiCouriersPage') },
+  { path: 'system/api-customs', page: () => import('@/pages/admin/ApiCustomsPage') },
+  { path: 'system/api-notifications', page: () => import('@/pages/admin/ApiNotificationsPage') },
+  { path: 'system/api-printers', page: () => import('@/pages/admin/ApiPrintersPage') },
+  { path: 'system/api-storage', page: () => import('@/pages/admin/ApiStoragePage') },
+  { path: 'system/api-ezway', page: () => import('@/pages/admin/ApiEZWayPage') },
+  { path: 'system/api-devices', page: () => import('@/pages/admin/ApiDevicesPage') },
+  { path: 'system/brand', page: () => import('@/pages/admin/BrandSettingsPage') },
+  { path: 'system/ai-settings', page: () => import('@/pages/admin/AISettingsPage') },
+  { path: 'system/ai-chat', page: () => import('@/pages/admin/AIChatPage') },
+  { path: 'system/scheduler', page: () => import('@/pages/admin/SchedulerPage') },
+  { path: 'system/audit-logs', page: () => import('@/pages/admin/AuditLogsPage') },
+  { path: 'system/reports', page: () => import('@/pages/admin/ReportsPage') },
+  { path: 'report/order-profit', page: () => import('@/pages/admin/OrderProfitReport') },
+  { path: 'report/route-profit', page: () => import('@/pages/admin/RouteProfitReport') },
+  { path: 'report/client-profit', page: () => import('@/pages/admin/ClientProfitReport') },
+  { path: 'report/service-profit', page: () => import('@/pages/admin/ServiceProfitReport') },
+  { path: 'task-monitor', page: () => import('@/pages/admin/TaskMonitorPage') },
+  { path: 'warehouse-board', page: () => import('@/pages/admin/WarehouseBoardPage') },
+  { path: 'warehouse-console', page: () => import('@/pages/admin/WarehouseConsolePage') },
+  { path: 'logistics-tracking', page: () => import('@/pages/admin/LogisticsTrackingPage') },
+];
 
 const queryClient = new QueryClient();
 
@@ -43,6 +119,14 @@ function ProtectedAdmin() {
   if (loading) return <div className="flex items-center justify-center h-screen"><p className="text-gray-400">加载中...</p></div>;
   if (!user) return <Navigate to="/admin/login" replace />;
   return <DashboardLayout />;
+}
+
+function ProtectedPDA() {
+  const { operatorId, loading, checkSession } = usePDAAuth();
+  useEffect(() => { checkSession(); }, []);
+  if (loading) return <div className="flex items-center justify-center h-screen"><p className="text-gray-400">加载中...</p></div>;
+  if (!operatorId) return <Navigate to="/pda/login" replace />;
+  return <PDALayout />;
 }
 
 function ProtectedClient() {
@@ -71,6 +155,25 @@ export default function App() {
             <Route path="carriers" element={<CarriersPage />} />
             <Route path="couriers" element={<CouriersPage />} />
             <Route path="declarants" element={<DeclarantsPage />} />
+            {/* Auto-generated admin module routes */}
+            {adminModuleRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={Lazy(r.page)} />
+            ))}
+          </Route>
+
+          {/* PDA routes */}
+          <Route path="/pda/login" element={<PDALogin />} />
+          <Route path="/pda" element={<ProtectedPDA />}>
+            <Route index element={<Navigate to="/pda/dashboard" replace />} />
+            <Route path="dashboard" element={<PDADashboard />} />
+            <Route path="receive" element={<PDAReceive />} />
+            <Route path="weigh" element={<PDAWeigh />} />
+            <Route path="putaway" element={<PDAPutaway />} />
+            <Route path="pick" element={<PDAPick />} />
+            <Route path="pack" element={<PDAPack />} />
+            <Route path="load" element={<PDALoad />} />
+            <Route path="exception" element={<PDAException />} />
+            <Route path="query" element={<PDAQuery />} />
           </Route>
 
           {/* Client routes */}
@@ -80,6 +183,8 @@ export default function App() {
             <Route path="dashboard" element={<ClientDashboard />} />
             <Route path="parcels" element={<ClientParcels />} />
             <Route path="orders" element={<ClientOrders />} />
+            <Route path="orders/new" element={<ClientOrderNew />} />
+            <Route path="orders/:id" element={<ClientOrderDetail />} />
             <Route path="ledger" element={<ClientLedger />} />
             <Route path="declarants" element={<ClientDeclarants />} />
             <Route path="members" element={<ClientMembers />} />
@@ -92,6 +197,7 @@ export default function App() {
             <Route path="delivery-fees" element={<ClientDeliveryFees />} />
             <Route path="surcharges" element={<ClientSurcharges />} />
             <Route path="webhooks" element={<ClientWebhooks />} />
+            <Route path="weight-dashboard" element={<ClientWeightDashboard />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
