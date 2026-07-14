@@ -108,6 +108,24 @@ const adminModuleRoutes = [
   { path: 'warehouse-board', page: () => import('@/pages/admin/WarehouseBoardPage') },
   { path: 'warehouse-console', page: () => import('@/pages/admin/WarehouseConsolePage') },
   { path: 'logistics-tracking', page: () => import('@/pages/admin/LogisticsTrackingPage') },
+  // Cross-reference restored: old routes previously missing
+  { path: 'ai-exceptions', page: () => import('@/pages/admin/AiExceptionsPage') },
+  { path: 'client-permissions', page: () => import('@/pages/admin/ClientPermissionsPage') },
+  { path: 'exception-reports', page: () => import('@/pages/admin/ExceptionReportsPage') },
+  { path: 'exceptions', page: () => import('@/pages/admin/ExceptionsPage') },
+  { path: 'inbound-board', page: () => import('@/pages/admin/InboundBoardPage') },
+  { path: 'pda-sessions', page: () => import('@/pages/admin/PDASessionsPage') },
+  { path: 'pda-workorder-templates', page: () => import('@/pages/admin/PDAWorkorderTemplatesPage') },
+  { path: 'printers', page: () => import('@/pages/admin/PrintersPage') },
+  { path: 'service-templates', page: () => import('@/pages/admin/ServiceTemplatesPage') },
+  { path: 'service-types', page: () => import('@/pages/admin/ServiceTypesPage') },
+  { path: 'service-workorders', page: () => import('@/pages/admin/ServiceWorkordersPage') },
+  { path: 'client-ledgers', page: () => import('@/pages/admin/ClientLedgersPage') },
+  { path: 'system/customs-broker-api', page: () => import('@/pages/admin/CustomsBrokerAPIPage') },
+  { path: 'system/logistics-api', page: () => import('@/pages/admin/LogisticsAPIPage') },
+  { path: 'system/notification-channels', page: () => import('@/pages/admin/NotificationChannelsPage') },
+  { path: 'system/printers', page: () => import('@/pages/admin/PrintersSystemPage') },
+  { path: 'system/settings', page: () => import('@/pages/admin/SystemSettingsPage') },
 ];
 
 const queryClient = new QueryClient();
