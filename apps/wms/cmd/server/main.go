@@ -129,11 +129,11 @@ func main() {
 	lr := custRepo.NewMemLedgerRepo()
 	sr := psRepo.NewMemServiceRepo()
 	wor := woRepo.NewMemWorkOrderRepo()
-	_ = wfRepo.NewMemWorkflowRepo() // workflow repo reserved for future use
 	ppr := printRepo.NewMemPrintRepo()
 	whr := whRepo2.NewMemWebhookRepo()
 	_ = sysRepo.NewMemSystemConfigRepo() // system config repo reserved for future use
 	rbac := rbacRepoPkg.NewMemRBACRepo()
+	wfr := wfRepo.NewMemWorkflowRepo()
 	rpt := reportDomain.NewReportService()
 	pdaR := pdaRepo.NewMemPDARepo(); _ = pdaR
 	dr := custRepo.NewMemDeclarantRepo()
@@ -531,7 +531,7 @@ func main() {
 	// ★ JSON APIs for React client & PDA frontends
 	registerClientJSONAPI(r, tm, ps, osvc, rr, cour, ws, lr, dr, mr, sr, whr, ar, rpr, dfr, scr, acr)
 	registerPDAJSONAPI(r, pdaR, pdaOps)
-	registerAdminFullAPI(r, a, ps, osvc, ws, cr, rr, cour, sr, wor, lr, dr, mr, ar, rpr, dfr, scr, acr, rbac)
+	registerAdminFullAPI(r, a, ps, osvc, ws, cr, rr, cour, sr, wor, lr, dr, mr, ar, rpr, dfr, scr, acr, rbac, ppr, wfr, td, whr)
 
 	// Task Dispatch Engine routes (抢单池)
 	registerTaskDispatchRoutes(r, td)
