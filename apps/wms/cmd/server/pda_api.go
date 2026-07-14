@@ -1,66 +1,155 @@
 package main
-import ("encoding/json";"fmt";"net/http";"github.com/i56/framework/core/response";"github.com/i56/framework/core/router";"github.com/i56/framework/core/sse";pdaSvc "github.com/i56/modules/pda/service")
 
-func registerPDAAPIRoutes(api *router.Router, ops *pdaSvc.PDAOperations, hub *sse.Hub) {
-	api.GET("/pda/logs", func(w http.ResponseWriter, r *http.Request) { response.JSON(w, 200, ops.RecentLogs(20)) })
-	api.GET("/pda/warehouse-stats", func(w http.ResponseWriter, r *http.Request) { response.JSON(w, 200, ops.WarehouseStats(r.Context())) })
-	api.GET("/pda/pending-receive", func(w http.ResponseWriter, r *http.Request) { response.JSON(w, 200, ops.PendingReceive(r.Context())) })
-	api.GET("/pda/pending-putaway", func(w http.ResponseWriter, r *http.Request) { response.JSON(w, 200, ops.PendingPutAway(r.Context())) })
-	api.GET("/pda/pending-pick", func(w http.ResponseWriter, r *http.Request) { response.JSON(w, 200, ops.PendingPick(r.Context())) })
+import (
+	"encoding/json"
+	"net/http"
 
-	api.POST("/pda/receive", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ TrackingNo string `json:"tracking_no"`; Weight,Length,Width,Height float64; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		p,err:=ops.Receive(r.Context(),req.OpID,req.TrackingNo,req.Weight,req.Length,req.Width,req.Height,"")
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"parcel_received",Data:fmt.Sprintf(`{"tracking_no":"%s"}`,req.TrackingNo)})
-		response.JSON(w,200,map[string]any{"parcel":p,"message":"收货成功"})
+	"github.com/i56/framework/core/router"
+	pdaRepo "github.com/i56/modules/pda/repository"
+	pdaSvc "github.com/i56/modules/pda/service"
+)
+
+func registerPDAJSONAPI(
+	r *router.Router,
+	pdaR *pdaRepo.MemPDARepo,
+	ops *pdaSvc.PDAOperations,
+) {
+	svc := pdaSvc.NewPDAService(pdaR, nil, nil)
+
+	pdaAuth := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			ck, err := r.Cookie("pda_token")
+			if err != nil || pdaR.ValidateSession(ck.Value) == nil {
+				apiJSON(w, 401, map[string]string{"error": "unauthorized"})
+				return
+			}
+			next(w, r)
+		}
+	}
+
+	getOpID := func(r *http.Request) int64 {
+		ck, _ := r.Cookie("pda_token")
+		if ck == nil { return 1 }
+		sess := pdaR.ValidateSession(ck.Value)
+		if sess == nil { return 1 }
+		return sess.OperatorID
+	}
+
+	getToken := func(r *http.Request) string {
+		ck, _ := r.Cookie("pda_token")
+		if ck == nil { return "" }
+		return ck.Value
+	}
+
+	r.POST("/pda/api/login", func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Code, PIN string }
+		json.NewDecoder(req.Body).Decode(&body)
+		sess, err := svc.Login(body.Code, body.PIN, req.RemoteAddr)
+		if err != nil { apiJSON(w, 401, map[string]string{"error": err.Error()}); return }
+		http.SetCookie(w, &http.Cookie{Name: "pda_token", Value: sess.Token, Path: "/pda", HttpOnly: true, MaxAge: 43200})
+		apiJSON(w, 200, map[string]interface{}{"token": sess.Token, "operator_id": sess.OperatorID})
 	})
-	api.POST("/pda/putaway", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ TrackingNo,LocationBarcode string `json:"tracking_no" json:"location_barcode"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		pr,err:=ops.PutAway(r.Context(),req.OpID,req.TrackingNo,req.LocationBarcode)
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"parcel_stored",Data:fmt.Sprintf(`{"tracking_no":"%s"}`,req.TrackingNo)})
-		response.JSON(w,200,map[string]any{"parcel":pr,"message":"上架成功"})
+
+	r.POST("/pda/api/logout", func(w http.ResponseWriter, req *http.Request) {
+		if ck, err := req.Cookie("pda_token"); err == nil { pdaR.Logout(ck.Value) }
+		http.SetCookie(w, &http.Cookie{Name: "pda_token", Value: "", Path: "/pda", MaxAge: -1})
+		apiJSON(w, 200, map[string]string{"ok": "logged_out"})
 	})
-	api.POST("/pda/pick", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ OrderNo string `json:"order_no"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		o,parcels,err:=ops.Pick(r.Context(),req.OpID,req.OrderNo)
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"order_picked",Data:fmt.Sprintf(`{"order_no":"%s","parcels":%d}`,req.OrderNo,len(parcels))})
-		response.JSON(w,200,map[string]any{"order":o,"message":"拣货完成"})
-	})
-	api.POST("/pda/pack", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ OrderNo string `json:"order_no"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		o,err:=ops.Pack(r.Context(),req.OpID,req.OrderNo)
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"order_packed",Data:fmt.Sprintf(`{"order_no":"%s"}`,req.OrderNo)})
-		response.JSON(w,200,map[string]any{"order":o,"message":"打包完成"})
-	})
-	api.POST("/pda/load", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ ContainerNo,OrderNo string `json:"container_no" json:"order_no"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		err:=ops.LoadContainer(r.Context(),req.OpID,req.ContainerNo,req.OrderNo)
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"container_loaded",Data:fmt.Sprintf(`{"container":"%s"}`,req.ContainerNo)})
-		response.JSON(w,200,map[string]any{"message":"装柜完成"})
-	})
-	api.POST("/pda/exception", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ TrackingNo,Reason string `json:"tracking_no" json:"reason"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		err:=ops.MarkException(r.Context(),req.OpID,req.TrackingNo,req.Reason)
-		if err!=nil{response.Error(w,err);return}
-		hub.Publish("inbound",sse.Event{Type:"parcel_abnormal",Data:fmt.Sprintf(`{"tracking_no":"%s"}`,req.TrackingNo)})
-		response.JSON(w,200,map[string]any{"message":"标记异常"})
-	})
-	api.POST("/pda/send-outbound", func(w http.ResponseWriter, r *http.Request) {
-		var req struct{ OrderNo string `json:"order_no"`; OpID int64 `json:"operator_id"` }
-		json.NewDecoder(r.Body).Decode(&req); if req.OpID==0{req.OpID=1}
-		err:=ops.SendToOutbound(r.Context(),req.OpID,req.OrderNo)
-		if err!=nil{response.Error(w,err);return}
-		response.JSON(w,200,map[string]any{"message":"已送出货区"})
-	})
+
+	r.GET("/pda/api/me", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, map[string]int64{"operator_id": getOpID(req)})
+	}))
+
+	r.GET("/pda/api/dashboard", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		stats := ops.WarehouseStats(req.Context())
+		logs := ops.RecentLogs(10)
+		apiJSON(w, 200, map[string]interface{}{"stats": stats, "recent_logs": logs, "op_id": getOpID(req)})
+	}))
+
+	r.POST("/pda/api/receive", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct {
+			Scan            string  `json:"scan"`
+			Weight          float64 `json:"weight"`
+			Length          float64 `json:"length"`
+			Width           float64 `json:"width"`
+			Height          float64 `json:"height"`
+		}
+		json.NewDecoder(req.Body).Decode(&body)
+		token := getToken(req)
+		p, err := svc.ReceiveParcel(req.Context(), token, body.Scan, body.Weight, body.Length, body.Width, body.Height)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, p)
+	}))
+
+	r.POST("/pda/api/weigh", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Scan string; Weight float64 }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		p, actual, err := ops.Weigh(req.Context(), opID, body.Scan, body.Weight)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, map[string]interface{}{"parcel": p, "actual_weight": actual})
+	}))
+
+	r.POST("/pda/api/putaway", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Scan, LocationBarcode string }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		p, err := ops.PutAway(req.Context(), opID, body.Scan, body.LocationBarcode)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, p)
+	}))
+
+	r.POST("/pda/api/pick", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ OrderNo string }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		order, parcels, err := ops.Pick(req.Context(), opID, body.OrderNo)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, map[string]interface{}{"order": order, "parcels": parcels})
+	}))
+
+	r.POST("/pda/api/pack", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ OrderNo string }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		order, err := ops.Pack(req.Context(), opID, body.OrderNo)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, order)
+	}))
+
+	r.POST("/pda/api/load", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ ContainerNo, OrderNo string }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		err := ops.LoadContainer(req.Context(), opID, body.ContainerNo, body.OrderNo)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, map[string]string{"ok": "loaded"})
+	}))
+
+	r.POST("/pda/api/exception", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Scan, Reason string }
+		json.NewDecoder(req.Body).Decode(&body)
+		opID := getOpID(req)
+		err := ops.MarkException(req.Context(), opID, body.Scan, body.Reason)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, map[string]string{"ok": "marked"})
+	}))
+
+	r.POST("/pda/api/query", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		var body struct{ Scan string }
+		json.NewDecoder(req.Body).Decode(&body)
+		token := getToken(req)
+		p, logs, err := svc.QueryParcel(req.Context(), token, body.Scan)
+		if err != nil { apiJSON(w, 400, map[string]string{"error": err.Error()}); return }
+		apiJSON(w, 200, map[string]interface{}{"parcel": p, "logs": logs})
+	}))
+
+	r.GET("/pda/api/pending", pdaAuth(func(w http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		apiJSON(w, 200, map[string]interface{}{
+			"receive": ops.PendingReceive(ctx), "putaway": ops.PendingPutAway(ctx),
+			"weigh": ops.PendingWeigh(ctx), "pick": ops.PendingPick(ctx),
+			"pack": ops.PendingPack(ctx),
+		})
+	}))
 }

@@ -57,16 +57,9 @@ import (
 
 	// I56 module route packages
 	"github.com/i56/i56-apps/i56-wms/internal/ai/core"
-	"github.com/i56/i56-apps/i56-wms/internal/common"
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
-	crmroute "github.com/i56/i56-apps/i56-wms/internal/crmroute"
-	finroute "github.com/i56/i56-apps/i56-wms/internal/finroute"
-	omsroute "github.com/i56/i56-apps/i56-wms/internal/omsroute"
-	sysroute "github.com/i56/i56-apps/i56-wms/internal/sysroute"
-	tmsroute "github.com/i56/i56-apps/i56-wms/internal/tmsroute"
 	"github.com/i56/i56-apps/i56-wms/internal/ai/classifier"
 	"github.com/i56/i56-apps/i56-wms/internal/ai/translate"
-	wmsroute "github.com/i56/i56-apps/i56-wms/internal/wmsroute"
 )
 
 
@@ -136,10 +129,10 @@ func main() {
 	lr := custRepo.NewMemLedgerRepo()
 	sr := psRepo.NewMemServiceRepo()
 	wor := woRepo.NewMemWorkOrderRepo()
-	wfr := wfRepo.NewMemWorkflowRepo()
+	_ = wfRepo.NewMemWorkflowRepo() // workflow repo reserved for future use
 	ppr := printRepo.NewMemPrintRepo()
 	whr := whRepo2.NewMemWebhookRepo()
-	sysCfg := sysRepo.NewMemSystemConfigRepo()
+	_ = sysRepo.NewMemSystemConfigRepo() // system config repo reserved for future use
 	rbac := rbacRepoPkg.NewMemRBACRepo()
 	rpt := reportDomain.NewReportService()
 	pdaR := pdaRepo.NewMemPDARepo(); _ = pdaR
@@ -494,15 +487,9 @@ func main() {
 	})
 
 	a := adminOnly(sessionMgr)
-	rc := &common.RenderCtx{Tmpl: tmpl, Exec: common.DefaultExecTpl}
 
-	// ★ Module-split route registrations (replaces adminPages + registerBFT56Modules + adminSystemPages + registerAdminCRUD)
-	omsroute.Register(r, a, rc, osvc, ws, rr, cr, mr, sr, lr, ps, hub)
-	wmsroute.Register(r, a, rc, ps, ws, osvc, cr, rr, wor, sr, wfr, rbac, pr, wr, cargoClassifier)
-	tmsroute.Register(r, a, rc, rr, cour)
-	crmroute.Register(r, a, rc, cr, mr, lr, ar, dr, rpr)
-	finroute.Register(r, a, rc, rpt)
-	sysroute.Register(r, a, rc, sysCfg, rbac)
+	// ★ All admin HTML routes removed — React SPA handles admin UI via JSON API
+	// omsroute, wmsroute, tmsroute, crmroute, finroute, sysroute registrations removed.
 
 	// ★ JSON API for React frontend
 	registerJSONAPI(r, a, rbac, sessionMgr)
@@ -540,6 +527,10 @@ func main() {
 	// PDA API routes (direct on main router)
 	registerPDAAPIRoutesOnRouter(r, pdaOps)
 	registerPDARoutes(r, pdaR, pdaOps, hub)
+
+	// ★ JSON APIs for React client & PDA frontends
+	registerClientJSONAPI(r, tm, ps, osvc, rr, cour, ws, lr, dr, mr, sr, whr, ar, rpr, dfr, scr, acr)
+	registerPDAJSONAPI(r, pdaR, pdaOps)
 
 	// Task Dispatch Engine routes (抢单池)
 	registerTaskDispatchRoutes(r, td)

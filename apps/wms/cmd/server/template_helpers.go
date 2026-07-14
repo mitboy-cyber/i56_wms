@@ -8,6 +8,29 @@ import (
 	orderDomain "github.com/i56/modules/order/domain"
 )
 
+// bftParcelStatus maps parcel status strings to Chinese display labels.
+// Moved from admin_modules.go (deleted as part of HTMX cleanup).
+func bftParcelStatus(s string) string {
+	switch s {
+	case "pre_declared": return "预报"
+	case "received": return "已入仓"
+	case "weighed": return "已称重"
+	case "stored": return "已上架"
+	case "picked": return "待打包"
+	case "packed": return "已打包"
+	case "outbound": return "已出货"
+	case "container_area": return "待装柜"
+	case "loaded": return "已装柜"
+	case "shipped": return "已出货"
+	case "customs": return "清关中"
+	case "delivering": return "派送中"
+	case "delivered": return "已签收"
+	case "abnormal": return "已拒收"
+	case "returned": return "已退货"
+	default: return s
+	}
+}
+
 // execTpl executes a pre-loaded template by key and name.
 func execTpl(tmpl map[string]*template.Template, key string, w http.ResponseWriter, name string, data any) {
 	tmpl[key].ExecuteTemplate(w, name, data)
