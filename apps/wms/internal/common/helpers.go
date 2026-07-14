@@ -87,7 +87,7 @@ func FormSelect(label, name, value string, opts ...[2]string) string {
 
 // FormSave opens a form element with HTMX post action.
 func FormSave(action string) string {
-	return fmt.Sprintf(`<form hx-post="%s" hx-swap="none">`, action)
+	return fmt.Sprintf(`<form hx-post="%s" hx-target="#main-content" hx-swap="innerHTML">`, action)
 }
 
 // FormFooter closes a modal form with cancel and submit buttons.

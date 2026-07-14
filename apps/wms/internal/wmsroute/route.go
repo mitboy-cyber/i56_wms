@@ -478,7 +478,7 @@ func Register(
 		common.HtmlOK(w)
 		fmt.Fprint(w, formBuild(
 			common.ModalStart("新增包裹"),
-			common.FormSave("/admin/parcels/save"),
+			common.FormSave("/admin/parcels/save") + ` hx-target="#main-content" hx-swap="innerHTML" `,
 			common.FormField("快递单号", "tracking_number", "", "快递单号"),
 			common.FormField("品名", "product_name", "", "商品名称"),
 			common.FormSelect("货类", "cargo_type", "general",
@@ -585,7 +585,7 @@ func Register(
 		common.HtmlOK(w)
 		fmt.Fprint(w, formBuild(
 			common.ModalStart("编辑包裹"),
-			common.FormSave("/admin/parcels/update"),
+			common.FormSave("/admin/parcels/update") + ` hx-target="#main-content" hx-swap="innerHTML" `,
 			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, p.ID),
 			common.FormField("快递单号", "tracking_number", p.TrackingNumber, ""),
 			common.FormField("品名", "product_name", p.ProductName, ""),
@@ -640,7 +640,7 @@ func Register(
 		common.HtmlOK(w)
 		fmt.Fprint(w, formBuild(
 			common.ModalStart("新增仓库"),
-			common.FormSave("/admin/warehouses/save"),
+			common.FormSave("/admin/warehouses/save") + ` hx-target="#main-content" hx-swap="innerHTML" `,
 			common.FormField("仓库名", "name", "", "仓库名称"),
 			common.FormField("编码", "code", "", "仓库编码"),
 			common.FormField("地址", "address", "", "详细地址"),
@@ -661,7 +661,7 @@ func Register(
 		common.HtmlOK(w)
 		fmt.Fprint(w, formBuild(
 			common.ModalStart("编辑仓库"),
-			common.FormSave("/admin/warehouses/update"),
+			common.FormSave("/admin/warehouses/update") + ` hx-target="#main-content" hx-swap="innerHTML" `,
 			fmt.Sprintf(`<input type="hidden" name="id" value="%d">`, wh.ID),
 			common.FormField("仓库名", "name", wh.Name, ""),
 			common.FormField("编码", "code", wh.Code, ""),
