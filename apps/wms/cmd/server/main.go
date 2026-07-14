@@ -504,6 +504,9 @@ func main() {
 	finroute.Register(r, a, rc, rpt)
 	sysroute.Register(r, a, rc, sysCfg, rbac)
 
+	// ★ JSON API for React frontend
+	registerJSONAPI(r, a, rbac, sessionMgr)
+
 	// ★ New Framework v2.3 routes
 	// OpenAPI spec endpoint
 	router.RegisterOpenAPIEndpoint(r, openapiGen)
