@@ -9,7 +9,7 @@ import ClientLayout from '@/layouts/ClientLayout';
 // Admin pages
 import { LoginPage } from '@/pages/Login';
 import { DashboardPage } from '@/pages/Dashboard';
-import EmployeesPage from '@/pages/admin/EmployeesPage';
+import { EmployeesPage } from '@/pages/Employees';
 import { WarehousesPage } from '@/pages/Warehouses';
 import ClientsPage from '@/pages/admin/ClientsPage';
 import RolesPage from '@/pages/admin/RolesPage';
