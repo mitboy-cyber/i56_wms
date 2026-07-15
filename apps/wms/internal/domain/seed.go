@@ -46,9 +46,9 @@ func SeedAll() {
 
 	// ── 工单流程 ──
 	WorkflowProcessStore.Seed(
-		WorkflowProcess{1, "厦门仓", "WP-RECEIVE", "入库流程", "收货 → 核重 → 上架 → 入库完成", "包裹签收", true, now.Add(-30*24*time.Hour)},
-		WorkflowProcess{2, "厦门仓", "WP-BIG-DELIVER", "出库流程-含送打包(大仓)", "拣货 → 送打包 → 打包 → 核重 → 送出库 → 送装柜 → 装柜", "订单创建", true, now.Add(-25*24*time.Hour)},
-		WorkflowProcess{3, "厦门仓", "WP-RETURN", "退件处理流程", "签收 → 核验 → 入库 → 上架", "退件签收", true, now.Add(-15*24*time.Hour)},
+		WorkflowProcess{1, "厦门仓", "WP-RECEIVE", "入库流程", "收货→核重→上架→入库完成", "包裹签收", true, now.Add(-30*24*time.Hour)},
+		WorkflowProcess{2, "厦门仓", "WP-BIG-DELIVER", "出库流程(大仓)", "拣货→打包→核重→送出库→装柜", "订单创建", true, now.Add(-25*24*time.Hour)},
+		WorkflowProcess{3, "厦门仓", "WP-RETURN", "退件处理流程", "签收→核验→入库→上架", "退件签收", true, now.Add(-15*24*time.Hour)},
 	)
 
 	// ── 集装柜 ──
@@ -57,9 +57,12 @@ func SeedAll() {
 		Container{2, "厦门仓", "CNTR-20260714-002", "海快-新竹物流", "已发运", 4800, now.Add(-2*24*time.Hour)},
 	)
 
-	// ── 客户 ──
+	// ── 客户 (BFT56: 4 clients, EZ集运通 main) ──
 	ClientAccountStore.Seed(
 		ClientAccount{1, "plat_ezjyt", "EZ集运通", "vip@ezjyt.com", 7670.40, "active"},
+		ClientAccount{2, "plat_i56", "i56", "admin@i56.com", 0, "active"},
+		ClientAccount{3, "plat_fb", "付呗", "fb@test.com", 0, "active"},
+		ClientAccount{4, "plat_hgez", "嗨购EZ", "ez@test.com", 0, "active"},
 	)
 	ClientMemberStore.Seed(
 		ClientMember{1, 1, "蕭惠昱", "0912345678", "A123456789", "EZ集运通", now.Add(-30*24*time.Hour)},
@@ -68,8 +71,8 @@ func SeedAll() {
 
 	// ── 客户充值 ──
 	ClientRechargeStore.Seed(
-		ClientRecharge{1, 1, 5000, "银行转账", "银行转账充值", now.Add(-30 * 24 * time.Hour)},
-		ClientRecharge{2, 1, 3000, "微信支付", "微信充值", now.Add(-20 * 24 * time.Hour)},
+		ClientRecharge{1, 1, 5000, "银行转账", "银行转账充值", now.Add(-30*24*time.Hour)},
+		ClientRecharge{2, 1, 3000, "微信支付", "微信充值", now.Add(-20*24*time.Hour)},
 	)
 
 	// ── 余额日志 ──
@@ -104,35 +107,65 @@ func SeedAll() {
 		MonthlyStatement{2, 1, "2026-07", 12345.67, 0, "待结算", now},
 	)
 
-	// ── TMS ──
+	// ── TMS: 区域组 (BFT56: 6 regions) ──
 	AreaGroupStore.Seed(
-		AreaGroup{1, "台湾线", "TW", "台湾地区"},
+		AreaGroup{1, "台湾线", "TW", "台湾地区全境"},
+		AreaGroup{2, "离岛", "TW-OFF", "澎湖/金门/马祖"},
+		AreaGroup{3, "东部", "TW-E", "宜兰/花莲/台东"},
+		AreaGroup{4, "南部", "TW-S", "高雄/台南/屏东/嘉义"},
+		AreaGroup{5, "中部", "TW-C", "台中/彰化/南投/云林/苗栗"},
+		AreaGroup{6, "北部", "TW-N", "台北/新北/基隆/桃园/新竹"},
 	)
+	// ── 线路模板 (BFT56: 5 templates) ──
 	RouteTemplateStore.Seed(
-		RouteTemplate{1, "海快-新竹", "厦门", "台北", 1, 3},
+		RouteTemplate{1, "空运-台湾", "厦门", "台北", 1, 2},
+		RouteTemplate{2, "海快-台湾", "厦门", "台北", 1, 3},
+		RouteTemplate{3, "海运-台湾", "厦门", "台中", 1, 10},
+		RouteTemplate{4, "空运特货-台湾", "厦门", "桃园", 1, 3},
+		RouteTemplate{5, "商业海快-台湾", "厦门", "台北", 1, 5},
 	)
+	// ── 货物类型 (BFT56: key types) ──
 	CargoTypeStore.Seed(
 		CargoType{1, "普货", "GENERAL"},
 		CargoType{2, "特货", "SPECIAL"},
+		CargoType{3, "海快普货", "SEA_FAST"},
+		CargoType{4, "空运特货", "AIR_SPECIAL"},
+		CargoType{5, "食品", "FOOD"},
+		CargoType{6, "生活用品", "DAILY"},
+		CargoType{7, "文创用品", "STATIONERY"},
+		CargoType{8, "电子商品", "ELECTRONICS"},
+		CargoType{9, "化妆品", "COSMETICS"},
 	)
+	// ── 运输方式 ──
 	TransportModeStore.Seed(
 		TransportMode{1, "海运", "SEA"},
 		TransportMode{2, "空运", "AIR"},
+		TransportMode{3, "海快", "SEA_FAST"},
+		TransportMode{4, "空运特货", "AIR_SPECIAL"},
+		TransportMode{5, "商业海快", "BIZ_FAST"},
 	)
+	// ── 清关公司 ──
 	CustomsBrokerStore.Seed(
 		CustomsBroker{1, "顺达报关行", "XM-BK-001", "张经理", "0592-2222222"},
+		CustomsBroker{2, "德通实业", "XM-DT-001", "李经理", "0592-3333333"},
 	)
+	// ── 清关点 ──
 	CustomsPointStore.Seed(
 		CustomsPoint{1, "厦门海关", "CNXMN", "厦门", "中国"},
+		CustomsPoint{2, "台北海关", "TWTPE", "台北", "台湾"},
+		CustomsPoint{3, "台中海关", "TWTCG", "台中", "台湾"},
 	)
+	// ── 运输公司 ──
 	ShippingProviderStore.Seed(
 		ShippingProvider{1, "新竹物流", "HCT", "0920000001"},
+		ShippingProvider{2, "中远海运", "COSCO", "021-12345678"},
+		ShippingProvider{3, "万海航运", "WHL", "02-25679888"},
 	)
 
 	// ── 物流追踪 ──
 	LogisticsTrackingStore.Seed(
 		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", now},
-		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1 * 24 * time.Hour)},
+		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1*24*time.Hour)},
 	)
 	ContainerLoadingStore.Seed(
 		ContainerLoading{1, "CNTR-001", "厦门轮", "厦门", "台北", 450, now},
@@ -141,6 +174,7 @@ func SeedAll() {
 	// ── 通知 ──
 	NotificationStore.Seed(
 		Notification{1, "系统上线通知", "I56 WMS 系统正式上线运行", "system", "all", true, now},
+		Notification{2, "订单异常提醒", "订单20260715120525777938需人工审核", "alert", "admin", false, now},
 	)
 
 	// ── 定时任务 ──
@@ -189,14 +223,25 @@ func SeedAll() {
 		APIConfig{2, "圆通快递", "YTO", "https://api.yto.com", "sk-yto-test", "active"},
 	)
 
-	// ── 附加服务 ──
+	// ── 附加服务 (BFT56: 10 templates, 5 types) ──
 	ServiceTemplateStore.Seed(
 		ServiceTemplate{1, "标准加固", "PACKAGING", "气泡膜+纸箱加固", 15.00},
 		ServiceTemplate{2, "合并打包", "PACKAGING", "多件合并到一个包裹", 20.00},
+		ServiceTemplate{3, "打木箱", "PACKAGING", "打木箱加固(需重新入库)", 80.00},
+		ServiceTemplate{4, "打木架", "PACKAGING", "打木架加固(需重新入库)", 50.00},
+		ServiceTemplate{5, "包装气柱袋", "PACKAGING", "气泡柱包装防护", 10.00},
+		ServiceTemplate{6, "退货寄回", "RETURN", "退件寄回原地址", 2.00},
+		ServiceTemplate{7, "易碎品贴纸", "LABEL", "易碎品标识贴纸", 0.10},
+		ServiceTemplate{8, "内容物拍照", "INSPECTION", "包裹内容物拍照", 1.00},
+		ServiceTemplate{9, "清点数量", "INSPECTION", "清点包裹内物品数量", 0.10},
+		ServiceTemplate{10, "外箱标识拍照", "INSPECTION", "外箱标识与标签拍照", 1.00},
 	)
 	ServiceTypeStore.Seed(
 		ServiceType{1, "加固包装", "PACKAGING"},
 		ServiceType{2, "验货拍照", "INSPECTION"},
+		ServiceType{3, "退货处理", "RETURN"},
+		ServiceType{4, "标签贴纸", "LABEL"},
+		ServiceType{5, "合并打包", "CONSOLIDATE"},
 	)
 
 	// ── 异常记录 ──
@@ -206,14 +251,24 @@ func SeedAll() {
 		Exception{3, 3, "面单脱落", "快递面单脱落无法识别", "待处理", now.Add(-6*time.Hour)},
 	)
 	AIExceptionStore.Seed(
-		AIException{1, 1, "包裹重量异常：申报1kg实际3.5kg", 0.85, false, now.Add(-12 * time.Hour)},
+		AIException{1, 1, "包裹重量异常：申报1kg实际3.5kg", 0.85, false, now.Add(-12*time.Hour)},
 	)
 	ExceptionReportStore.Seed(
 		ExceptionReport{1, "破损", 3, "2026-07", now},
 	)
 
+	// ── 报表 (BFT56: 4 profit reports) ──
+	ReportStore.Seed(
+		Report{1, "集运订单盈利-2026-07", "order_profit", "completed", now},
+		Report{2, "附加服务盈利-2026-07", "service_profit", "completed", now},
+		Report{3, "客户盈利汇总-2026-07", "client_profit", "completed", now},
+		Report{4, "路线盈利汇总-2026-07", "route_profit", "completed", now},
+	)
+
 	// ── 计费 ──
 	PricingServiceStore.Seed(
 		PricingService{1, "加固包装", 15.00, "per_item"},
+		PricingService{2, "海快基础费", 20.00, "per_kg"},
+		PricingService{3, "空运基础费", 35.00, "per_kg"},
 	)
 }
