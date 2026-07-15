@@ -81,13 +81,22 @@ func SeedAll() {
 		Exception{2, 2, "短少", "应收3件实收2件", "处理中", now.Add(-12 * time.Hour)},
 	)
 	PDASessionStore.Seed(
-		PDASession{1, 1, "PDA-001", now.Add(-8 * time.Hour)},
-		PDASession{2, 2, "PDA-002", now.Add(-4 * time.Hour)},
+		PDASession{1, "厦门仓", "出库员-小蓝", "PDA-A01", now.Add(-200*time.Hour), now, "200h", "packing", "出库区", "A-01-01", true, nil},
+		PDASession{2, "厦门仓", "入库员-小王", "PDA-B03", now.Add(-120*time.Hour), now.Add(-1*time.Hour), "119h", "receive", "入库区", "B-03-02", true, nil},
+		PDASession{3, "厦门仓", "拣货员-阿杰", "PDA-C05", now.Add(-80*time.Hour), now.Add(-2*time.Hour), "78h", "pick", "拣货区", "C-05-01", true, nil},
 	)
 	PDAWorkorderTplStore.Seed(
-		PDAWorkorderTemplate{1, "标准收货流程", "RECEIVE", 4},
-		PDAWorkorderTemplate{2, "标准出库流程", "OUTBOUND", 5},
-		PDAWorkorderTemplate{3, "退件处理流程", "RETURN", 3},
+		PDAWorkorderTemplate{1, "厦门仓", "WT001", "入库上架", "入库", "WP-RECEIVE", 5, true, now.Add(-30*24*time.Hour)},
+		PDAWorkorderTemplate{2, "厦门仓", "WT002", "拣货-按集运单", "拣货", "WP-BIG-DELIVER", 3, true, now.Add(-20*24*time.Hour)},
+		PDAWorkorderTemplate{3, "厦门仓", "WT003", "打包装箱", "打包", "WP-BIG-DELIVER", 4, true, now.Add(-15*24*time.Hour)},
+		PDAWorkorderTemplate{4, "厦门仓", "WT004", "核重出库", "核重", "WP-BIG-DELIVER", 2, true, now.Add(-10*24*time.Hour)},
+		PDAWorkorderTemplate{5, "厦门仓", "WT005", "装柜", "装柜", "WP-BIG-DELIVER", 5, true, now.Add(-5*24*time.Hour)},
+	)
+	WorkflowProcessStore.Seed(
+		WorkflowProcess{1, "厦门仓", "WP-RECEIVE", "入库流程", "收货 → 核重 → 上架 → 入库完成", "包裹签收", true, now.Add(-30*24*time.Hour)},
+		WorkflowProcess{2, "厦门仓", "WP-BIG-DELIVER", "出库流程-含送打包(大仓)", "拣货 → 送打包 → 打包 → 核重 → 送出库 → 送装柜 → 装柜", "订单创建", true, now.Add(-25*24*time.Hour)},
+		WorkflowProcess{3, "厦门仓", "WP-SMALL-DELIVER", "出库流程-小型包裹", "拣货 → 打包 → 核重 → 送出库", "订单创建", false, now.Add(-20*24*time.Hour)},
+		WorkflowProcess{4, "厦门仓", "WP-RETURN", "退件处理流程", "签收 → 核验 → 入库 → 上架", "退件签收", true, now.Add(-15*24*time.Hour)},
 	)
 	ServiceTemplateStore.Seed(
 		ServiceTemplate{1, "标准加固", "PACKAGING", "气泡膜+纸箱加固", 15.00},

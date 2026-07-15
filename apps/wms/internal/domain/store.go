@@ -175,10 +175,26 @@ type MonthlyStatement struct {
 // ═══════════════════════════════════════════════════════════════
 
 type PDAWorkorderTemplate struct {
-	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	ProcessType string `json:"process_type"`
-	Steps       int    `json:"steps"`
+	ID              int64     `json:"id"`
+	Warehouse       string    `json:"warehouse"`
+	TemplateID      string    `json:"template_id"`
+	Name            string    `json:"name"`
+	WorkType        string    `json:"work_type"`
+	WorkflowID      string    `json:"workflow_id"`
+	DefaultPriority int       `json:"default_priority"`
+	IsEnabled       bool      `json:"is_enabled"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type WorkflowProcess struct {
+	ID           int64     `json:"id"`
+	Warehouse    string    `json:"warehouse"`
+	ProcessID    string    `json:"process_id"`
+	Name         string    `json:"name"`
+	Steps        string    `json:"steps"`
+	TriggerEvent string    `json:"trigger_event"`
+	IsEnabled    bool      `json:"is_enabled"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type ServiceTemplate struct {
@@ -238,10 +254,18 @@ type ExceptionReport struct {
 }
 
 type PDASession struct {
-	ID         int64     `json:"id"`
-	OperatorID int64     `json:"operator_id"`
-	Device     string    `json:"device"`
-	LoginAt    time.Time `json:"login_at"`
+	ID             int64     `json:"id"`
+	Warehouse      string    `json:"warehouse"`
+	WorkerName     string    `json:"worker_name"`
+	Device         string    `json:"device"`
+	LoginAt        time.Time `json:"login_at"`
+	LastHeartbeat  time.Time `json:"last_heartbeat"`
+	OnlineDuration string    `json:"online_duration"`
+	CurrentPage    string    `json:"current_page"`
+	CurrentArea    string    `json:"current_area"`
+	CurrentLocation string   `json:"current_location"`
+	IsOnline       bool      `json:"is_online"`
+	LogoutAt       *time.Time `json:"logout_at"`
 }
 
 type Printer struct {
@@ -381,6 +405,7 @@ var (
 	MonthlyStatementStore    = NewStore[MonthlyStatement]()
 	NotificationStore        = NewStore[Notification]()
 	PDAWorkorderTplStore     = NewStore[PDAWorkorderTemplate]()
+	WorkflowProcessStore     = NewStore[WorkflowProcess]()
 	ServiceTemplateStore     = NewStore[ServiceTemplate]()
 	ServiceTypeStore         = NewStore[ServiceType]()
 	ServiceWorkorderStore    = NewStore[ServiceWorkorder]()

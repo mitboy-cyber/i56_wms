@@ -83,7 +83,7 @@ func RegisterWMSAPI(
 
 	// Workflow management (real repo)
 	r.GET("/admin/api/workflow-management", a(func(w http.ResponseWriter, req *http.Request) {
-		items, _ := wfr.ListProcesses(req.Context(), t)
+		items := domain.WorkflowProcessStore.List()
 		apiJSON(w, 200, items)
 	}))
 

@@ -116,6 +116,7 @@ const adminModuleRoutes = [
   { path: 'inbound-board', page: () => import('@/pages/admin/InboundBoardPage') },
   { path: 'pda-sessions', page: () => import('@/pages/admin/PDASessionsPage') },
   { path: 'pda-workorder-templates', page: () => import('@/pages/admin/PDAWorkorderTemplatesPage') },
+  { path: 'workflow-management', page: () => import('@/pages/admin/WorkflowManagementPage') },
   { path: 'printers', page: () => import('@/pages/admin/PrintersPage') },
   { path: 'service-templates', page: () => import('@/pages/admin/ServiceTemplatesPage') },
   { path: 'service-types', page: () => import('@/pages/admin/ServiceTypesPage') },

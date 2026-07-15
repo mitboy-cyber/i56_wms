@@ -4,14 +4,19 @@ import client from '@/api/client';
 export default function PDAWorkorderTemplatesPage() {
   return (
     <GenericListPage
-      title="PDA工单模板"
-      queryKey={['admin-PDAWorkorderTemplatesPage']}
-      queryFn={() => client.get('/admin/api/pda-workorder-templates')}
+      title="PDA 工单模板"
+      queryKey={['admin-PDAWorkorderTemplates']}
+      queryFn={() => client.get('/admin/api/pda-workorder-templates').then(r => r.data)}
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'name', label: 'Name' },
-        { key: 'process_type', label: 'Process Type' },
-        { key: 'steps', label: 'Steps' },
+        { key: 'id', label: '编号' },
+        { key: 'warehouse', label: '仓库' },
+        { key: 'template_id', label: '模板ID' },
+        { key: 'name', label: '模板名称' },
+        { key: 'work_type', label: '工种' },
+        { key: 'workflow_id', label: '参与流程' },
+        { key: 'default_priority', label: '默认优先级' },
+        { key: 'is_enabled', label: '启用', render: (v: unknown) => <>{v ? '✅ 启用' : '❌ 禁用'}</> },
+        { key: 'updated_at', label: '最近编辑' },
       ]}
       getRowId={(_, i) => String(i)}
     />
