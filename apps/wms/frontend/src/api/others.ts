@@ -1,38 +1,36 @@
 import axios from "@/api/client"
 
-function ok<T>(p: Promise<T>) { return p.then(() => {}) }
-
 export const roleApi = {
   list: () => axios.get("/admin/api/roles").then((r) => r.data),
-  create: (data: Record<string, string>) => ok(axios.post("/admin/roles/save", new URLSearchParams(data))),
-  update: (id: number, data: Record<string, string>) => ok(axios.put(`/admin/roles/${id}`, new URLSearchParams(data))),
-  delete: (id: number) => ok(axios.delete(`/admin/roles/${id}`)),
+  create: (data: Record<string, unknown>) => axios.post("/admin/api/roles", data).then(() => {}),
+  update: (id: number, data: Record<string, unknown>) => axios.put(`/admin/api/roles/${id}`, data).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/roles/${id}`).then(() => {}),
 }
 
 export const parcelApi = {
   list: () => axios.get("/admin/api/parcels").then((r) => r.data),
-  create: (data: Record<string, string>) => ok(axios.post("/admin/parcels/save", new URLSearchParams(data))),
-  update: (id: number, data: Record<string, string>) => ok(axios.put(`/admin/parcels/${id}`, new URLSearchParams(data))),
-  delete: (id: number) => ok(axios.delete(`/admin/parcels/${id}`)),
+  create: (data: Record<string, unknown>) => axios.post("/admin/api/parcels", data).then(() => {}),
+  update: (id: number, data: Record<string, unknown>) => axios.put(`/admin/api/parcels/${id}`, data).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/parcels/${id}`).then(() => {}),
 }
 
 export const carrierApi = {
   list: () => axios.get("/admin/api/carriers").then((r) => r.data),
-  create: (data: Record<string, string>) => ok(axios.post("/admin/carriers/save", new URLSearchParams(data))),
-  update: (id: number, data: Record<string, string>) => ok(axios.put(`/admin/carriers/${id}`, new URLSearchParams(data))),
-  delete: (id: number) => ok(axios.delete(`/admin/carriers/${id}`)),
+  create: (data: Record<string, unknown>) => axios.post("/admin/api/carriers", data).then(() => {}),
+  update: (id: number, data: Record<string, unknown>) => axios.put(`/admin/api/carriers/${id}`, data).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/carriers/${id}`).then(() => {}),
 }
 
 export const courierApi = {
   list: () => axios.get("/admin/api/couriers").then((r) => r.data),
-  create: (data: Record<string, string>) => ok(axios.post("/admin/couriers/save", new URLSearchParams(data))),
-  update: (id: number, data: Record<string, string>) => ok(axios.put(`/admin/couriers/${id}`, new URLSearchParams(data))),
-  delete: (id: number) => ok(axios.delete(`/admin/couriers/${id}`)),
+  create: (data: Record<string, unknown>) => axios.post("/admin/api/couriers", data).then(() => {}),
+  update: (id: number, data: Record<string, unknown>) => axios.put(`/admin/api/couriers/${id}`, data).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/couriers/${id}`).then(() => {}),
 }
 
 export const declarantApi = {
   list: () => axios.get("/admin/api/declarants").then((r) => r.data),
-  create: (data: Record<string, string>) => ok(axios.post("/admin/declarants/save", new URLSearchParams(data))),
-  update: (id: number, data: Record<string, string>) => ok(axios.put(`/admin/declarants/${id}`, new URLSearchParams(data))),
-  delete: (id: number) => ok(axios.delete(`/admin/declarants/${id}`)),
+  create: (data: Record<string, unknown>) => axios.post("/admin/api/declarants", data).then(() => {}),
+  update: (id: number, data: Record<string, unknown>) => axios.put(`/admin/api/declarants/${id}`, data).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/declarants/${id}`).then(() => {}),
 }

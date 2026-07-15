@@ -49,6 +49,24 @@ func (s *Store[T]) Seed(items ...T) {
 	s.NextID = int64(len(s.Items)) + 1
 }
 
+// Update replaces the item at the given index.
+func (s *Store[T]) Update(idx int, item T) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if idx < 0 || idx >= len(s.Items) { return false }
+	s.Items[idx] = item
+	return true
+}
+
+// Delete removes the item at the given index.
+func (s *Store[T]) Delete(idx int) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if idx < 0 || idx >= len(s.Items) { return false }
+	s.Items = append(s.Items[:idx], s.Items[idx+1:]...)
+	return true
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Domain models — TMS
 // ═══════════════════════════════════════════════════════════════
@@ -195,6 +213,13 @@ type WorkflowProcess struct {
 	TriggerEvent string    `json:"trigger_event"`
 	IsEnabled    bool      `json:"is_enabled"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type Role struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsActive    bool   `json:"is_active"`
 }
 
 type ServiceTemplate struct {
@@ -377,6 +402,60 @@ type Report struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// ── BFT56-aligned domain models ──
+
+// ClientMember 客户会员 (BFT56 client member)
+type ClientMember struct {
+	ID        int64     `json:"id"`
+	ClientID  int64     `json:"client_id"`
+	Name      string    `json:"name"`
+	Phone     string    `json:"phone"`
+	IDNumber  string    `json:"id_number"`
+	Platform  string    `json:"platform"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// BalanceLog 余额日志 (BFT56 balance log)
+type BalanceLog struct {
+	ID        int64     `json:"id"`
+	ClientID  int64     `json:"client_id"`
+	Type      string    `json:"type"`
+	Amount    float64   `json:"amount"`
+	Balance   float64   `json:"balance"`
+	Note      string    `json:"note"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// RechargeRecord 充值记录 (BFT56 recharge log)
+type RechargeRecord struct {
+	ID        int64     `json:"id"`
+	ClientID  int64     `json:"client_id"`
+	Amount    float64   `json:"amount"`
+	Method    string    `json:"method"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// Container 集装柜 (BFT56 container)
+type Container struct {
+	ID          int64     `json:"id"`
+	Warehouse   string    `json:"warehouse"`
+	ContainerNo string    `json:"container_no"`
+	RouteName   string    `json:"route_name"`
+	Status      string    `json:"status"`
+	MaxWeight   float64   `json:"max_weight"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+// ClientPanelPerm 客户端权限 (BFT56 client panel permission)
+type ClientPanelPerm struct {
+	ID         int64  `json:"id"`
+	ClientID   int64  `json:"client_id"`
+	MenuName   string `json:"menu_name"`
+	CanView    bool   `json:"can_view"`
+	CanOperate bool   `json:"can_operate"`
+}
+
 type NotificationChannel struct {
 	ID     int64  `json:"id"`
 	Name   string `json:"name"`
@@ -406,6 +485,12 @@ var (
 	NotificationStore        = NewStore[Notification]()
 	PDAWorkorderTplStore     = NewStore[PDAWorkorderTemplate]()
 	WorkflowProcessStore     = NewStore[WorkflowProcess]()
+	RoleStore                = NewStore[Role]()
+	ClientMemberStore        = NewStore[ClientMember]()
+	BalanceLogStore          = NewStore[BalanceLog]()
+	RechargeRecordStore      = NewStore[RechargeRecord]()
+	ContainerStore           = NewStore[Container]()
+	ClientPanelPermStore     = NewStore[ClientPanelPerm]()
 	ServiceTemplateStore     = NewStore[ServiceTemplate]()
 	ServiceTypeStore         = NewStore[ServiceType]()
 	ServiceWorkorderStore    = NewStore[ServiceWorkorder]()

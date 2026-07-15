@@ -298,7 +298,7 @@ func (s *Server) registerRoutes() {
 		s.RoutePriceRepo, s.DeliveryFeeRepo, s.SurchargeRepo, s.APICredentialRepo)
 	adminapi.RegisterWMSAPI(r, aAPI, s.PrintRepo, s.WorkflowRepo, s.TaskDispatchRepo, s.WebhookRepo, s.WorkOrderRepo)
 	adminapi.RegisterTMSAPI(r, aAPI)
-	adminapi.RegisterCRMAPI(r, aAPI, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.LedgerRepo)
+	adminapi.RegisterCRMAPI(r, aAPI, s.ClientSvc, s.ClientRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.PdaRepo)
 	adminapi.RegisterFinanceAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
@@ -528,16 +528,11 @@ func seedRealData(s *Server) {
 	s.WorkOrderRepo.Create(ctx, &wdDomain.WorkOrder{TenantID: 1, WarehouseID: 1, Title: "异常处理-包裹破损", Description: "ZTO9876543210 外包装破损需重新包装", Status: "pending", Priority: 1})
 }
 
-// Template initialization
+// Template initialization — removed unused Go HTML login templates (React SPA handles /admin/login)
 func initAdminTemplates() map[string]*template.Template {
-	return map[string]*template.Template{
-		"login":       template.Must(template.New("login").ParseFiles("templates/sidebar.html", "templates/base.html", "templates/login.html")),
-		"admin_login": template.Must(template.New("alogin").ParseFiles("templates/admin/login.html")),
-	}
+	return map[string]*template.Template{}
 }
 
 func initClientTemplates() map[string]*template.Template {
-	return map[string]*template.Template{
-		"login": template.Must(template.New("clogin").ParseFiles("templates/client/base.html", "templates/client/login.html")),
-	}
+	return map[string]*template.Template{}
 }

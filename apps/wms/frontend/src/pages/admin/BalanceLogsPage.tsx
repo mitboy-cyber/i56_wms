@@ -1,21 +1,15 @@
-import client from '@/api/client';
 import GenericListPage from '@/components/GenericListPage';
+import client from '@/api/client';
 
 export default function BalanceLogsPage() {
   return (
-    <GenericListPage
-      title="余额日志"
-      queryKey={['admin-balance-logs']}
-      queryFn={() => client.get('/admin/api/balance-logs')}
+    <GenericListPage title="余额日志" queryKey={['admin-BalanceLogs']}
+      queryFn={() => client.get('/admin/api/balance-logs').then(r => r.data)}
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'client_id', label: 'Client Id' },
-        { key: 'change_amount', label: 'Change Amount' },
-        { key: 'balance_after', label: 'Balance After' },
-        { key: 'remark', label: 'Remark' },
-        { key: 'time', label: 'Time' },
-      ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'client_id', label: '客户' },
+        { key: 'type', label: '类型' }, { key: 'amount', label: '金额' },
+        { key: 'balance', label: '余额' }, { key: 'note', label: '备注' },
+        { key: 'created_at', label: '时间' },
+      ]} getRowId={(_, i) => String(i)} />
   );
 }

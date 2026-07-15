@@ -1,191 +1,219 @@
-// Package domain provides seed data for the WMS backend.
 package domain
 
 import "time"
 
-// SeedAll populates all in-memory stores with demo data.
+// SeedAll populates all in-memory stores with BFT56-matching seed data.
 func SeedAll() {
 	now := time.Now()
 
-	AreaGroupStore.Seed(
-		AreaGroup{1, "华南区", "HN", "广东、广西、海南"},
-		AreaGroup{2, "华东区", "HD", "上海、江苏、浙江"},
-		AreaGroup{3, "华北区", "HB", "北京、天津、河北"},
+	// NOTE: Employees & Warehouses are seeded via real repos in server.go
+
+	// ── 角色 ──
+	RoleStore.Seed(
+		Role{1, "系统管理员", "拥有全部系统权限", true},
+		Role{2, "仓库管理员", "管理仓库入库、出库、上架等操作", true},
+		Role{3, "客服人员", "查看订单与包裹，处理客户咨询", true},
+		Role{4, "财务人员", "查看财务报表与对账", true},
+		Role{5, "操作员", "PDA扫码操作权限", true},
 	)
-	CargoTypeStore.Seed(
-		CargoType{1, "普货", "GENERAL"},
-		CargoType{2, "易碎品", "FRAGILE"},
-		CargoType{3, "液体", "LIQUID"},
-		CargoType{4, "电子产品", "ELECTRONICS"},
-		CargoType{5, "食品", "FOOD"},
+
+	// ── 仓库看板/控制台 ──
+	WarehouseBoardStore.Seed(
+		WarehouseBoardEntry{1, 125, 3420, 15, 98},
 	)
-	TransportModeStore.Seed(
-		TransportMode{1, "海运", "SEA"},
-		TransportMode{2, "空运", "AIR"},
-		TransportMode{3, "陆运", "LAND"},
-		TransportMode{4, "铁路", "RAIL"},
+	WarehouseConsoleStore.Seed(
+		WarehouseConsoleEntry{1, 1, "入库组", "receive", "进行中"},
+		WarehouseConsoleEntry{2, 1, "拣货组", "pick", "等待中"},
 	)
-	CustomsBrokerStore.Seed(
-		CustomsBroker{1, "深圳报关行", "CB20230001", "张经理", "13800138001"},
-		CustomsBroker{2, "上海报关行", "CB20230002", "李经理", "13900139002"},
-		CustomsBroker{3, "广州报关行", "CB20230003", "王经理", "13700137003"},
+	InboundBoardStore.Seed(
+		InboundBoardEntry{1, "YT7625763166053", "厦门仓", "待上架", now},
+		InboundBoardEntry{2, "9822467437512", "厦门仓", "已签收", now.Add(-1 * time.Hour)},
 	)
-	CustomsPointStore.Seed(
-		CustomsPoint{1, "深圳蛇口", "SZKOU", "蛇口港", "中国"},
-		CustomsPoint{2, "上海外高桥", "SHWGQ", "外高桥港", "中国"},
-		CustomsPoint{3, "广州南沙", "GZNS", "南沙港", "中国"},
-	)
-	ShippingProviderStore.Seed(
-		ShippingProvider{1, "中远海运", "COSCO", "400-810-8888"},
-		ShippingProvider{2, "马士基", "MAERSK", "400-820-8888"},
-		ShippingProvider{3, "地中海航运", "MSC", "400-830-8888"},
-	)
-	ContainerLoadingStore.Seed(
-		ContainerLoading{1, "COSU1234567", "东方号", "深圳蛇口", "洛杉矶", 120, now.Add(-72 * time.Hour)},
-		ContainerLoading{2, "MAEU2345678", "海洋号", "上海外高桥", "鹿特丹", 85, now.Add(-48 * time.Hour)},
-	)
-	LogisticsTrackingStore.Seed(
-		LogisticsTracking{1, "TRK20240001", "深圳集散中心", "已揽收", now.Add(-24 * time.Hour)},
-		LogisticsTracking{2, "TRK20240002", "广州转运中心", "运输中", now.Add(-12 * time.Hour)},
-		LogisticsTracking{3, "TRK20240003", "上海分拨中心", "派送中", now.Add(-3 * time.Hour)},
-	)
-	RouteTemplateStore.Seed(
-		RouteTemplate{1, "深圳→洛杉矶", "深圳", "洛杉矶", 1, 18},
-		RouteTemplate{2, "上海→鹿特丹", "上海", "鹿特丹", 2, 25},
-		RouteTemplate{3, "广州→悉尼", "广州", "悉尼", 1, 15},
-	)
-	ClientAccountStore.Seed(
-		ClientAccount{1, "plat_ezjyt", "易捷物流", "admin@ezjyt.com", 50000.00, "active"},
-		ClientAccount{2, "plat_szhy", "深圳华远", "admin@szhy.com", 20000.00, "active"},
-		ClientAccount{3, "plat_shjl", "上海捷联", "admin@shjl.com", 35000.00, "active"},
-	)
-	ClientRechargeStore.Seed(
-		ClientRecharge{1, 1, 10000.00, "银行转账", "预充值", now.Add(-168 * time.Hour)},
-		ClientRecharge{2, 2, 5000.00, "微信支付", "首充", now.Add(-72 * time.Hour)},
-	)
-	ClientPricingStore.Seed(
-		ClientPricing{1, 1, 1, 25.50, 0.90},
-		ClientPricing{2, 2, 2, 35.00, 0.85},
-	)
-	ClientPermissionStore.Seed(
-		ClientPermission{1, 1, "parcels", true, true},
-		ClientPermission{2, 1, "orders", true, true},
-		ClientPermission{3, 2, "parcels", true, false},
-	)
-	MonthlyStatementStore.Seed(
-		MonthlyStatement{1, 1, "2026-06", 28500.00, 28500.00, "已结清", now.Add(-720 * time.Hour)},
-		MonthlyStatement{2, 2, "2026-06", 15200.00, 10000.00, "部分付款", now.Add(-720 * time.Hour)},
-	)
-	ExceptionStore.Seed(
-		Exception{1, 1, "破损", "外箱有明显压痕", "待处理", now.Add(-24 * time.Hour)},
-		Exception{2, 2, "短少", "应收3件实收2件", "处理中", now.Add(-12 * time.Hour)},
-	)
+
+	// ── PDA 在线会话 ──
 	PDASessionStore.Seed(
 		PDASession{1, "厦门仓", "出库员-小蓝", "PDA-A01", now.Add(-200*time.Hour), now, "200h", "packing", "出库区", "A-01-01", true, nil},
 		PDASession{2, "厦门仓", "入库员-小王", "PDA-B03", now.Add(-120*time.Hour), now.Add(-1*time.Hour), "119h", "receive", "入库区", "B-03-02", true, nil},
 		PDASession{3, "厦门仓", "拣货员-阿杰", "PDA-C05", now.Add(-80*time.Hour), now.Add(-2*time.Hour), "78h", "pick", "拣货区", "C-05-01", true, nil},
 	)
+
+	// ── PDA 工单模板 ──
 	PDAWorkorderTplStore.Seed(
 		PDAWorkorderTemplate{1, "厦门仓", "WT001", "入库上架", "入库", "WP-RECEIVE", 5, true, now.Add(-30*24*time.Hour)},
 		PDAWorkorderTemplate{2, "厦门仓", "WT002", "拣货-按集运单", "拣货", "WP-BIG-DELIVER", 3, true, now.Add(-20*24*time.Hour)},
 		PDAWorkorderTemplate{3, "厦门仓", "WT003", "打包装箱", "打包", "WP-BIG-DELIVER", 4, true, now.Add(-15*24*time.Hour)},
-		PDAWorkorderTemplate{4, "厦门仓", "WT004", "核重出库", "核重", "WP-BIG-DELIVER", 2, true, now.Add(-10*24*time.Hour)},
-		PDAWorkorderTemplate{5, "厦门仓", "WT005", "装柜", "装柜", "WP-BIG-DELIVER", 5, true, now.Add(-5*24*time.Hour)},
 	)
+
+	// ── 工单流程 ──
 	WorkflowProcessStore.Seed(
 		WorkflowProcess{1, "厦门仓", "WP-RECEIVE", "入库流程", "收货 → 核重 → 上架 → 入库完成", "包裹签收", true, now.Add(-30*24*time.Hour)},
 		WorkflowProcess{2, "厦门仓", "WP-BIG-DELIVER", "出库流程-含送打包(大仓)", "拣货 → 送打包 → 打包 → 核重 → 送出库 → 送装柜 → 装柜", "订单创建", true, now.Add(-25*24*time.Hour)},
-		WorkflowProcess{3, "厦门仓", "WP-SMALL-DELIVER", "出库流程-小型包裹", "拣货 → 打包 → 核重 → 送出库", "订单创建", false, now.Add(-20*24*time.Hour)},
-		WorkflowProcess{4, "厦门仓", "WP-RETURN", "退件处理流程", "签收 → 核验 → 入库 → 上架", "退件签收", true, now.Add(-15*24*time.Hour)},
+		WorkflowProcess{3, "厦门仓", "WP-RETURN", "退件处理流程", "签收 → 核验 → 入库 → 上架", "退件签收", true, now.Add(-15*24*time.Hour)},
 	)
+
+	// ── 集装柜 ──
+	ContainerStore.Seed(
+		Container{1, "厦门仓", "CNTR-20260715-001", "海快-新竹物流", "装货中", 5000, now.Add(-1*24*time.Hour)},
+		Container{2, "厦门仓", "CNTR-20260714-002", "海快-新竹物流", "已发运", 4800, now.Add(-2*24*time.Hour)},
+	)
+
+	// ── 客户 ──
+	ClientAccountStore.Seed(
+		ClientAccount{1, "plat_ezjyt", "EZ集运通", "vip@ezjyt.com", 7670.40, "active"},
+	)
+	ClientMemberStore.Seed(
+		ClientMember{1, 1, "蕭惠昱", "0912345678", "A123456789", "EZ集运通", now.Add(-30*24*time.Hour)},
+		ClientMember{2, 1, "张三", "0923456789", "B234567890", "EZ集运通", now.Add(-25*24*time.Hour)},
+	)
+
+	// ── 客户充值 ──
+	ClientRechargeStore.Seed(
+		ClientRecharge{1, 1, 5000, "银行转账", "银行转账充值", now.Add(-30 * 24 * time.Hour)},
+		ClientRecharge{2, 1, 3000, "微信支付", "微信充值", now.Add(-20 * 24 * time.Hour)},
+	)
+
+	// ── 余额日志 ──
+	BalanceLogStore.Seed(
+		BalanceLog{1, 1, "充值", 5000, 5000, "银行转账充值", now.Add(-30*24*time.Hour)},
+		BalanceLog{2, 1, "消费", -329.60, 4670.40, "订单20260715120525777938", now.Add(-1*time.Hour)},
+		BalanceLog{3, 1, "充值", 3000, 7670.40, "微信充值", now.Add(-20*24*time.Hour)},
+	)
+
+	// ── 充值记录 ──
+	RechargeRecordStore.Seed(
+		RechargeRecord{1, 1, 5000, "银行转账", "已完成", now.Add(-30*24*time.Hour)},
+		RechargeRecord{2, 1, 3000, "微信支付", "已完成", now.Add(-20*24*time.Hour)},
+	)
+
+	// ── 客户端权限 ──
+	ClientPanelPermStore.Seed(
+		ClientPanelPerm{1, 1, "我的订单", true, true},
+		ClientPanelPerm{2, 1, "我的包裹", true, true},
+		ClientPanelPerm{3, 1, "申报人", true, true},
+		ClientPanelPerm{4, 1, "余额明细", true, false},
+	)
+
+	// ── 客户定价 ──
+	ClientPricingStore.Seed(
+		ClientPricing{1, 1, 1, 15.0, 0.9},
+	)
+
+	// ── 月度对账单 ──
+	MonthlyStatementStore.Seed(
+		MonthlyStatement{1, 1, "2026-06", 8560.30, 8560.30, "已结算", now},
+		MonthlyStatement{2, 1, "2026-07", 12345.67, 0, "待结算", now},
+	)
+
+	// ── TMS ──
+	AreaGroupStore.Seed(
+		AreaGroup{1, "台湾线", "TW", "台湾地区"},
+	)
+	RouteTemplateStore.Seed(
+		RouteTemplate{1, "海快-新竹", "厦门", "台北", 1, 3},
+	)
+	CargoTypeStore.Seed(
+		CargoType{1, "普货", "GENERAL"},
+		CargoType{2, "特货", "SPECIAL"},
+	)
+	TransportModeStore.Seed(
+		TransportMode{1, "海运", "SEA"},
+		TransportMode{2, "空运", "AIR"},
+	)
+	CustomsBrokerStore.Seed(
+		CustomsBroker{1, "顺达报关行", "XM-BK-001", "张经理", "0592-2222222"},
+	)
+	CustomsPointStore.Seed(
+		CustomsPoint{1, "厦门海关", "CNXMN", "厦门", "中国"},
+	)
+	ShippingProviderStore.Seed(
+		ShippingProvider{1, "新竹物流", "HCT", "0920000001"},
+	)
+
+	// ── 物流追踪 ──
+	LogisticsTrackingStore.Seed(
+		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", now},
+		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1 * 24 * time.Hour)},
+	)
+	ContainerLoadingStore.Seed(
+		ContainerLoading{1, "CNTR-001", "厦门轮", "厦门", "台北", 450, now},
+	)
+
+	// ── 通知 ──
+	NotificationStore.Seed(
+		Notification{1, "系统上线通知", "I56 WMS 系统正式上线运行", "system", "all", true, now},
+	)
+
+	// ── 定时任务 ──
+	SchedulerJobStore.Seed(
+		SchedulerJob{1, "每日账单生成", "0 8 * * *", true, now.Format("2006-01-02")},
+		SchedulerJob{2, "数据库备份", "0 2 * * *", true, now.Format("2006-01-02")},
+	)
+
+	// ── 审计日志 ──
+	AuditLogStore.Seed(
+		AuditLog{1, 1, "login", "system", "管理员登录系统", now.Add(-2*time.Hour)},
+		AuditLog{2, 1, "create", "order", "创建订单20260715120525777938", now.Add(-1*time.Hour)},
+	)
+
+	// ── AI Chat ──
+	AIChatStore.Seed(
+		AIChatMessage{1, "assistant", "你好，我是 I56 智能助手，有什么可以帮你？", time.Now()},
+		AIChatMessage{2, "user", "查询今天入库包裹数量", time.Now()},
+	)
+
+	// ── 系统参数 ──
+	SystemParamStore.Seed(
+		SystemParam{1, "site_name", "I56 WMS", "system", "站点名称"},
+		SystemParam{2, "default_warehouse", "厦门仓", "system", "默认仓库"},
+	)
+
+	// ── 品牌 ──
+	BrandSettingStore.Seed(
+		BrandSetting{1, "logo", "/static/logo.png", "brand"},
+		BrandSetting{2, "theme_color", "#1a73e8", "brand"},
+	)
+
+	// ── 存储配置 ──
+	StorageConfigStore.Seed(
+		StorageConfig{1, "minio", "MinIO", "i56-bucket", "us-east-1"},
+	)
+
+	// ── 打印机 ──
+	PrinterStore.Seed(
+		Printer{1, "主打印机", "USB", "192.168.1.100"},
+	)
+
+	// ── API 配置 ──
+	APIConfigStore.Seed(
+		APIConfig{1, "顺丰快递", "SF", "https://api.sf.com", "sk-sf-test", "active"},
+		APIConfig{2, "圆通快递", "YTO", "https://api.yto.com", "sk-yto-test", "active"},
+	)
+
+	// ── 附加服务 ──
 	ServiceTemplateStore.Seed(
 		ServiceTemplate{1, "标准加固", "PACKAGING", "气泡膜+纸箱加固", 15.00},
 		ServiceTemplate{2, "合并打包", "PACKAGING", "多件合并到一个包裹", 20.00},
-		ServiceTemplate{3, "拍照验货", "INSPECTION", "1-3张照片", 5.00},
 	)
 	ServiceTypeStore.Seed(
 		ServiceType{1, "加固包装", "PACKAGING"},
 		ServiceType{2, "验货拍照", "INSPECTION"},
-		ServiceType{3, "分箱服务", "SPLIT"},
 	)
-	ServiceWorkorderStore.Seed(
-		ServiceWorkorder{1, "SW20240001", "PACKAGING", "pending", "OP001", now.Add(-24 * time.Hour)},
-		ServiceWorkorder{2, "SW20240002", "INSPECTION", "completed", "OP002", now.Add(-48 * time.Hour)},
-	)
-	PricingServiceStore.Seed(
-		PricingService{1, "拆包服务", 10.00, "次"},
-		PricingService{2, "转寄服务", 25.00, "次"},
-		PricingService{3, "退件服务", 30.00, "次"},
-	)
-	NotificationStore.Seed(
-		Notification{1, "系统升级通知", "系统将于本周六凌晨2点升级", "email", "all", false, now.Add(-48 * time.Hour)},
-		Notification{2, "新功能上线", "包裹追踪功能已上线", "sms", "all", true, now.Add(-72 * time.Hour)},
-	)
-	PrinterStore.Seed(
-		Printer{1, "仓库A打印机", "热敏标签", "192.168.1.100"},
-		Printer{2, "办公室打印机", "激光", "192.168.1.101"},
-	)
-	StorageConfigStore.Seed(
-		StorageConfig{1, "包裹图片", "minio", "parcel-images", "cn-east-1"},
-		StorageConfig{2, "文档存储", "oss", "i56-documents", "cn-hangzhou"},
-	)
-	SystemParamStore.Seed(
-		SystemParam{1, "site.name", "I56 WMS", "system", "站点名称"},
-		SystemParam{2, "site.logo", "/assets/logo.png", "system", "站点Logo"},
-		SystemParam{3, "order.auto_confirm", "false", "order", "自动确认订单"},
-		SystemParam{4, "parcel.max_weight", "30.0", "parcel", "包裹最大重量(kg)"},
-	)
-	BrandSettingStore.Seed(
-		BrandSetting{1, "brand.primary_color", "#2563EB", "theme"},
-		BrandSetting{2, "brand.company_name", "I56 Framework", "company"},
-	)
-	APIConfigStore.Seed(
-		APIConfig{1, "顺丰快递API", "SF", "https://sfapi.sf-express.com", "sf_api_key_xxx", "active"},
-		APIConfig{2, "中国海关API", "CUSTOMS", "https://api.customs.gov.cn", "customs_key_xxx", "active"},
-		APIConfig{3, "阿里云短信API", "ALIYUN_SMS", "https://dysmsapi.aliyuncs.com", "aliyun_key_xxx", "active"},
-		APIConfig{4, "易联云打印API", "YLY", "https://open-api.10ss.net", "yly_key_xxx", "active"},
-		APIConfig{5, "七牛云存储API", "QINIU", "https://up.qiniu.com", "qiniu_key_xxx", "active"},
-	)
-	AIChatStore.Seed(
-		AIChatMessage{1, "user", "帮我查询最近一周的订单量", now.Add(-1 * time.Hour)},
-		AIChatMessage{2, "assistant", "最近一周共有 125 个订单，其中已发货 98 个，待处理 27 个。", now.Add(-1*time.Hour + time.Second)},
-	)
-	SchedulerJobStore.Seed(
-		SchedulerJob{1, "每日账单生成", "0 2 * * *", true, now.Add(-24 * time.Hour).Format("2006-01-02 15:04")},
-		SchedulerJob{2, "库存同步", "0 */4 * * *", true, now.Add(-4 * time.Hour).Format("2006-01-02 15:04")},
-		SchedulerJob{3, "数据备份", "0 3 * * *", false, "从未执行"},
-	)
-	AuditLogStore.Seed(
-		AuditLog{1, 1, "login", "system", "管理员登录", now.Add(-1 * time.Hour)},
-		AuditLog{2, 1, "create_order", "orders", "创建订单 ORD20240001", now.Add(-30 * time.Minute)},
-		AuditLog{3, 2, "update_parcel", "parcels", "更新包裹状态为已入库", now.Add(-15 * time.Minute)},
-	)
-	ReportStore.Seed(
-		Report{1, "月度运营报告", "monthly", "completed", now.Add(-720 * time.Hour)},
-		Report{2, "季度财务报表", "quarterly", "generating", now.Add(-48 * time.Hour)},
-	)
-	NotificationChannelStore.Seed(
-		NotificationChannel{1, "系统邮件", "email", `{"smtp":"smtp.i56.com","port":587}`},
-		NotificationChannel{2, "短信通道", "sms", `{"provider":"aliyun","sign":"I56"}`},
-	)
-	InboundBoardStore.Seed(
-		InboundBoardEntry{1, "TRK001", "深圳仓", "已到港", now.Add(-24 * time.Hour)},
-		InboundBoardEntry{2, "TRK002", "上海仓", "清关中", now.Add(-12 * time.Hour)},
-		InboundBoardEntry{3, "TRK003", "广州仓", "运输中", now.Add(-36 * time.Hour)},
-	)
-	WarehouseBoardStore.Seed(
-		WarehouseBoardEntry{1, 15, 342, 28, 12},
-	)
-	WarehouseConsoleStore.Seed(
-		WarehouseConsoleEntry{1, 1, "深圳仓-1号机", "DWS-1000", "运行中"},
-		WarehouseConsoleEntry{2, 1, "深圳仓-2号机", "DWS-2000", "待机"},
+
+	// ── 异常记录 ──
+	ExceptionStore.Seed(
+		Exception{1, 1, "破损", "外箱有明显压痕", "待处理", now.Add(-24*time.Hour)},
+		Exception{2, 2, "短少", "应收3件实收2件", "处理中", now.Add(-12*time.Hour)},
+		Exception{3, 3, "面单脱落", "快递面单脱落无法识别", "待处理", now.Add(-6*time.Hour)},
 	)
 	AIExceptionStore.Seed(
-		AIException{1, 1, "包裹外箱损坏概率78%", 0.78, false, now.Add(-2 * time.Hour)},
-		AIException{2, 2, "申报品名与实际不符", 0.92, true, now.Add(-6 * time.Hour)},
+		AIException{1, 1, "包裹重量异常：申报1kg实际3.5kg", 0.85, false, now.Add(-12 * time.Hour)},
 	)
 	ExceptionReportStore.Seed(
-		ExceptionReport{1, "包裹破损", 12, "2026-06", now.Add(-720 * time.Hour)},
-		ExceptionReport{2, "申报异常", 5, "2026-06", now.Add(-720 * time.Hour)},
+		ExceptionReport{1, "破损", 3, "2026-07", now},
+	)
+
+	// ── 计费 ──
+	PricingServiceStore.Seed(
+		PricingService{1, "加固包装", 15.00, "per_item"},
 	)
 }

@@ -68,7 +68,6 @@ func initTemplates() map[string]*template.Template {
 	tmpl := map[string]*template.Template{}
 	for _, p := range []struct{ k, file string }{
 		{"login", "login.html"},
-		{"admin_login", "admin/login.html"},
 		{"dashboard", "dashboard.html"},
 		{"clients", "clients.html"},
 		{"parcels", "parcels.html"},

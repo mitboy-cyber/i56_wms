@@ -1,21 +1,22 @@
-import client from '@/api/client';
 import GenericListPage from '@/components/GenericListPage';
+import client from '@/api/client';
 
 export default function ClientMembersPage() {
   return (
     <GenericListPage
-      title="客户成员"
-      queryKey={['admin-client-members']}
-      queryFn={() => client.get('/admin/api/client-members')}
+      title="客户会员"
+      queryKey={['admin-ClientMembers']}
+      queryFn={() => client.get('/admin/api/client-members').then(r => r.data)}
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'client_id', label: 'Client Id' },
-        { key: 'name', label: 'Name' },
-        { key: 'phone', label: 'Phone' },
-        { key: 'email', label: 'Email' },
-        { key: 'role', label: 'Role' },
+        { key: 'id', label: '编号' },
+        { key: 'client_id', label: '客户ID' },
+        { key: 'name', label: '会员名称' },
+        { key: 'phone', label: '电话' },
+        { key: 'id_number', label: '证件号' },
+        { key: 'platform', label: '平台' },
+        { key: 'created_at', label: '创建时间' },
       ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
+      getRowId={(_, i) => String(i)}
     />
   );
 }

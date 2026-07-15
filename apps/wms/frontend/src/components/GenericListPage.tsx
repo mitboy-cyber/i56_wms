@@ -101,7 +101,15 @@ export default function GenericListPage(props: GenericListPageProps) {
   } = props;
 
   const qc = useQueryClient();
-  const baseUrl = apiBase || mutateUrl || '';
+  // ── Auto-derive API base from query function ──
+  const autoApiBase = useMemo(() => {
+    if (apiBase || mutateUrl) return '';
+    const fnStr = queryFn.toString();
+    const m = fnStr.match(/client\.(?:get|post)\('([^']+)'\)/) || fnStr.match(/client\.(?:get|post)\("([^"]+)"\)/);
+    return m ? m[1] : '';
+  }, [queryFn, apiBase, mutateUrl]);
+
+  const baseUrl = apiBase || mutateUrl || autoApiBase || '';
 
   // ── Column management (show/hide, reorder, persist) ──
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
