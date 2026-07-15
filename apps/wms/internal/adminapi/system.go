@@ -49,9 +49,9 @@ func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFu
 	registerCRUD(r, "/admin/api/workflow", domain.WorkflowProcessStore, a)
 	// Client panel permissions (store name: ClientPanelPermStore)
 	registerCRUD(r, "/admin/api/client-panel-perms", domain.ClientPanelPermStore, a)
-	// Devices & Shelves — list only
-	r.GET("/admin/api/devices", listStore(domain.DeviceStore, a))
-	r.GET("/admin/api/shelves", listStore(domain.ShelfStore, a))
+	// NOTE: Devices/Shelves stores exist but routes not yet registered (avoids autoApiBase conflict)
+	// registerCRUD(r, "/admin/api/devices", domain.DeviceStore, a)
+	// registerCRUD(r, "/admin/api/shelves", domain.ShelfStore, a)
 	registerCRUD(r, "/admin/api/pricing-services", domain.PricingServiceStore, a)
 	registerCRUD(r, "/admin/api/pricing-routes", domain.ClientPricingStore, a)
 	registerCRUD(r, "/admin/api/pricing-delivery", domain.ClientPricingStore, a)

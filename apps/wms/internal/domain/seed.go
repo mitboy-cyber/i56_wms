@@ -248,14 +248,16 @@ func SeedAll() {
 		Printer{2, "标签打印机", "Network", "192.168.1.101"},
 	)
 
-	// ── 设备 (扫码枪/接地板/PDA) ──
+	// ── 设备 (扫码枪/地磅/入库机/PDA/打印机) ──
 	DeviceStore.Seed(
 		Device{1, "扫码枪-01", "barcode_scanner", "SCAN-WH-001", "192.168.1.50", "online", 1},
 		Device{2, "扫码枪-02", "barcode_scanner", "SCAN-WH-002", "192.168.1.51", "online", 1},
-		Device{3, "接地板-01", "dock_plate", "DOCK-001", "192.168.1.60", "online", 1},
-		Device{4, "PDA-01", "pda", "PDA-WH-001", "192.168.1.70", "online", 1},
-		Device{5, "PDA-02", "pda", "PDA-WH-002", "192.168.1.71", "offline", 1},
-		Device{6, "打印机-01", "printer", "PRT-WH-001", "192.168.1.100", "online", 1},
+		Device{3, "地磅-01", "weighbridge", "WEIGH-WH-001", "192.168.1.10", "online", 1},
+		Device{4, "入库机-01", "inbound_machine", "INB-WH-001", "192.168.1.20", "online", 1},
+		Device{5, "PDA-01", "pda", "PDA-WH-001", "192.168.1.70", "online", 1},
+		Device{6, "PDA-02", "pda", "PDA-WH-002", "192.168.1.71", "offline", 1},
+		Device{7, "打印机-01", "printer", "PRT-WH-001", "192.168.1.100", "online", 1},
+		Device{8, "打印机-02", "printer", "PRT-WH-002", "192.168.1.101", "online", 1},
 	)
 
 	// ── 仓位/货架 ──
