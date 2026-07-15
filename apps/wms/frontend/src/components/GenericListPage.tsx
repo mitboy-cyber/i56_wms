@@ -639,7 +639,9 @@ export default function GenericListPage(props: GenericListPageProps) {
                         <td key={c.key} className="px-4 py-2.5 text-gray-700 whitespace-nowrap">
                           {c.render
                             ? c.render(row[c.key], row)
-                            : formatCellValue(row[c.key])}
+                            : (c.key === 'status' || c.key.endsWith('_status'))
+                              ? renderStatusBadge(String(row[c.key] ?? ''))
+                              : formatCellValue(row[c.key])}
                         </td>
                       ))}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
@@ -760,6 +762,49 @@ export default function GenericListPage(props: GenericListPageProps) {
 }
 
 // ── Helpers (outside component) ──
+
+// ── Status badge color mapping (BFT56-aligned) ──
+const STATUS_COLORS: Record<string, string> = {
+  // Order statuses
+  '待拣货': 'bg-yellow-100 text-yellow-800',
+  '待装柜': 'bg-orange-100 text-orange-800',
+  '已取消': 'bg-red-100 text-red-800',
+  '已完成': 'bg-green-100 text-green-800',
+  'pending_picking': 'bg-yellow-100 text-yellow-800',
+  'pending_packing': 'bg-yellow-100 text-yellow-800',
+  'pending_loading': 'bg-orange-100 text-orange-800',
+  'in_transit': 'bg-blue-100 text-blue-800',
+  'completed': 'bg-green-100 text-green-800',
+  'shipped': 'bg-indigo-100 text-indigo-800',
+  'loaded': 'bg-purple-100 text-purple-800',
+  'customs_clearance': 'bg-teal-100 text-teal-800',
+  // Parcel statuses
+  '待打包': 'bg-yellow-100 text-yellow-800',
+  '已上架': 'bg-green-100 text-green-800',
+  'stored': 'bg-green-100 text-green-800',
+  'packed': 'bg-blue-100 text-blue-800',
+  'weighed': 'bg-teal-100 text-teal-800',
+  // Work order statuses
+  '待处理': 'bg-yellow-100 text-yellow-800',
+  '处理中': 'bg-blue-100 text-blue-800',
+  'pending': 'bg-yellow-100 text-yellow-800',
+  'in_progress': 'bg-blue-100 text-blue-800',
+  // General
+  'active': 'bg-green-100 text-green-800',
+  '启用': 'bg-green-100 text-green-800',
+  '装货中': 'bg-yellow-100 text-yellow-800',
+  '已发运': 'bg-green-100 text-green-800',
+  '已结算': 'bg-green-100 text-green-800',
+  '待结算': 'bg-yellow-100 text-yellow-800',
+  '认证中': 'bg-yellow-100 text-yellow-800',
+  '认证成功': 'bg-green-100 text-green-800',
+  '认证失败': 'bg-red-100 text-red-800',
+};
+
+function renderStatusBadge(status: string) {
+  const color = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>{status.replace(/_/g, ' ')}</span>;
+}
 
 function formatCellValue(value: unknown): string {
   if (value === null || value === undefined) return '';
