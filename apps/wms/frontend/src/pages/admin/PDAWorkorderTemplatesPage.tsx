@@ -7,6 +7,7 @@ export default function PDAWorkorderTemplatesPage() {
       title="PDA 工单模板"
       queryKey={['admin-PDAWorkorderTemplates']}
       queryFn={() => client.get('/admin/api/pda-workorder-templates').then(r => r.data)}
+      apiBase="/admin/api/pda-workorder-templates"
       columns={[
         { key: 'id', label: '编号' },
         { key: 'warehouse', label: '仓库' },
