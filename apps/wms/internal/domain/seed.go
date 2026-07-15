@@ -20,14 +20,20 @@ func SeedAll() {
 	// ── 仓库看板/控制台 ──
 	WarehouseBoardStore.Seed(
 		WarehouseBoardEntry{1, 125, 3420, 15, 98},
+		WarehouseBoardEntry{2, 98, 2800, 12, 76},
 	)
 	WarehouseConsoleStore.Seed(
 		WarehouseConsoleEntry{1, 1, "入库组", "receive", "进行中"},
 		WarehouseConsoleEntry{2, 1, "拣货组", "pick", "等待中"},
+		WarehouseConsoleEntry{3, 1, "打包组", "pack", "进行中"},
+		WarehouseConsoleEntry{4, 1, "出库组", "ship", "进行中"},
 	)
 	InboundBoardStore.Seed(
 		InboundBoardEntry{1, "YT7625763166053", "厦门仓", "待上架", now},
 		InboundBoardEntry{2, "9822467437512", "厦门仓", "已签收", now.Add(-1 * time.Hour)},
+		InboundBoardEntry{3, "SF1234567890", "厦门仓", "已上架", now.Add(-3 * time.Hour)},
+		InboundBoardEntry{4, "ZTO9876543210", "厦门仓", "已称重", now.Add(-4 * time.Hour)},
+		InboundBoardEntry{5, "JD9999000011", "厦门仓", "待称重", now},
 	)
 
 	// ── PDA 在线会话 ──
