@@ -7,15 +7,16 @@ export default function LogisticsAPIPage() {
       title="物流API"
       queryKey={['admin-LogisticsAPIPage']}
       queryFn={() => client.get('/admin/api/system/logistics-api')}
+      apiBase="/admin/api/system/logistics-api"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'name', label: 'Name' },
-        { key: 'provider', label: 'Provider' },
-        { key: 'endpoint', label: 'Endpoint' },
-        { key: 'api_key', label: 'Api Key' },
-        { key: 'status', label: 'Status' },
+        { key: 'id', label: '编号' },
+        { key: 'name', label: '名称' },
+        { key: 'provider', label: '提供商' },
+        { key: 'endpoint', label: '接口地址' },
+        { key: 'api_key', label: 'API密钥' },
+        { key: 'status', label: '状态' },
       ]}
-      getRowId={(_, i) => String(i)}
+      getRowId={(r: any, i: number) => String(r.id || i)}
     />
   );
 }

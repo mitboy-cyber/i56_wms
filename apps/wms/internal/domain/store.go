@@ -463,6 +463,28 @@ type NotificationChannel struct {
 	Config string `json:"config"`
 }
 
+// ── 设备 (打印机/扫码枪/接地板) ──
+type Device struct {
+	ID          int64  `json:"id"`
+	DeviceName  string `json:"device_name"`
+	DeviceType  string `json:"device_type"`
+	DeviceCode  string `json:"device_code"`
+	IPAddress   string `json:"ip_address"`
+	Status      string `json:"status"`
+	WarehouseID int64  `json:"warehouse_id"`
+}
+
+// ── 仓位/货架 ──
+type Shelf struct {
+	ID          int64  `json:"id"`
+	WarehouseID int64  `json:"warehouse_id"`
+	Code        string `json:"code"`
+	Zone        string `json:"zone"`
+	Row         string `json:"row"`
+	Level       int    `json:"level"`
+	Status      string `json:"status"`
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Global data stores — singleton pattern
 // ═══════════════════════════════════════════════════════════════
@@ -491,6 +513,8 @@ var (
 	RechargeRecordStore      = NewStore[RechargeRecord]()
 	ContainerStore           = NewStore[Container]()
 	ClientPanelPermStore     = NewStore[ClientPanelPerm]()
+	DeviceStore              = NewStore[Device]()
+	ShelfStore               = NewStore[Shelf]()
 	ServiceTemplateStore     = NewStore[ServiceTemplate]()
 	ServiceTypeStore         = NewStore[ServiceType]()
 	ServiceWorkorderStore    = NewStore[ServiceWorkorder]()

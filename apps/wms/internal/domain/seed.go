@@ -248,6 +248,25 @@ func SeedAll() {
 		Printer{2, "标签打印机", "Network", "192.168.1.101"},
 	)
 
+	// ── 设备 (扫码枪/接地板/PDA) ──
+	DeviceStore.Seed(
+		Device{1, "扫码枪-01", "barcode_scanner", "SCAN-WH-001", "192.168.1.50", "online", 1},
+		Device{2, "扫码枪-02", "barcode_scanner", "SCAN-WH-002", "192.168.1.51", "online", 1},
+		Device{3, "接地板-01", "dock_plate", "DOCK-001", "192.168.1.60", "online", 1},
+		Device{4, "PDA-01", "pda", "PDA-WH-001", "192.168.1.70", "online", 1},
+		Device{5, "PDA-02", "pda", "PDA-WH-002", "192.168.1.71", "offline", 1},
+		Device{6, "打印机-01", "printer", "PRT-WH-001", "192.168.1.100", "online", 1},
+	)
+
+	// ── 仓位/货架 ──
+	ShelfStore.Seed(
+		Shelf{1, 1, "A-01-01", "A区", "01", 1, "empty"},
+		Shelf{2, 1, "A-01-02", "A区", "01", 2, "occupied"},
+		Shelf{3, 1, "A-02-01", "A区", "02", 1, "empty"},
+		Shelf{4, 1, "B-01-01", "B区", "01", 1, "occupied"},
+		Shelf{5, 1, "B-02-01", "B区", "02", 1, "empty"},
+	)
+
 	// ── API 配置 ──
 	APIConfigStore.Seed(
 		APIConfig{1, "顺丰快递", "SF", "https://api.sf.com", "sk-sf-test", "active"},

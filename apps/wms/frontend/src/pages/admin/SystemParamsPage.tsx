@@ -7,12 +7,13 @@ export default function SystemParamsPage() {
       title="系统参数"
       queryKey={['admin-system-params']}
       queryFn={() => client.get('/admin/api/system/params')}
+      apiBase="/admin/api/system/params"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'key', label: 'Key' },
-        { key: 'value', label: 'Value' },
-        { key: 'group', label: 'Group' },
-        { key: 'label', label: 'Label' },
+        { key: 'id', label: '编号' },
+        { key: 'key', label: '键名' },
+        { key: 'value', label: '值' },
+        { key: 'group', label: '分组' },
+        { key: 'label', label: '标签' },
       ]}
       getRowId={(r: any, i: number) => String(r.id || i)}
     />
