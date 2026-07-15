@@ -5,9 +5,11 @@ import { Package, ShoppingCart, Users, Warehouse, TrendingUp, DollarSign, AlertT
 export function DashboardPage() {
   const { data: orders = [] } = useQuery<any[]>({ queryKey: ['dashboard-orders'], queryFn: () => client.get('/admin/api/orders').then(r => r.data) });
   const { data: parcels = [] } = useQuery<any[]>({ queryKey: ['dashboard-parcels'], queryFn: () => client.get('/admin/api/parcels').then(r => r.data) });
-  const { data: clients = [] } = useQuery<any[]>({ queryKey: ['dashboard-clients'], queryFn: () => client.get('/admin/api/clients').then(r => r.data) });
+  const { data: clients = [] } = useQuery<any[]>({ queryKey: ['dashboard-clients'], queryFn: () => client.get('/admin/api/client-accounts').then(r => r.data) });
   const { data: employees = [] } = useQuery<any[]>({ queryKey: ['dashboard-employees'], queryFn: () => client.get('/admin/api/employees').then(r => r.data) });
   const { data: orderProfit = [] } = useQuery<any[]>({ queryKey: ['dashboard-opr'], queryFn: () => client.get('/admin/api/report/order-profit').then(r => r.data) });
+  const { data: carriers = [] } = useQuery<any[]>({ queryKey: ['dashboard-carriers'], queryFn: () => client.get('/admin/api/carriers').then(r => r.data) });
+  const { data: couriers = [] } = useQuery<any[]>({ queryKey: ['dashboard-couriers'], queryFn: () => client.get('/admin/api/couriers').then(r => r.data) });
 
   const totalRevenue = orderProfit.reduce((s: number, r: any) => s + (r.revenue || 0), 0);
   const todayOrders = orders.filter((o: any) => o.status === 'in_transit' || o.status === 'pending_picking').length;
@@ -20,8 +22,8 @@ export function DashboardPage() {
     { icon: Warehouse, label: '待处理包裹', value: pendingParcels, color: 'amber' },
     { icon: Truck, label: '进行中订单', value: todayOrders, color: 'purple' },
     { icon: DollarSign, label: '本月营收', value: `¥${totalRevenue.toLocaleString()}`, color: 'teal' },
-    { icon: TrendingUp, label: '员工数', value: employees.length, color: 'rose' },
-    { icon: AlertTriangle, label: '异常包裹', value: '3', color: 'red' },
+    { icon: TrendingUp, label: '承运商', value: carriers.length, color: 'rose' },
+    { icon: AlertTriangle, label: '快递渠道', value: couriers.length, color: 'red' },
   ];
 
   return (
