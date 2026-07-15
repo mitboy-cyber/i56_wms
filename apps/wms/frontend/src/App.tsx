@@ -9,12 +9,14 @@ import ClientLayout from '@/layouts/ClientLayout';
 // Admin pages
 import { LoginPage } from '@/pages/Login';
 import { DashboardPage } from '@/pages/Dashboard';
-import { EmployeesPage } from '@/pages/Employees';
+import EmployeesPage from '@/pages/admin/EmployeesPage';
 import { WarehousesPage } from '@/pages/Warehouses';
 import ClientsPage from '@/pages/admin/ClientsPage';
-import { RolesPage } from '@/pages/Roles';
+import RolesPage from '@/pages/admin/RolesPage';
 import ParcelsPage from '@/pages/admin/ParcelsPage';
-import { CarriersPage, CouriersPage, DeclarantsPage } from '@/pages/Transport';
+import CarriersPage from '@/pages/admin/CarriersPage';
+import CouriersPage from '@/pages/admin/CouriersPage';
+import DeclarantsPage from '@/pages/admin/DeclarantsPage';
 
 // Client pages
 import ClientLogin from '@/pages/client/ClientLogin';
