@@ -3,19 +3,13 @@ import GenericListPage from '@/components/GenericListPage';
 
 export default function ClientAccountsPage() {
   return (
-    <GenericListPage
-      title="客户账户"
-      queryKey={['admin-client-accounts']}
+    <GenericListPage title="客户账户" queryKey={['admin-client-accounts']}
       queryFn={() => client.get('/admin/api/client-accounts')}
+      apiBase="/admin/api/client-accounts"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'username', label: 'Username' },
-        { key: 'real_name', label: 'Real Name' },
-        { key: 'email', label: 'Email' },
-        { key: 'balance', label: 'Balance' },
-        { key: 'status', label: 'Status' },
-      ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'username', label: '用户名' },
+        { key: 'real_name', label: '企业名称' }, { key: 'email', label: '邮箱' },
+        { key: 'balance', label: '余额' }, { key: 'status', label: '状态' },
+      ]} getRowId={(r: any, i: number) => String(r.id || i)} />
   );
 }
