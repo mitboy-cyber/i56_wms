@@ -73,13 +73,20 @@ func SeedAll() {
 	ClientRechargeStore.Seed(
 		ClientRecharge{1, 1, 5000, "银行转账", "银行转账充值", now.Add(-30*24*time.Hour)},
 		ClientRecharge{2, 1, 3000, "微信支付", "微信充值", now.Add(-20*24*time.Hour)},
+		ClientRecharge{3, 1, 2000, "银行转账", "7月预充值", now.Add(-5*24*time.Hour)},
+		ClientRecharge{4, 2, 5000, "银行转账", "开户充值", now.Add(-25*24*time.Hour)},
 	)
 
 	// ── 余额日志 ──
 	BalanceLogStore.Seed(
 		BalanceLog{1, 1, "充值", 5000, 5000, "银行转账充值", now.Add(-30*24*time.Hour)},
 		BalanceLog{2, 1, "消费", -329.60, 4670.40, "订单20260715120525777938", now.Add(-1*time.Hour)},
-		BalanceLog{3, 1, "充值", 3000, 7670.40, "微信充值", now.Add(-20*24*time.Hour)},
+		BalanceLog{3, 1, "消费", -410.58, 4259.82, "订单20260708001", now.Add(-2*324*time.Hour)},
+		BalanceLog{4, 1, "充值", 3000, 7259.82, "微信充值", now.Add(-20*24*time.Hour)},
+		BalanceLog{5, 1, "消费", -189.42, 7070.40, "附加服务扣费", now.Add(-12*time.Hour)},
+		BalanceLog{6, 1, "消费", -600.00, 6470.40, "集运订单批量扣费", now.Add(-6*time.Hour)},
+		BalanceLog{7, 1, "充值", 2000, 8470.40, "7月预充值", now.Add(-5*24*time.Hour)},
+		BalanceLog{8, 1, "消费", -800.00, 7670.40, "7月账单结算", now.Add(-3*24*time.Hour)},
 	)
 
 	// ── 充值记录 ──
@@ -94,11 +101,16 @@ func SeedAll() {
 		ClientPanelPerm{2, 1, "我的包裹", true, true},
 		ClientPanelPerm{3, 1, "申报人", true, true},
 		ClientPanelPerm{4, 1, "余额明细", true, false},
+		ClientPanelPerm{5, 1, "地址管理", true, true},
+		ClientPanelPerm{6, 1, "会员管理", true, true},
 	)
 
 	// ── 客户定价 ──
 	ClientPricingStore.Seed(
 		ClientPricing{1, 1, 1, 15.0, 0.9},
+		ClientPricing{2, 1, 2, 8.30, 0.95},
+		ClientPricing{3, 1, 3, 3.20, 1.0},
+		ClientPricing{4, 2, 1, 18.0, 0.85},
 	)
 
 	// ── 月度对账单 ──
