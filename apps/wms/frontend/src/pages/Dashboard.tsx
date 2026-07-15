@@ -54,6 +54,46 @@ export function DashboardPage() {
         })}
       </div>
 
+      {/* ── Order status breakdown ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">订单状态分布</h3>
+          <div className="space-y-2">
+            {(() => {
+              const counts: Record<string, number> = {}; orders.forEach((o: any) => { const s = String(o.status); counts[s] = (counts[s] || 0) + 1; });
+              const colors: Record<string, string> = { pending_picking: '#eab308', pending_packing: '#eab308', pending_loading: '#f97316', in_transit: '#3b82f6', customs_clearance: '#14b8a6', completed: '#22c55e', shipped: '#6366f1', loaded: '#a855f7' };
+              return Object.entries(counts).map(([k, v]) => (
+                <div key={k} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-600 w-24">{k.replace(/_/g, ' ')}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-4">
+                    <div className="h-4 rounded-full" style={{ width: `${(v/orders.length)*100}%`, backgroundColor: colors[k] || '#9ca3af' }} />
+                  </div>
+                  <span className="text-xs font-medium w-6 text-right">{v}</span>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="text-sm font-semibold text-gray-600 mb-3">包裹状态分布</h3>
+          <div className="space-y-2">
+            {(() => {
+              const counts: Record<string, number> = {}; parcels.forEach((p: any) => { const s = String(p.status); counts[s] = (counts[s] || 0) + 1; });
+              const colors: Record<string, string> = { stored: '#22c55e', packed: '#3b82f6', weighed: '#14b8a6', received: '#6366f1', pre_declared: '#9ca3af', delivered: '#22c55e' };
+              return Object.entries(counts).map(([k, v]) => (
+                <div key={k} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-600 w-24">{k.replace(/_/g, ' ')}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-4">
+                    <div className="h-4 rounded-full" style={{ width: `${(v/parcels.length)*100}%`, backgroundColor: colors[k] || '#9ca3af' }} />
+                  </div>
+                  <span className="text-xs font-medium w-6 text-right">{v}</span>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+      </div>
+
       {/* ── Recent orders ── */}
       <div className="bg-white rounded-lg shadow p-4">
         <h3 className="text-sm font-semibold text-gray-600 mb-3">最近订单</h3>
