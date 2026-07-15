@@ -2,6 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import client from '@/api/client';
 import { Package, ShoppingCart, Users, Warehouse, TrendingUp, DollarSign, AlertTriangle, Truck } from 'lucide-react';
 
+const STATUS_CN: Record<string, string> = {
+  pending_picking: '待拣货', pending_packing: '待打包', pending_loading: '待装柜',
+  in_transit: '运输中', customs_clearance: '清关中', completed: '已完成',
+  shipped: '已发货', loaded: '已装柜', cancelled: '已取消',
+  stored: '已上架', packed: '已打包', weighed: '已称重', received: '已签收',
+  pre_declared: '预申报', delivered: '已送达',
+};
+
 export function DashboardPage() {
   const { data: stats } = useQuery<any>({ queryKey: ['dashboard-stats'], queryFn: () => client.get('/admin/api/dashboard/stats').then(r => r.data) });
   const { data: orders = [] } = useQuery<any[]>({ queryKey: ['dashboard-orders'], queryFn: () => client.get('/admin/api/orders').then(r => r.data) });
@@ -57,11 +65,10 @@ export function DashboardPage() {
           <div className="space-y-2">
             {(() => {
               const counts: Record<string, number> = {}; orders.forEach((o: any) => { const s = String(o.status); counts[s] = (counts[s] || 0) + 1; });
-              const statusCN: Record<string, string> = { pending_picking: '待拣货', pending_packing: '待打包', pending_loading: '待装柜', in_transit: '运输中', customs_clearance: '清关中', completed: '已完成', shipped: '已发货', loaded: '已装柜', cancelled: '已取消' };
               const colors: Record<string, string> = { pending_picking: '#eab308', pending_packing: '#f59e0b', pending_loading: '#f97316', in_transit: '#3b82f6', customs_clearance: '#14b8a6', completed: '#22c55e', shipped: '#6366f1', loaded: '#a855f7', cancelled: '#ef4444' };
               return Object.entries(counts).map(([k, v]) => (
                 <div key={k} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-600 w-20">{statusCN[k] || k.replace(/_/g, ' ')}</span>
+                  <span className="text-xs text-gray-600 w-20">{STATUS_CN[k] || k}</span>
                   <div className="flex-1 bg-gray-100 rounded-full h-4">
                     <div className="h-4 rounded-full" style={{ width: `${(v/orders.length)*100}%`, backgroundColor: colors[k] || '#9ca3af' }} />
                   </div>
@@ -76,11 +83,10 @@ export function DashboardPage() {
           <div className="space-y-2">
             {(() => {
               const counts: Record<string, number> = {}; parcels.forEach((p: any) => { const s = String(p.status); counts[s] = (counts[s] || 0) + 1; });
-              const statusCN: Record<string, string> = { stored: '已上架', packed: '已打包', weighed: '已称重', received: '已签收', pre_declared: '预申报', delivered: '已送达', shipped: '已发货' };
               const colors: Record<string, string> = { stored: '#22c55e', packed: '#3b82f6', weighed: '#14b8a6', received: '#6366f1', pre_declared: '#9ca3af', delivered: '#22c55e', shipped: '#a855f7' };
               return Object.entries(counts).map(([k, v]) => (
                 <div key={k} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-600 w-20">{statusCN[k] || k.replace(/_/g, ' ')}</span>
+                  <span className="text-xs text-gray-600 w-20">{STATUS_CN[k] || k}</span>
                   <div className="flex-1 bg-gray-100 rounded-full h-4">
                     <div className="h-4 rounded-full" style={{ width: `${(v/parcels.length)*100}%`, backgroundColor: colors[k] || '#9ca3af' }} />
                   </div>
@@ -110,7 +116,7 @@ export function DashboardPage() {
                 <td className="py-2 text-right">¥{Number(o.total_price).toFixed(2)}</td>
                 <td className="py-2 text-right">
                   <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                    {String(o.status).replace(/_/g, ' ')}
+                    {STATUS_CN[String(o.status)] || String(o.status).replace(/_/g, ' ')}
                   </span>
                 </td>
               </tr>
