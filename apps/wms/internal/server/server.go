@@ -272,10 +272,7 @@ func (s *Server) registerRoutes() {
 		http.Redirect(w, req, "/admin/dashboard", 303)
 	})
 
-	// Client login — SPA-mode (React client portal)
-	r.GET("/client/login", func(w http.ResponseWriter, req *http.Request) {
-		http.ServeFile(w, req, "/opt/i56/frontend/index.html")
-	})
+	// Client login — POST handler only (SPA handles GET via nginx)
 	r.POST("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")
 		if u == "" || p == "" {
