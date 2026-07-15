@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"strings"
@@ -9,63 +8,22 @@ import (
 	"time"
 )
 
-// inMemStorage implements Storage for testing.
-type inMemStorage struct {
-	files map[string][]byte
-}
-
-func newInMemStorage() *inMemStorage {
-	return &inMemStorage{files: make(map[string][]byte)}
-}
-
-func (s *inMemStorage) Put(ctx context.Context, path string, data io.Reader, opts *PutOptions) error {
-	b, err := io.ReadAll(data)
+func TestLocalStorage_PutAndGet(t *testing.T) {
+	s, err := NewLocalStorage(t.TempDir())
 	if err != nil {
-		return err
+		t.Fatalf("NewLocalStorage: %v", err)
 	}
-	s.files[path] = b
-	return nil
-}
-
-func (s *inMemStorage) Get(ctx context.Context, path string) (io.ReadCloser, error) {
-	b, ok := s.files[path]
-	if !ok {
-		return nil, &storageError{"file not found"}
-	}
-	return io.NopCloser(bytes.NewReader(b)), nil
-}
-
-func (s *inMemStorage) Delete(ctx context.Context, path string) error {
-	delete(s.files, path)
-	return nil
-}
-
-func (s *inMemStorage) URL(ctx context.Context, path string, expiry time.Duration) (string, error) {
-	return "http://example.com/" + path, nil
-}
-
-func (s *inMemStorage) Exists(ctx context.Context, path string) (bool, error) {
-	_, ok := s.files[path]
-	return ok, nil
-}
-
-type storageError struct{ msg string }
-
-func (e *storageError) Error() string { return e.msg }
-
-func TestStorage_PutAndGet(t *testing.T) {
-	s := newInMemStorage()
 	ctx := context.Background()
 
 	data := strings.NewReader("hello world")
-	err := s.Put(ctx, "file.txt", data, &PutOptions{ContentType: "text/plain"})
+	_, err = s.Upload(ctx, "test-bucket", "file.txt", data, int64(len("hello world")), "text/plain")
 	if err != nil {
-		t.Fatalf("Put: %v", err)
+		t.Fatalf("Upload: %v", err)
 	}
 
-	rc, err := s.Get(ctx, "file.txt")
+	rc, err := s.Download(ctx, "test-bucket", "file.txt")
 	if err != nil {
-		t.Fatalf("Get: %v", err)
+		t.Fatalf("Download: %v", err)
 	}
 	defer rc.Close()
 
@@ -75,52 +33,45 @@ func TestStorage_PutAndGet(t *testing.T) {
 	}
 }
 
-func TestStorage_Exists(t *testing.T) {
-	s := newInMemStorage()
+func TestLocalStorage_Delete(t *testing.T) {
+	s, _ := NewLocalStorage(t.TempDir())
 	ctx := context.Background()
 
-	ok, err := s.Exists(ctx, "nonexistent.txt")
+	s.Upload(ctx, "bucket", "file.txt", strings.NewReader("data"), 4, "text/plain")
+
+	err := s.Delete(ctx, "bucket", "file.txt")
 	if err != nil {
-		t.Fatalf("Exists: %v", err)
-	}
-	if ok {
-		t.Error("expected false for nonexistent file")
+		t.Fatalf("Delete: %v", err)
 	}
 
-	s.Put(ctx, "exists.txt", strings.NewReader("data"), nil)
-
-	ok, err = s.Exists(ctx, "exists.txt")
-	if err != nil {
-		t.Fatalf("Exists: %v", err)
-	}
-	if !ok {
-		t.Error("expected true for existing file")
+	_, err = s.Download(ctx, "bucket", "file.txt")
+	if err == nil {
+		t.Error("expected error after delete")
 	}
 }
 
-func TestStorage_Delete(t *testing.T) {
-	s := newInMemStorage()
+func TestLocalStorage_GetURL(t *testing.T) {
+	s, _ := NewLocalStorage(t.TempDir())
 	ctx := context.Background()
 
-	s.Put(ctx, "file.txt", strings.NewReader("data"), nil)
-	s.Delete(ctx, "file.txt")
+	s.Upload(ctx, "bucket", "file.txt", strings.NewReader("data"), 4, "text/plain")
 
-	ok, _ := s.Exists(ctx, "file.txt")
-	if ok {
-		t.Error("expected file to be deleted")
-	}
-}
-
-func TestStorage_URL(t *testing.T) {
-	s := newInMemStorage()
-	ctx := context.Background()
-
-	url, err := s.URL(ctx, "path/to/file.pdf", time.Hour)
+	url, err := s.GetURL(ctx, "bucket", "file.txt", time.Hour)
 	if err != nil {
-		t.Fatalf("URL: %v", err)
+		t.Fatalf("GetURL: %v", err)
 	}
 	if url == "" {
 		t.Error("expected non-empty URL")
+	}
+}
+
+func TestLocalStorage_DownloadNotFound(t *testing.T) {
+	s, _ := NewLocalStorage(t.TempDir())
+	ctx := context.Background()
+
+	_, err := s.Download(ctx, "bucket", "nonexistent.txt")
+	if err == nil {
+		t.Error("expected error for nonexistent file")
 	}
 }
 
@@ -133,5 +84,42 @@ func TestDriverConstants(t *testing.T) {
 	}
 	if DriverS3 != "s3" {
 		t.Errorf("expected 's3', got %q", DriverS3)
+	}
+}
+
+func TestMinioStorage_Upload(t *testing.T) {
+	s := NewMinioStorage(MinioConfig{
+		Endpoint:  "minio.example.com:9000",
+		AccessKey: "minioadmin",
+		SecretKey: "minioadmin",
+		UseSSL:    false,
+	})
+	ctx := context.Background()
+
+	data := strings.NewReader("test data")
+	url, err := s.Upload(ctx, "bucket", "key", data, 9, "text/plain")
+	if err != nil {
+		t.Fatalf("Upload: %v", err)
+	}
+	if url == "" {
+		t.Error("expected non-empty URL")
+	}
+}
+
+func TestMinioStorage_GetURL(t *testing.T) {
+	s := NewMinioStorage(MinioConfig{
+		Endpoint:  "s3.example.com",
+		AccessKey: "key",
+		SecretKey: "secret",
+		UseSSL:    true,
+	})
+	ctx := context.Background()
+
+	url, err := s.GetURL(ctx, "bucket", "key", time.Hour)
+	if err != nil {
+		t.Fatalf("GetURL: %v", err)
+	}
+	if !strings.Contains(url, "https://") {
+		t.Errorf("expected HTTPS URL, got %q", url)
 	}
 }

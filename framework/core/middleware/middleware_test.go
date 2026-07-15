@@ -4,25 +4,20 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/i56/framework/core/logger"
 )
 
 type testLogger struct{}
 
-func (l testLogger) Debug(msg string, args ...any) {}
-func (l testLogger) Info(msg string, args ...any)  {}
-func (l testLogger) Warn(msg string, args ...any)  {}
-func (l testLogger) Error(msg string, args ...any) {}
-func (l testLogger) With(args ...any) Logger       { return l }
-func (l testLogger) WithGroup(name string) Logger  { return l }
+func (l testLogger) Debug(msg string, args ...any)      {}
+func (l testLogger) Info(msg string, args ...any)       {}
+func (l testLogger) Warn(msg string, args ...any)       {}
+func (l testLogger) Error(msg string, args ...any)      {}
+func (l testLogger) With(args ...any) logger.Logger     { return l }
+func (l testLogger) WithGroup(name string) logger.Logger { return l }
 
-type Logger interface {
-	Debug(msg string, args ...any)
-	Info(msg string, args ...any)
-	Warn(msg string, args ...any)
-	Error(msg string, args ...any)
-	With(args ...any) Logger
-	WithGroup(name string) Logger
-}
+var _ logger.Logger = testLogger{}
 
 func TestChain_Order(t *testing.T) {
 	order := []string{}
@@ -49,8 +44,8 @@ func TestChain_Order(t *testing.T) {
 	chained := Chain(handler, mw1, mw2)
 	chained.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/", nil))
 
-	// mw2 is outermost (applied last), so it wraps mw1
-	expected := []string{"mw2-before", "mw1-before", "handler", "mw1-after", "mw2-after"}
+	// mw1 is outermost (applied first), wrapping mw2 which wraps the handler
+	expected := []string{"mw1-before", "mw2-before", "handler", "mw2-after", "mw1-after"}
 	if len(order) != len(expected) {
 		t.Fatalf("expected %d steps, got %d: %v", len(expected), len(order), order)
 	}

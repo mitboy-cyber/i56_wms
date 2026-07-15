@@ -5,25 +5,20 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/i56/framework/core/logger"
 )
 
 type testLogger struct{}
 
-func (l testLogger) Debug(msg string, args ...any) {}
-func (l testLogger) Info(msg string, args ...any)  {}
-func (l testLogger) Warn(msg string, args ...any)  {}
-func (l testLogger) Error(msg string, args ...any) {}
-func (l testLogger) With(args ...any) logger       { return l }
-func (l testLogger) WithGroup(name string) logger  { return l }
+func (l testLogger) Debug(msg string, args ...any)      {}
+func (l testLogger) Info(msg string, args ...any)       {}
+func (l testLogger) Warn(msg string, args ...any)       {}
+func (l testLogger) Error(msg string, args ...any)      {}
+func (l testLogger) With(args ...any) logger.Logger     { return l }
+func (l testLogger) WithGroup(name string) logger.Logger { return l }
 
-type logger interface {
-	Debug(msg string, args ...any)
-	Info(msg string, args ...any)
-	Warn(msg string, args ...any)
-	Error(msg string, args ...any)
-	With(args ...any) logger
-	WithGroup(name string) logger
-}
+var _ logger.Logger = testLogger{}
 
 func TestMemQueue_EnqueueDequeue(t *testing.T) {
 	q := NewMemQueue()

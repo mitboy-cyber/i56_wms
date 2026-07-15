@@ -1,94 +1,94 @@
 package scheduler
 
 import (
-	"context"
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/i56/framework/core/logger"
 )
 
-// testLogger implements logger.Logger.
-type testLogger struct{}
+func TestScheduler_AddAndListJobs(t *testing.T) {
+	s := New()
 
-func (l testLogger) Debug(msg string, args ...any)  {}
-func (l testLogger) Info(msg string, args ...any)   {}
-func (l testLogger) Warn(msg string, args ...any)   {}
-func (l testLogger) Error(msg string, args ...any)  {}
-func (l testLogger) With(args ...any) logger.Logger { return l }
-func (l testLogger) WithGroup(name string) logger.Logger { return l }
-
-var _ logger.Logger = testLogger{}
-
-func TestScheduler_AddAndRemoveJob(t *testing.T) {
-	s := New(testLogger{})
-
-	err := s.AddJob(&Job{Name: "cleanup", Schedule: "@every 1h", Handler: func(ctx context.Context) error {
+	err := s.AddJob("cleanup", "@every 1h", func() error {
 		return nil
-	}})
+	})
 	if err != nil {
 		t.Fatalf("AddJob: %v", err)
 	}
 
-	if len(s.jobs) != 1 {
-		t.Errorf("expected 1 job, got %d", len(s.jobs))
+	jobs := s.ListJobs()
+	if len(jobs) != 1 {
+		t.Errorf("expected 1 job, got %d", len(jobs))
 	}
-
-	s.RemoveJob("cleanup")
-	if len(s.jobs) != 0 {
-		t.Errorf("expected 0 jobs after remove, got %d", len(s.jobs))
+	if jobs[0].Name != "cleanup" {
+		t.Errorf("expected job 'cleanup', got %q", jobs[0].Name)
 	}
 }
 
 func TestScheduler_StartAndStop(t *testing.T) {
-	s := New(testLogger{})
+	s := New()
 
 	var count atomic.Int32
-	s.AddJob(&Job{Name: "tick", Schedule: "@every 1s", Handler: func(ctx context.Context) error {
+	s.AddJob("tick", "@every 500ms", func() error {
 		count.Add(1)
 		return nil
-	}})
+	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	s.Start()
 
-	go func() {
-		s.Start(ctx)
-	}()
-
-	// Wait briefly then stop
-	time.Sleep(500 * time.Millisecond)
+	// Wait for at least one run
+	time.Sleep(1200 * time.Millisecond)
 	s.Stop()
 
-	// At least one run should have happened
 	if count.Load() < 1 {
 		t.Errorf("expected at least 1 run, got %d", count.Load())
 	}
 }
 
-func TestScheduler_ContextCancellation(t *testing.T) {
-	s := New(testLogger{})
-	s.AddJob(&Job{Name: "cancelled", Schedule: "@every 1s", Handler: func(ctx context.Context) error {
+func TestScheduler_TriggerNow(t *testing.T) {
+	s := New()
+
+	var count atomic.Int32
+	s.AddJob("manual", "@daily", func() error {
+		count.Add(1)
 		return nil
-	}})
+	})
 
-	ctx, cancel := context.WithCancel(context.Background())
+	s.Start()
+	defer s.Stop()
 
-	done := make(chan error, 1)
-	go func() {
-		done <- s.Start(ctx)
-	}()
+	err := s.TriggerNow("manual")
+	if err != nil {
+		t.Fatalf("TriggerNow: %v", err)
+	}
 
-	time.Sleep(100 * time.Millisecond)
-	cancel()
+	// Give it a moment to run
+	time.Sleep(200 * time.Millisecond)
 
-	select {
-	case err := <-done:
-		if err != context.Canceled {
-			t.Errorf("expected context.Canceled, got %v", err)
-		}
-	case <-time.After(2 * time.Second):
-		t.Error("timed out waiting for scheduler to stop")
+	if count.Load() != 1 {
+		t.Errorf("expected 1 run, got %d", count.Load())
+	}
+}
+
+func TestScheduler_TriggerNowNotFound(t *testing.T) {
+	s := New()
+
+	err := s.TriggerNow("nonexistent")
+	if err == nil {
+		t.Error("expected error for nonexistent job")
+	}
+}
+
+func TestScheduler_DuplicateJob(t *testing.T) {
+	s := New()
+
+	err := s.AddJob("dup", "@daily", func() error { return nil })
+	if err != nil {
+		t.Fatalf("first AddJob: %v", err)
+	}
+
+	err = s.AddJob("dup", "@daily", func() error { return nil })
+	if err == nil {
+		t.Error("expected error for duplicate job")
 	}
 }

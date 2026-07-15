@@ -131,7 +131,7 @@ func (s *Scheduler) TriggerNow(name string) error {
 
 // loop is the main scheduling loop.
 func (s *Scheduler) loop() {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {

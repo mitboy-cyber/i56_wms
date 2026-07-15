@@ -1,5 +1,7 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom"
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth"
+import { useTabStore } from "@/stores/tabs"
+import { TabBar } from "@/components/TabBar"
 import {
   LayoutDashboard, Package, Users, Warehouse, Truck, Shield,
   Settings, LogOut, ChevronDown, ChevronRight, Box, Ship, Plane,
@@ -8,7 +10,7 @@ import {
   ClipboardList, MapPin, Briefcase, ScrollText, UserCog, ListChecks,
   Activity, Radar, Camera, Workflow,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface MenuGroup {
   label: string
@@ -156,12 +158,31 @@ const menu: MenuGroup[] = [
 
 export function DashboardLayout() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, logout } = useAuthStore()
+  const { openTab, setActiveTab, tabs, activeTabId } = useTabStore()
   const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
     const state: Record<string, boolean> = {}
     menu.forEach(g => { if (g.defaultOpen) state[g.label] = true })
     return state
   })
+
+  // Sync URL changes to tab store
+  useEffect(() => {
+    // Find menu item matching current path
+    for (const g of menu) {
+      for (const c of g.children) {
+        if (c.href === location.pathname) {
+          openTab({ id: c.href, label: c.label, href: c.href })
+          return
+        }
+      }
+    }
+    // If path doesn't match any menu item, still set active
+    if (tabs.some(t => t.href === location.pathname)) {
+      setActiveTab(location.pathname)
+    }
+  }, [location.pathname])
 
   const toggle = (label: string) => setExpanded((p) => ({ ...p, [label]: !p[label] }))
 
@@ -221,6 +242,7 @@ export function DashboardLayout() {
         <header className="h-14 bg-white border-b flex items-center px-6 shrink-0">
           <h2 className="text-sm font-medium text-gray-700">I56 WMS 管理后台</h2>
         </header>
+        <TabBar />
         <main className="flex-1 overflow-y-auto p-6">
           <Outlet />
         </main>

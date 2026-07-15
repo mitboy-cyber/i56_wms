@@ -103,7 +103,7 @@ func TestLogger_WarnError(t *testing.T) {
 }
 
 func TestParseLevel(t *testing.T) {
-	if parseLevel("debug") != 0 { // slog.LevelDebug
+	if parseLevel("debug") != -4 { // slog.LevelDebug
 		t.Error("expected debug level")
 	}
 	if parseLevel("warn") != 4 { // slog.LevelWarn

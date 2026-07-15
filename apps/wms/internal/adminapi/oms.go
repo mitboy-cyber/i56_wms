@@ -1,0 +1,168 @@
+// Package adminapi provides OMS (Order Management) admin API handlers.
+package adminapi
+
+import (
+	"encoding/json"
+	"net/http"
+	"strconv"
+
+	"github.com/i56/framework/core/router"
+
+	custDomain "github.com/i56/modules/customer/domain"
+	custRepo "github.com/i56/modules/customer/repository"
+	orderDomain "github.com/i56/modules/order/domain"
+	orderSvc "github.com/i56/modules/order/service"
+	parcelDomain "github.com/i56/modules/parcel/domain"
+	parcelSvc "github.com/i56/modules/parcel/service"
+	psRepo "github.com/i56/modules/parcel_service/repository"
+	pricingRepo "github.com/i56/modules/pricing/repository"
+	tmsRepo "github.com/i56/modules/transport/repository"
+	whSvc "github.com/i56/modules/warehouse/service"
+)
+
+// RegisterOMSAPI registers all OMS module JSON API endpoints.
+// Handles orders, parcels, warehouses, services — real data from module repos.
+func RegisterOMSAPI(
+	r *router.Router, a func(http.HandlerFunc) http.HandlerFunc,
+	ps *parcelSvc.ParcelService, osvc *orderSvc.OrderService,
+	ws *whSvc.WarehouseService, cr *custRepo.MemClientRepo,
+	rr *tmsRepo.MemRouteRepo, cour *tmsRepo.MemCourierRepo,
+	sr *psRepo.MemServiceRepo, lr *custRepo.MemLedgerRepo,
+	dr *custRepo.MemDeclarantRepo, mr *custRepo.MemMemberRepo,
+	ar *custRepo.MemAddressRepo, rpr *pricingRepo.MemRoutePriceRepo,
+	dfr *pricingRepo.MemDeliveryFeeRepo, scr *pricingRepo.MemSurchargeRepo,
+	acr *pricingRepo.MemApiCredentialRepo,
+) {
+	const t int64 = 1
+
+	// Warehouses
+	r.GET("/admin/api/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
+		wh, _, _ := ws.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, wh)
+	}))
+	r.POST("/admin/api/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
+		var b struct{ Name, Code, Address, Contact, Phone string }
+		json.NewDecoder(req.Body).Decode(&b)
+		wh, _ := ws.Create(req.Context(), t, b.Name, b.Code, b.Address, b.Contact, b.Phone)
+		apiJSON(w, 201, wh)
+	}))
+
+	// Parcels
+	r.GET("/admin/api/parcels", a(func(w http.ResponseWriter, req *http.Request) {
+		px, _, _ := ps.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, px)
+	}))
+	r.POST("/admin/api/parcels", a(func(w http.ResponseWriter, req *http.Request) {
+		var b struct{ TrackingNumber, ProductName, CourierCode string; WarehouseID int64 }
+		json.NewDecoder(req.Body).Decode(&b)
+		if b.WarehouseID == 0 {
+			b.WarehouseID = 1
+		}
+		p, err := ps.PreDeclare(req.Context(), &parcelDomain.Parcel{
+			TrackingNumber: b.TrackingNumber, ProductName: b.ProductName,
+			TenantID: t, WarehouseID: b.WarehouseID, CourierCode: b.CourierCode,
+		})
+		if err != nil {
+			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			return
+		}
+		apiJSON(w, 201, p)
+	}))
+
+	// Orders
+	r.GET("/admin/api/orders", a(func(w http.ResponseWriter, req *http.Request) {
+		ox, _, _ := osvc.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, ox)
+	}))
+	r.POST("/admin/api/orders", a(func(w http.ResponseWriter, req *http.Request) {
+		var b struct {
+			OrderNo, RecipientName string
+			ParcelCount            int
+			TotalPrice             float64
+			RouteID                int64
+		}
+		json.NewDecoder(req.Body).Decode(&b)
+		o := &orderDomain.Order{
+			OrderNo: b.OrderNo, RecipientName: b.RecipientName,
+			ParcelCount: b.ParcelCount, TotalPrice: b.TotalPrice,
+			RouteID: b.RouteID, TenantID: t,
+		}
+		created, err := osvc.Create(req.Context(), o)
+		if err != nil {
+			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			return
+		}
+		apiJSON(w, 201, created)
+	}))
+	r.GET("/admin/api/orders/{id}", a(func(w http.ResponseWriter, req *http.Request) {
+		idStr := req.PathValue("id")
+		id, _ := strconv.ParseInt(idStr, 10, 64)
+		o, _ := osvc.GetByOrderNo(req.Context(), t, idStr)
+		if o == nil {
+			o, _ = osvc.GetByID(req.Context(), t, id)
+		}
+		if o == nil {
+			apiJSON(w, 404, map[string]string{"error": "not found"})
+			return
+		}
+		apiJSON(w, 200, o)
+	}))
+
+	// Clients (real repos)
+	r.GET("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
+		cl, _, _ := cr.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, cl)
+	}))
+	r.POST("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
+		var b struct{ Name, Code string }
+		json.NewDecoder(req.Body).Decode(&b)
+		c := &custDomain.Client{Name: b.Name, Code: b.Code}
+		cr.Create(req.Context(), t, c)
+		apiJSON(w, 201, c)
+	}))
+
+	// Sub-resources
+	r.GET("/admin/api/declarants", a(func(w http.ResponseWriter, req *http.Request) {
+		d, _, _ := dr.List(req.Context(), 1, 0, 200)
+		apiJSON(w, 200, d)
+	}))
+	r.GET("/admin/api/members", a(func(w http.ResponseWriter, req *http.Request) {
+		m, _, _ := mr.List(req.Context(), 1, 0, 200)
+		apiJSON(w, 200, m)
+	}))
+	r.GET("/admin/api/addresses", a(func(w http.ResponseWriter, req *http.Request) {
+		addr, _ := ar.List(req.Context(), 1)
+		apiJSON(w, 200, addr)
+	}))
+	r.GET("/admin/api/ledger", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, lr.GetByClient(req.Context(), 1, 1))
+	}))
+	r.GET("/admin/api/service-orders", a(func(w http.ResponseWriter, req *http.Request) {
+		so, _, _ := sr.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, so)
+	}))
+
+	// Transport
+	r.GET("/admin/api/carriers", a(func(w http.ResponseWriter, req *http.Request) {
+		routes, _, _ := rr.List(req.Context(), t, 0, 200)
+		apiJSON(w, 200, routes)
+	}))
+	r.GET("/admin/api/couriers", a(func(w http.ResponseWriter, req *http.Request) {
+		c, _ := cour.List(req.Context())
+		apiJSON(w, 200, c)
+	}))
+
+	// Pricing
+	r.GET("/admin/api/credentials", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, acr.List())
+	}))
+	r.GET("/admin/api/pricing/routes", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, rpr.List())
+	}))
+	r.GET("/admin/api/pricing/delivery", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, dfr.List())
+	}))
+	r.GET("/admin/api/pricing/surcharges", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, scr.List())
+	}))
+}

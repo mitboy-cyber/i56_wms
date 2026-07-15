@@ -23,6 +23,7 @@ func (r *MemDeclarantRepo) Create(ctx context.Context, clientID int64, d *domain
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	d.ID = atomic.AddInt64(&r.nextID, 1) - 1
+	d.ClientID = clientID
 	r.declarants[d.ID] = d
 	return nil
 }

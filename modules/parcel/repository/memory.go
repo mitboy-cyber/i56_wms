@@ -16,7 +16,9 @@ type MemParcelRepo struct {
 }
 
 func NewMemParcelRepo() *MemParcelRepo {
-	return &MemParcelRepo{parcels: make(map[int64]*domain.Parcel), nextID: 1}
+	r := &MemParcelRepo{parcels: make(map[int64]*domain.Parcel), nextID: 1}
+	r.seedParcels()
+	return r
 }
 
 func (r *MemParcelRepo) Create(ctx context.Context, p *domain.Parcel) error {

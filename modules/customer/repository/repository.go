@@ -37,3 +37,14 @@ type AddressRepository interface {
 	List(ctx context.Context, memberID int64) ([]domain.MemberAddress, error)
 	SetDefault(ctx context.Context, memberID, addressID int64) error
 }
+
+// ClientUserRepository defines client user persistence operations.
+type ClientUserRepository interface {
+	Create(ctx context.Context, clientID int64, u *domain.ClientUser) error
+	GetByID(ctx context.Context, id int64) (*domain.ClientUser, error)
+	GetByUsername(ctx context.Context, clientID int64, username string) (*domain.ClientUser, error)
+	ListByClient(ctx context.Context, clientID int64) ([]domain.ClientUser, error)
+	Update(ctx context.Context, id int64, u *domain.ClientUser) error
+	Delete(ctx context.Context, id int64) error
+	RecordLogin(ctx context.Context, id int64) error
+}

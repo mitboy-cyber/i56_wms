@@ -15,7 +15,8 @@ import (
 // Middleware is a function that wraps an http.Handler.
 type Middleware func(http.Handler) http.Handler
 
-// Chain applies middlewares in order (last in list = outermost).
+// Chain applies middlewares in order — first middleware in list is outermost
+// (runs first on request, last on response).
 func Chain(handler http.Handler, mws ...Middleware) http.Handler {
 	for i := len(mws) - 1; i >= 0; i-- {
 		handler = mws[i](handler)

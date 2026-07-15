@@ -111,7 +111,6 @@ func (c *Consumer) consume(ctx context.Context, workerID int) {
 // MemQueue is an in-memory queue implementation (FIFO, unbounded).
 type MemQueue struct {
 	mu       sync.Mutex
-	cond     *sync.Cond
 	messages []*Message
 	acked    map[string]bool
 	nacked   map[string]bool
@@ -120,13 +119,11 @@ type MemQueue struct {
 
 // NewMemQueue creates an in-memory queue.
 func NewMemQueue() *MemQueue {
-	mq := &MemQueue{
+	return &MemQueue{
 		messages: make([]*Message, 0),
 		acked:    make(map[string]bool),
 		nacked:   make(map[string]bool),
 	}
-	mq.cond = sync.NewCond(&mq.mu)
-	return mq
 }
 
 func (q *MemQueue) Enqueue(ctx context.Context, msg *Message) error {
@@ -139,49 +136,40 @@ func (q *MemQueue) Enqueue(ctx context.Context, msg *Message) error {
 		msg.Timestamp = time.Now()
 	}
 	q.messages = append(q.messages, msg)
-	q.cond.Signal()
 	return nil
 }
 
 func (q *MemQueue) Dequeue(ctx context.Context, timeout time.Duration) (*Message, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-
 	deadline := time.Now().Add(timeout)
-	for len(q.messages) == 0 && !q.closed {
-		remaining := time.Until(deadline)
-		if remaining <= 0 {
+
+	for {
+		q.mu.Lock()
+		if len(q.messages) > 0 {
+			msg := q.messages[0]
+			q.messages = q.messages[1:]
+			if msg.Attempts == 0 {
+				msg.Attempts = 1
+			}
+			q.mu.Unlock()
+			return msg, nil
+		}
+		if q.closed {
+			q.mu.Unlock()
+			return nil, ErrQueueClosed
+		}
+		q.mu.Unlock()
+
+		if time.Now().After(deadline) {
 			return nil, context.DeadlineExceeded
 		}
-		// Use a timer-based wait to respect the deadline
-		done := make(chan struct{})
-		go func() {
-			q.cond.Wait()
-			close(done)
-		}()
 
-		q.mu.Unlock()
+		// Small sleep to avoid busy-waiting
 		select {
-		case <-done:
-		case <-time.After(remaining):
-			q.cond.Signal() // wake up the goroutine waiting on cond
 		case <-ctx.Done():
-			q.mu.Lock()
 			return nil, ctx.Err()
+		case <-time.After(10 * time.Millisecond):
 		}
-		q.mu.Lock()
 	}
-
-	if q.closed && len(q.messages) == 0 {
-		return nil, ErrQueueClosed
-	}
-
-	msg := q.messages[0]
-	q.messages = q.messages[1:]
-	if msg.Attempts == 0 {
-		msg.Attempts = 1
-	}
-	return msg, nil
 }
 
 func (q *MemQueue) Ack(ctx context.Context, msgID string) error {
@@ -208,7 +196,6 @@ func (q *MemQueue) Close() error {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.closed = true
-	q.cond.Broadcast()
 	return nil
 }
 
