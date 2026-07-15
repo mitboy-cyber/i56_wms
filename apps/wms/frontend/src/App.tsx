@@ -11,9 +11,9 @@ import { LoginPage } from '@/pages/Login';
 import { DashboardPage } from '@/pages/Dashboard';
 import { EmployeesPage } from '@/pages/Employees';
 import { WarehousesPage } from '@/pages/Warehouses';
-import { ClientsPage } from '@/pages/Clients';
+import ClientsPage from '@/pages/admin/ClientsPage';
 import { RolesPage } from '@/pages/Roles';
-import { ParcelsPage } from '@/pages/Parcels';
+import ParcelsPage from '@/pages/admin/ParcelsPage';
 import { CarriersPage, CouriersPage, DeclarantsPage } from '@/pages/Transport';
 
 // Client pages
