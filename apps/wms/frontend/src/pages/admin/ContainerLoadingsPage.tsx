@@ -3,20 +3,14 @@ import GenericListPage from '@/components/GenericListPage';
 
 export default function ContainerLoadingsPage() {
   return (
-    <GenericListPage
-      title="集装箱装货"
-      queryKey={['admin-container-loadings']}
+    <GenericListPage title="装箱记录" queryKey={['admin-container-loadings']}
       queryFn={() => client.get('/admin/api/container-loadings')}
+      apiBase="/admin/api/container-loadings"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'container_no', label: 'Container No' },
-        { key: 'vessel', label: 'Vessel' },
-        { key: 'port_from', label: 'Port From' },
-        { key: 'port_to', label: 'Port To' },
-        { key: 'parcel_count', label: 'Parcel Count' },
-        { key: 'loaded_at', label: 'Loaded At' },
-      ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'container_no', label: '柜号' },
+        { key: 'vessel', label: '船名' }, { key: 'port_from', label: '起运港' },
+        { key: 'port_to', label: '目的港' }, { key: 'parcel_count', label: '件数' },
+        { key: 'loaded_at', label: '装箱时间' },
+      ]} getRowId={(_, i) => String(i)} />
   );
 }

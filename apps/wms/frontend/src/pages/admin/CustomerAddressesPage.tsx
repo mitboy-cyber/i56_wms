@@ -3,19 +3,14 @@ import GenericListPage from '@/components/GenericListPage';
 
 export default function CustomerAddressesPage() {
   return (
-    <GenericListPage
-      title="客户地址"
-      queryKey={['admin-customer-addresses']}
+    <GenericListPage title="客户地址" queryKey={['admin-customer-addresses']}
       queryFn={() => client.get('/admin/api/customer-addresses')}
+      apiBase="/admin/api/customer-addresses"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'recipient_name', label: 'Recipient Name' },
-        { key: 'phone', label: 'Phone' },
-        { key: 'city', label: 'City' },
-        { key: 'address', label: 'Address' },
-        { key: 'is_default', label: 'Is Default' },
-      ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'recipient_name', label: '收件人' },
+        { key: 'phone', label: '电话' }, { key: 'city', label: '城市' },
+        { key: 'district', label: '区域' }, { key: 'address', label: '详细地址' },
+        { key: 'is_default', label: '默认' },
+      ]} getRowId={(_, i) => String(i)} />
   );
 }
