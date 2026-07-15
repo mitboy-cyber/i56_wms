@@ -189,6 +189,8 @@ func SeedAll() {
 	)
 	ContainerLoadingStore.Seed(
 		ContainerLoading{1, "CNTR-001", "厦门轮", "厦门", "台北", 450, now},
+		ContainerLoading{2, "CNTR-002", "EVA AIR Cargo", "深圳", "桃园", 320, now.Add(-2 * 24 * time.Hour)},
+		ContainerLoading{3, "CNTR-003", "WAN HAI 235", "厦门", "基隆", 580, now.Add(-1 * 24 * time.Hour)},
 	)
 
 	// ── 通知 ──
@@ -230,6 +232,7 @@ func SeedAll() {
 	// ── 存储配置 ──
 	StorageConfigStore.Seed(
 		StorageConfig{1, "minio", "MinIO", "i56-bucket", "us-east-1"},
+		StorageConfig{2, "s3-backup", "AWS S3", "i56-backup", "ap-southeast-1"},
 	)
 
 	// ── 通知渠道 ──
@@ -240,6 +243,7 @@ func SeedAll() {
 	)
 	PrinterStore.Seed(
 		Printer{1, "主打印机", "USB", "192.168.1.100"},
+		Printer{2, "标签打印机", "Network", "192.168.1.101"},
 	)
 
 	// ── API 配置 ──
