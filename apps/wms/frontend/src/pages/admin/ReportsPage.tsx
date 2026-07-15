@@ -3,18 +3,13 @@ import GenericListPage from '@/components/GenericListPage';
 
 export default function ReportsPage() {
   return (
-    <GenericListPage
-      title="报表管理"
-      queryKey={['admin-reports']}
+    <GenericListPage title="报表管理" queryKey={['admin-reports']}
       queryFn={() => client.get('/admin/api/system/reports')}
+      apiBase="/admin/api/system/reports"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'name', label: 'Name' },
-        { key: 'type', label: 'Type' },
-        { key: 'status', label: 'Status' },
-        { key: 'created_at', label: 'Created At' },
-      ]}
-      getRowId={(r: any, i: number) => String(r.id || i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'name', label: '报表名称' },
+        { key: 'type', label: '类型' }, { key: 'status', label: '状态' },
+        { key: 'created_at', label: '生成时间' },
+      ]} getRowId={(r: any, i: number) => String(r.id || i)} />
   );
 }
