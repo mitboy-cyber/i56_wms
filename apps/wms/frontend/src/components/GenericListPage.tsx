@@ -641,7 +641,9 @@ export default function GenericListPage(props: GenericListPageProps) {
                             ? c.render(row[c.key], row)
                             : (c.key === 'status' || c.key.endsWith('_status'))
                               ? renderStatusBadge(String(row[c.key] ?? ''))
-                              : formatCellValue(row[c.key])}
+                              : isCurrencyColumn(c.key)
+                                ? formatCurrency(row[c.key])
+                                : formatCellValue(row[c.key])}
                         </td>
                       ))}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
@@ -811,6 +813,20 @@ function renderStatusBadge(status: string) {
   const raw = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
   const [color, label] = raw.includes('|') ? raw.split('|') : [raw, status];
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>{label.replace(/_/g, ' ')}</span>;
+}
+
+// ── Currency column detection ──
+const CURRENCY_KEYS = new Set(['price', 'amount', 'balance', 'cost', 'profit', 'total', 'fee', 'total_price', 'total_actual_weight', 'total_chargeable_weight', 'actual_weight', 'chargeable_weight', 'credit_limit']);
+
+function isCurrencyColumn(key: string): boolean {
+  return CURRENCY_KEYS.has(key) || key.endsWith('_price') || key.endsWith('_amount') || key.endsWith('_cost') || key.endsWith('_fee');
+}
+
+function formatCurrency(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const n = Number(value);
+  if (isNaN(n)) return String(value);
+  return '¥' + n.toFixed(2);
 }
 
 function formatCellValue(value: unknown): string {
