@@ -60,13 +60,35 @@ func RegisterClientAPI(
 		_, pt, _ := ps.List(ctx, t, 0, 8)
 		_, rc, _ := rr.List(ctx, t, 0, 50)
 		_, oc, _ := osvc.List(ctx, t, 0, 100)
+		parcels, _, _ := ps.List(ctx, t, 0, 100)
+		orders, _, _ := osvc.List(ctx, t, 0, 100)
 		balance := 0.0
+		monthlySpent := 0.0
+		activeOrders := 0
 		if entries := lr.GetByClient(ctx, 1, 1); len(entries) > 0 {
 			balance = entries[len(entries)-1].BalanceAfter
+			for _, e := range entries {
+				if e.Amount < 0 {
+					monthlySpent += -e.Amount
+				}
+			}
+		}
+		for _, o := range orders {
+			if o.Status != "completed" && o.Status != "cancelled" {
+				activeOrders++
+			}
+		}
+		storedParcels := 0
+		for _, p := range parcels {
+			if p.Status == "stored" {
+				storedParcels++
+			}
 		}
 		apiJSON(w, 200, map[string]interface{}{
 			"balance": balance, "total_parcels": pt,
 			"order_count": oc, "route_count": rc,
+			"active_orders": activeOrders, "monthly_spent": monthlySpent,
+			"stored_parcels": storedParcels,
 		})
 	}))
 
