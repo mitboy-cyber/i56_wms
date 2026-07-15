@@ -123,6 +123,7 @@ func SeedAll() {
 	MonthlyStatementStore.Seed(
 		MonthlyStatement{1, 1, "2026-06", 8560.30, 8560.30, "已结算", now},
 		MonthlyStatement{2, 1, "2026-07", 12345.67, 0, "待结算", now},
+		MonthlyStatement{3, 2, "2026-07", 4520.00, 0, "待结算", now},
 	)
 
 	// ── TMS: 区域组 (BFT56: 6 regions) ──
@@ -168,6 +169,7 @@ func SeedAll() {
 	CustomsBrokerStore.Seed(
 		CustomsBroker{1, "顺达报关行", "XM-BK-001", "张经理", "0592-2222222"},
 		CustomsBroker{2, "德通实业", "XM-DT-001", "李经理", "0592-3333333"},
+		CustomsBroker{3, "台通报关", "TW-TG-001", "王经理", "02-23456789"},
 	)
 	// ── 清关点 ──
 	CustomsPointStore.Seed(
