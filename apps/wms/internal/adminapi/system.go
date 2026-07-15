@@ -45,6 +45,15 @@ func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFu
 	// Audit logs (read-only)
 	r.GET("/admin/api/system/audit-logs", listStore(domain.AuditLogStore, a))
 
+	// Workflow & Pricing (use existing stores)
+	registerCRUD(r, "/admin/api/workflow", domain.WorkflowProcessStore, a)
+	registerCRUD(r, "/admin/api/pricing-services", domain.PricingServiceStore, a)
+	registerCRUD(r, "/admin/api/pricing-routes", domain.ClientPricingStore, a)
+	registerCRUD(r, "/admin/api/pricing-delivery", domain.ClientPricingStore, a)
+	registerCRUD(r, "/admin/api/pricing-surcharges", domain.ClientPricingStore, a)
+	// service-orders uses a real repo; register a Store endpoint for admin CRUD
+	registerCRUD(r, "/admin/api/service-order-records", domain.ServiceTemplateStore, a)
+
 	// Reports
 	r.GET("/admin/api/system/reports", listStore(domain.ReportStore, a))
 

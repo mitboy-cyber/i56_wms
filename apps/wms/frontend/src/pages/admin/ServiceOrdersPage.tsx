@@ -4,13 +4,12 @@ import client from '@/api/client';
 export default function ServiceOrdersPage() {
   return (
     <GenericListPage title="附加服务订单" queryKey={['admin-service-orders']}
-      queryFn={() => client.get('/admin/api/service-orders')}
-      apiBase="/admin/api/service-orders"
+      queryFn={() => client.get('/admin/api/service-order-records')}
+      apiBase="/admin/api/service-order-records"
       columns={[
-        { key: 'id', label: '编号' }, { key: 'order_no', label: '订单号' },
-        { key: 'service_name', label: '服务项目' }, { key: 'client_name', label: '客户' },
-        { key: 'amount', label: '金额' }, { key: 'status', label: '状态' },
-        { key: 'created_at', label: '创建时间' },
+        { key: 'id', label: '编号' }, { key: 'name', label: '服务名称' },
+        { key: 'service_type', label: '服务类型' }, { key: 'price', label: '价格' },
+        { key: 'description', label: '描述' }, { key: 'status', label: '状态' },
       ]} getRowId={(_, i) => String(i)} />
   );
 }

@@ -212,7 +212,12 @@ func SeedAll() {
 		StorageConfig{1, "minio", "MinIO", "i56-bucket", "us-east-1"},
 	)
 
-	// ── 打印机 ──
+	// ── 通知渠道 ──
+	NotificationChannelStore.Seed(
+		NotificationChannel{1, "邮件通知", "email", "smtp://smtp.example.com"},
+		NotificationChannel{2, "短信通知", "sms", "aliyun-sms"},
+		NotificationChannel{3, "企业微信", "wechat_work", "webhook://wx.example.com"},
+	)
 	PrinterStore.Seed(
 		Printer{1, "主打印机", "USB", "192.168.1.100"},
 	)
