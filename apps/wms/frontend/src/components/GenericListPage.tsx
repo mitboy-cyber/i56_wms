@@ -105,7 +105,7 @@ export default function GenericListPage(props: GenericListPageProps) {
   const autoApiBase = useMemo(() => {
     if (apiBase || mutateUrl) return '';
     const fnStr = queryFn.toString();
-    const m = fnStr.match(/client\.(?:get|post)\('([^']+)'\)/) || fnStr.match(/client\.(?:get|post)\("([^"]+)"\)/);
+    const m = fnStr.match(/client\.(?:get|post)\('([^']+)'(?:\)|'\))/) || fnStr.match(/client\.(?:get|post)\("([^"]+)"(?:\)|"\))/);
     return m ? m[1] : '';
   }, [queryFn, apiBase, mutateUrl]);
 
