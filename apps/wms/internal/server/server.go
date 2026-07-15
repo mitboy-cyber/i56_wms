@@ -272,19 +272,22 @@ func (s *Server) registerRoutes() {
 		http.Redirect(w, req, "/admin/dashboard", 303)
 	})
 
-	// Client login
+	// Client login — SPA-mode (React client portal)
 	r.GET("/client/login", func(w http.ResponseWriter, req *http.Request) {
-		s.ClientTplMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"HideSidebar": true})
+		http.ServeFile(w, req, "/opt/i56/frontend/index.html")
 	})
 	r.POST("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")
 		if u == "" || p == "" {
-			s.ClientTplMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": "请输入账号密码"})
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(401)
+			w.Write([]byte(`{"error":"请输入账号和密码"}`))
 			return
 		}
 		tk, _ := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"client"}, []string{"read:parcels"})
 		http.SetCookie(w, &http.Cookie{Name: "client_token", Value: tk, Path: "/client", HttpOnly: true, MaxAge: 86400})
-		http.Redirect(w, req, "/client", 303)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"success":true,"username":"` + u + `"}`))
 	})
 
 	// ══════════════════════════════════════════
@@ -325,6 +328,19 @@ func (s *Server) registerRoutes() {
 		s.RouteRepo, s.CourierRepo, s.WarehouseSvc, s.LedgerRepo,
 		s.DeclarantRepo, s.MemberRepo, s.ServiceRepo, s.WebhookRepo,
 		s.AddressRepo, s.RoutePriceRepo, s.DeliveryFeeRepo, s.SurchargeRepo, s.APICredentialRepo)
+
+	// Client auth check endpoint (for React SPA)
+	r.GET("/client/api/me", func(w http.ResponseWriter, req *http.Request) {
+		ck, err := req.Cookie("client_token")
+		if err != nil || ck.Value == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(401)
+			w.Write([]byte(`{"error":"unauthorized"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"authenticated":true}`))
+	})
 
 	pdaapi.RegisterPDAAPI(r, s.PdaRepo, s.PDAOps, s.ParcelRepo, s.OrderRepo)
 
