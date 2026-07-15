@@ -1,73 +1,77 @@
-# I56 Framework 2.0 LTS — 统一平台
+# I56 WMS — 企业级仓库管理系统
 
-```
-I56 Framework 2.0 LTS
-Enterprise Application Development Platform
-Go 1.24+ | Modular Monolith | Cloud Native Ready
-```
+> I56 Framework 1.0 LTS 的首个业务产品
 
----
+## 技术栈
 
-## 架构布局
+| 层级 | 技术 |
+|------|------|
+| 后端 | Go 1.22+ |
+| 前端 | React 18 + TypeScript + Vite |
+| 样式 | Tailwind CSS 4 |
+| 状态 | TanStack Query + Zustand |
+| 图表 | Recharts |
+| 图标 | Lucide React |
+| 部署 | Docker + Nginx + systemd |
 
-```
-i56/
-├── framework/          # 核心框架 (17 packages)
-│   ├── core/           # auth, rbac, router, cache, logger...
-│   ├── ai/             # AI Runtime (Model Agnostic)
-│   ├── cmd/            # server, migrate, worker, cli
-│   ├── configs/        # YAML 配置
-│   ├── pkg/            # 公开 SDK + 工具
-│   ├── themes/         # 主题系统
-│   ├── tests/          # e2e, integration, unit
-│   └── deployments/    # docker, compose, helm, k8s
-├── modules/            # 业务模块 (14 domains)
-├── apps/wms/           # WMS 应用（主产品）
-├── ui/                 # BDL 2.0 Web Components (Shadow DOM)
-├── design-language/    # 设计令牌 / Token / Spec / Icon
-├── deployments/        # 顶级部署配置
-├── sdk/                # API SDK
-├── docs/               # 文档
-├── scripts/            # 构建/部署脚本
-├── go.work             # Go Workspace
-└── README.md
-```
-
-## 三端产品
-
-| 端 | 路由 | 页面数 | 认证 |
-|:--|:--|:--|:--|
-| **Admin** | `/admin/*` | 53子菜单 | JWT + RBAC |
-| **Client** | `/client/*` | 17菜单 | JWT (plat_*) |
-| **PDA** | `/pda/*` | 15操作屏 | 工号+PIN |
-
-## 核心功能
-
-| 模块 | 内容 | 状态 |
-|:--|:--|:--|
-| 系统API配置 | 物流/清关/通知/打印/存储 | ✅ |
-| 定价模型 | 5维 × 43记录 | ✅ |
-| 工作流引擎 | 2流程12步骤 | ✅ |
-| 客户端 | HMAC凭证 + Webhook | ✅ |
-| PDA | 8任务抢单池 + 能力匹配 | ✅ |
-| 包裹 | 14状态流转 | ✅ |
-
-## 编译
+## 快速启动
 
 ```bash
-cd i56/apps/wms
-CGO_ENABLED=0 go build -ldflags="-s -w" -o i56-server ./cmd/server/
+# 后端
+cd apps/wms
+go run ./cmd/server/
+
+# 前端 (开发模式)
+cd apps/wms/frontend
+npm install
+npm run dev
+
+# 构建
+npm run build
 ```
 
-## 部署
+## 访问
 
-```bash
-scp i56-server ubuntu@106.52.164.139:/tmp/
-ssh ubuntu@106.52.164.139 'sudo systemctl restart i56'
+```
+管理后台: https://wms.mikaplay.com/admin
+客户端:   https://wms.mikaplay.com/client
 ```
 
-## 版本
+## 文档
 
-- 当前: **I56 Framework 2.0 LTS**
-- 生产: https://wms.mikaplay.com
-- AI Runtime: active ✅
+- [产品需求文档](docs/PRD-I56-Framework-1.0-LTS.md)
+- [领域词汇表](docs/CONTEXT.md)
+- [核心架构](docs/ARCHITECTURE.md)
+- [部署架构](docs/DEPLOYMENT.md)
+- [API 参考](docs/API-REFERENCE.md)
+- [架构决策记录](docs/adr/)
+
+## 项目结构
+
+```
+apps/wms/
+├── cmd/server/         # 主程序入口
+├── internal/
+│   ├── adminapi/       # 管理 API
+│   ├── clientapi/      # 客户端 API
+│   ├── pdaapi/         # PDA API
+│   ├── domain/         # 领域模型 + 种子数据
+│   └── server/         # HTTP 服务器
+├── frontend/
+│   ├── src/
+│   │   ├── pages/admin/    # 76 管理页面
+│   │   ├── pages/client/   # 8 客户端页面
+│   │   ├── components/     # 通用组件
+│   │   └── api/            # API 客户端
+│   └── package.json
+├── docker/
+└── docs/
+```
+
+## 版本历史
+
+| 版本 | 日期 | 里程碑 |
+|------|------|--------|
+| v1-v78 | 2026-07 | 管理后台 MVP + 中文化 |
+| v79-v98 | 2026-07 | BFT56对齐 + 运营看板 + 报表 |
+| v99-v114 | 2026-07 | 客户端门户 + 完整业务逻辑 + 文档 |
