@@ -53,6 +53,8 @@ func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFu
 	registerCRUD(r, "/admin/api/pricing-surcharges", domain.ClientPricingStore, a)
 	// service-orders uses a real repo; register a Store endpoint for admin CRUD
 	registerCRUD(r, "/admin/api/service-order-records", domain.ServiceTemplateStore, a)
+	// Client permissions
+	registerCRUD(r, "/admin/api/client-permissions", domain.ClientPanelPermStore, a)
 
 	// Reports
 	r.GET("/admin/api/system/reports", listStore(domain.ReportStore, a))
