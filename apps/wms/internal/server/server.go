@@ -272,7 +272,10 @@ func (s *Server) registerRoutes() {
 		http.Redirect(w, req, "/admin/dashboard", 303)
 	})
 
-	// Client login — POST handler only (SPA handles GET via nginx)
+	// Client login
+	r.GET("/client/login", func(w http.ResponseWriter, req *http.Request) {
+		http.ServeFile(w, req, "/opt/i56/frontend/index.html")
+	})
 	r.POST("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")
 		if u == "" || p == "" {
@@ -325,19 +328,6 @@ func (s *Server) registerRoutes() {
 		s.RouteRepo, s.CourierRepo, s.WarehouseSvc, s.LedgerRepo,
 		s.DeclarantRepo, s.MemberRepo, s.ServiceRepo, s.WebhookRepo,
 		s.AddressRepo, s.RoutePriceRepo, s.DeliveryFeeRepo, s.SurchargeRepo, s.APICredentialRepo)
-
-	// Client auth check endpoint (for React SPA)
-	r.GET("/client/api/me", func(w http.ResponseWriter, req *http.Request) {
-		ck, err := req.Cookie("client_token")
-		if err != nil || ck.Value == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(401)
-			w.Write([]byte(`{"error":"unauthorized"}`))
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"authenticated":true}`))
-	})
 
 	pdaapi.RegisterPDAAPI(r, s.PdaRepo, s.PDAOps, s.ParcelRepo, s.OrderRepo)
 
