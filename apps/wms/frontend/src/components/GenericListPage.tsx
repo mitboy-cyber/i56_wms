@@ -801,6 +801,8 @@ const STATUS_COLORS: Record<string, string> = {
   '认证中': 'bg-yellow-100 text-yellow-800',
   '认证成功': 'bg-green-100 text-green-800',
   '认证失败': 'bg-red-100 text-red-800',
+  'approved': 'bg-green-100 text-green-800|认证成功',
+  'rejected': 'bg-red-100 text-red-800|认证失败',
   '已取消': 'bg-red-100 text-red-800',
   '已完成': 'bg-green-100 text-green-800',
 };
@@ -814,6 +816,12 @@ function renderStatusBadge(status: string) {
 function formatCellValue(value: unknown): string {
   if (value === null || value === undefined) return '';
   if (typeof value === 'boolean') return value ? '是' : '否';
+  // ISO timestamps → readable date
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
+    const d = new Date(value);
+    return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) + ' ' +
+           d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  }
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }

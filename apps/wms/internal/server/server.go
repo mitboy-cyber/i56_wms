@@ -513,14 +513,19 @@ func seedRealData(s *Server) {
 		ClientID: c.ID, Name: "吴欣如", Phone: "886945678901", Email: "wu@example.com", MemberCode: "M004",
 	})
 
-	// Seed Declarants
-	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "王仁照", IDNumber: "A123456789", Phone: "886912345678"})
-	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "张致廷", IDNumber: "B123456789", Phone: "886934567890"})
+	// Seed Declarants (BFT56-aligned with TW ID cards + verification)
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "江明威", IDNumber: "T121272432", Phone: "0938150360", AuthStatus: "pending"})
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "施慶堂", IDNumber: "F124136343", Phone: "0978285977", AuthStatus: "approved"})
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "李咏靜", IDNumber: "T221353452", Phone: "0925822280", AuthStatus: "approved"})
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "李安宜", IDNumber: "I200562760", Phone: "0908908031", AuthStatus: "approved"})
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "王仁照", IDNumber: "A123456789", Phone: "886912345678", AuthStatus: "approved"})
+	s.DeclarantRepo.Create(ctx, 1, &custDomain.Declarant{Name: "张三", IDNumber: "G091220000", Phone: "0912200008", AuthStatus: "rejected"})
 
-	// Seed Addresses
-	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 1, RecipientName: "王仁照", Phone: "886912345678", City: "台北市", District: "信義區", Address: "信義路五段7號101樓", IsDefault: true})
-	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 1, RecipientName: "王仁照", Phone: "886912345678", City: "新北市", District: "板橋區", Address: "文化路一段188號", IsDefault: false})
-	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 2, RecipientName: "琦立工作室", Phone: "886923456789", City: "台中市", District: "西屯區", Address: "台灣大道三段99號", IsDefault: true})
+	// Seed Addresses (BFT56-aligned Taiwan addresses)
+	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 1, RecipientName: "李咏靜", Phone: "0925822280", City: "高雄市", District: "楠梓區", Address: "大學東路200號", IsDefault: true})
+	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 1, RecipientName: "宋宜玲", Phone: "0975033593", City: "台北市", District: "內湖區", Address: "康寧路三段189巷2號", IsDefault: false})
+	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 2, RecipientName: "彭如嫣", Phone: "0935106089", City: "高雄市", District: "燕巢區", Address: "角宿路398號", IsDefault: true})
+	s.AddressRepo.Create(ctx, 1, &custDomain.MemberAddress{MemberID: 2, RecipientName: "林琝翰", Phone: "0909079333", City: "新北市", District: "永和區", Address: "忠孝街34巷9弄5號", IsDefault: false})
 
 	// Seed Work Orders
 	s.WorkOrderRepo.Create(ctx, &wdDomain.WorkOrder{TenantID: 1, WarehouseID: 1, Title: "入库上架-包裹SF1234567890", Description: "手机壳上架到A-01-01", Status: "pending", Priority: 1})
