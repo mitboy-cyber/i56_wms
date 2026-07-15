@@ -3,19 +3,14 @@ import client from '@/api/client';
 
 export default function ExceptionsPage() {
   return (
-    <GenericListPage
-      title="异常列表"
-      queryKey={['admin-ExceptionsPage']}
+    <GenericListPage title="异常记录" queryKey={['admin-ExceptionsPage']}
       queryFn={() => client.get('/admin/api/exceptions')}
+      apiBase="/admin/api/exceptions"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'parcel_id', label: 'Parcel Id' },
-        { key: 'type', label: 'Type' },
-        { key: 'description', label: 'Description' },
-        { key: 'status', label: 'Status' },
-        { key: 'created_at', label: 'Created At' },
-      ]}
-      getRowId={(_, i) => String(i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'parcel_tracking', label: '关联包裹' },
+        { key: 'type', label: '异常类型' }, { key: 'description', label: '描述' },
+        { key: 'severity', label: '严重程度' }, { key: 'status', label: '状态' },
+        { key: 'created_at', label: '创建时间' },
+      ]} getRowId={(_, i) => String(i)} />
   );
 }
