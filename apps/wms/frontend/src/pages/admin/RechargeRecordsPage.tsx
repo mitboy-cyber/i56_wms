@@ -5,6 +5,7 @@ export default function RechargeRecordsPage() {
   return (
     <GenericListPage title="充值记录" queryKey={['admin-RechargeRecs']}
       queryFn={() => client.get('/admin/api/recharge-records').then(r => r.data)}
+      apiBase="/admin/api/recharge-records"
       columns={[
         { key: 'id', label: '编号' }, { key: 'client_id', label: '客户' },
         { key: 'amount', label: '充值金额' }, { key: 'method', label: '支付方式' },

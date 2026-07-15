@@ -5,6 +5,7 @@ export default function BalanceLogsPage() {
   return (
     <GenericListPage title="余额日志" queryKey={['admin-BalanceLogs']}
       queryFn={() => client.get('/admin/api/balance-logs').then(r => r.data)}
+      apiBase="/admin/api/balance-logs"
       columns={[
         { key: 'id', label: '编号' }, { key: 'client_id', label: '客户' },
         { key: 'type', label: '类型' }, { key: 'amount', label: '金额' },

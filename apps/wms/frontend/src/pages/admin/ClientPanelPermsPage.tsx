@@ -5,6 +5,7 @@ export default function ClientPanelPermsPage() {
   return (
     <GenericListPage title="客户端权限" queryKey={['admin-ClientPanelPerms']}
       queryFn={() => client.get('/admin/api/client-panel-perms').then(r => r.data)}
+      apiBase="/admin/api/client-panel-perms"
       columns={[
         { key: 'id', label: '编号' }, { key: 'client_id', label: '客户' },
         { key: 'menu_name', label: '菜单名称' },
