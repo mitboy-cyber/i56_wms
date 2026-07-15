@@ -765,32 +765,34 @@ export default function GenericListPage(props: GenericListPageProps) {
 
 // ── Status badge color mapping (BFT56-aligned) ──
 const STATUS_COLORS: Record<string, string> = {
-  // Order statuses
-  '待拣货': 'bg-yellow-100 text-yellow-800',
-  '待装柜': 'bg-orange-100 text-orange-800',
-  '已取消': 'bg-red-100 text-red-800',
-  '已完成': 'bg-green-100 text-green-800',
-  'pending_picking': 'bg-yellow-100 text-yellow-800',
-  'pending_packing': 'bg-yellow-100 text-yellow-800',
-  'pending_loading': 'bg-orange-100 text-orange-800',
-  'in_transit': 'bg-blue-100 text-blue-800',
-  'completed': 'bg-green-100 text-green-800',
-  'shipped': 'bg-indigo-100 text-indigo-800',
-  'loaded': 'bg-purple-100 text-purple-800',
-  'customs_clearance': 'bg-teal-100 text-teal-800',
+  // Order statuses (English internal → Chinese display)
+  'pending_picking': 'bg-yellow-100 text-yellow-800|待拣货',
+  'pending_packing': 'bg-yellow-100 text-yellow-800|待打包',
+  'pending_loading': 'bg-orange-100 text-orange-800|待装柜',
+  'in_transit': 'bg-blue-100 text-blue-800|运输中',
+  'customs_clearance': 'bg-teal-100 text-teal-800|清关中',
+  'completed': 'bg-green-100 text-green-800|已完成',
+  'shipped': 'bg-indigo-100 text-indigo-800|已发货',
+  'loaded': 'bg-purple-100 text-purple-800|已装柜',
   // Parcel statuses
   '待打包': 'bg-yellow-100 text-yellow-800',
+  '待上架': 'bg-yellow-100 text-yellow-800',
+  '待拣货': 'bg-yellow-100 text-yellow-800',
+  '待装柜': 'bg-orange-100 text-orange-800',
   '已上架': 'bg-green-100 text-green-800',
-  'stored': 'bg-green-100 text-green-800',
-  'packed': 'bg-blue-100 text-blue-800',
-  'weighed': 'bg-teal-100 text-teal-800',
+  'stored': 'bg-green-100 text-green-800|已上架',
+  'packed': 'bg-blue-100 text-blue-800|已打包',
+  'weighed': 'bg-teal-100 text-teal-800|已称重',
+  'received': 'bg-blue-100 text-blue-800|已签收',
+  'delivered': 'bg-green-100 text-green-800|已送达',
+  'pre_declared': 'bg-gray-100 text-gray-700|预申报',
   // Work order statuses
   '待处理': 'bg-yellow-100 text-yellow-800',
   '处理中': 'bg-blue-100 text-blue-800',
-  'pending': 'bg-yellow-100 text-yellow-800',
-  'in_progress': 'bg-blue-100 text-blue-800',
+  'pending': 'bg-yellow-100 text-yellow-800|待处理',
+  'in_progress': 'bg-blue-100 text-blue-800|处理中',
   // General
-  'active': 'bg-green-100 text-green-800',
+  'active': 'bg-green-100 text-green-800|启用',
   '启用': 'bg-green-100 text-green-800',
   '装货中': 'bg-yellow-100 text-yellow-800',
   '已发运': 'bg-green-100 text-green-800',
@@ -799,11 +801,14 @@ const STATUS_COLORS: Record<string, string> = {
   '认证中': 'bg-yellow-100 text-yellow-800',
   '认证成功': 'bg-green-100 text-green-800',
   '认证失败': 'bg-red-100 text-red-800',
+  '已取消': 'bg-red-100 text-red-800',
+  '已完成': 'bg-green-100 text-green-800',
 };
 
 function renderStatusBadge(status: string) {
-  const color = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>{status.replace(/_/g, ' ')}</span>;
+  const raw = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
+  const [color, label] = raw.includes('|') ? raw.split('|') : [raw, status];
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${color}`}>{label.replace(/_/g, ' ')}</span>;
 }
 
 function formatCellValue(value: unknown): string {
