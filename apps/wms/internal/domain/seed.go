@@ -147,6 +147,8 @@ func SeedAll() {
 		CargoType{7, "文创用品", "STATIONERY"},
 		CargoType{8, "电子商品", "ELECTRONICS"},
 		CargoType{9, "化妆品", "COSMETICS"},
+		CargoType{10, "易碎品", "FRAGILE"},
+		CargoType{11, "液体", "LIQUID"},
 	)
 	// ── 运输方式 ──
 	TransportModeStore.Seed(

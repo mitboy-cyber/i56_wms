@@ -641,9 +641,11 @@ export default function GenericListPage(props: GenericListPageProps) {
                             ? c.render(row[c.key], row)
                             : (c.key === 'status' || c.key.endsWith('_status'))
                               ? renderStatusBadge(String(row[c.key] ?? ''))
-                              : isCurrencyColumn(c.key)
-                                ? formatCurrency(row[c.key])
-                                : formatCellValue(row[c.key])}
+                              : (c.key === 'cargo_type' || c.key.endsWith('_type'))
+                                ? (CARGO_TYPE_CN[String(row[c.key] ?? '').toLowerCase()] || String(row[c.key] ?? ''))
+                                : isCurrencyColumn(c.key)
+                                  ? formatCurrency(row[c.key])
+                                  : formatCellValue(row[c.key])}
                         </td>
                       ))}
                       <td className="px-4 py-2.5 text-right whitespace-nowrap">
@@ -766,6 +768,12 @@ export default function GenericListPage(props: GenericListPageProps) {
 // ── Helpers (outside component) ──
 
 // ── Status badge color mapping (BFT56-aligned) ──
+const CARGO_TYPE_CN: Record<string, string> = {
+  general: '普货', special: '特货', sea_fast: '海快', air_special: '空运特货',
+  food: '食品', daily: '生活用品', stationery: '文创', electronics: '电子',
+  cosmetics: '化妆品', fragile: '易碎品', liquid: '液体',
+};
+
 const STATUS_COLORS: Record<string, string> = {
   // Order statuses (English internal → Chinese display)
   'pending_picking': 'bg-yellow-100 text-yellow-800|待拣货',
