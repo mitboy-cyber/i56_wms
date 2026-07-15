@@ -12,11 +12,7 @@ import (
 // RegisterFinanceAPI registers all Finance module JSON API endpoints.
 // Preserves ALL existing report routes + adds NEW finance report endpoints.
 func RegisterFinanceAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc) {
-	// ── Existing finance report endpoints (preserved) ──
-	r.GET("/admin/api/report/order-profit", listStore(domain.ReportStore, a))
-	r.GET("/admin/api/report/route-profit", listStore(domain.ReportStore, a))
-	r.GET("/admin/api/report/client-profit", listStore(domain.ReportStore, a))
-	r.GET("/admin/api/report/service-profit", listStore(domain.ReportStore, a))
+	// NOTE: /admin/api/report/*-profit routes are now in system.go (BFT56-aligned)
 
 	// ── NEW Finance report endpoints (4 reports) ──
 	// Revenue report — uses monthly statement store for financial data

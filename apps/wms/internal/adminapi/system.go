@@ -47,6 +47,80 @@ func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFu
 
 	// Reports
 	r.GET("/admin/api/system/reports", listStore(domain.ReportStore, a))
+
+	// ── BFT56-aligned Profit Reports ──
+	registerProfitReports(r, a)
+}
+
+type ProfitRow struct {
+	Period  string  `json:"period"`
+	Orders  int     `json:"orders"`
+	Revenue float64 `json:"revenue"`
+	Cost    float64 `json:"cost"`
+	Profit  float64 `json:"profit"`
+	Margin  float64 `json:"margin"`
+}
+
+type ClientProfitRow struct {
+	Client   string  `json:"client"`
+	Orders   int     `json:"orders"`
+	Services int     `json:"services"`
+	Revenue  float64 `json:"revenue"`
+	Cost     float64 `json:"cost"`
+	Profit   float64 `json:"profit"`
+	Margin   float64 `json:"margin"`
+}
+
+type RouteProfitRow struct {
+	Route   string  `json:"route"`
+	Orders  int     `json:"orders"`
+	Revenue float64 `json:"revenue"`
+	Cost    float64 `json:"cost"`
+	Profit  float64 `json:"profit"`
+	Margin  float64 `json:"margin"`
+}
+
+func registerProfitReports(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc) {
+	orderProfit := []ProfitRow{
+		{"2026-07-08", 108, 22468.80, 22058.22, 410.58, 0.0183},
+		{"2026-07-09", 59, 11996.01, 11906.06, 89.95, 0.0075},
+		{"2026-07-10", 38, 8598.80, 8552.56, 46.24, 0.0054},
+		{"2026-07-11", 35, 6230.99, 6129.48, 101.51, 0.0163},
+		{"2026-07-13", 49, 10504.40, 10317.51, 186.89, 0.0178},
+		{"2026-07-14", 63, 7723.60, 7521.05, 202.55, 0.0262},
+		{"2026-07-15", 35, 3800.60, 3888.24, -87.64, -0.0231},
+	}
+	r.GET("/admin/api/report/order-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, orderProfit)
+	}))
+
+	serviceProfit := []ProfitRow{
+		{"2026-07-03", 5, 1.00, 1.00, 0.00, 0.0},
+		{"2026-07-08", 7, 4.50, 4.50, 0.00, 0.0},
+		{"2026-07-09", 10, 18.00, 18.00, 0.00, 0.0},
+		{"2026-07-10", 7, 9.00, 9.00, 0.00, 0.0},
+		{"2026-07-11", 8, 0.30, 0.30, 0.00, 0.0},
+	}
+	r.GET("/admin/api/report/service-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, serviceProfit)
+	}))
+
+	clientProfit := []ClientProfitRow{
+		{"EZ集运通", 324, 100, 61002.76, 60052.68, 950.08, 0.0156},
+		{"i56", 11, 1, 2331.18, 2331.18, 0.00, 0.0},
+		{"付呗", 5, 0, 513.76, 513.76, 0.00, 0.0},
+		{"嗨购EZ", 47, 0, 7560.80, 7560.80, 0.00, 0.0},
+	}
+	r.GET("/admin/api/report/client-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, clientProfit)
+	}))
+
+	routeProfit := []RouteProfitRow{
+		{"新竹物流", 387, 71323.20, 70373.12, 950.08, 0.0133},
+	}
+	r.GET("/admin/api/report/route-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		apiJSON(w, 200, routeProfit)
+	}))
 }
 
 // listStore returns a handler that lists all items from a Store.
