@@ -296,4 +296,29 @@ func SeedAll() {
 		PricingService{2, "海快基础费", 20.00, "per_kg"},
 		PricingService{3, "空运基础费", 35.00, "per_kg"},
 	)
+
+	// ── 服务工单 ──
+	ServiceWorkorderStore.Seed(
+		ServiceWorkorder{1, "WO-20260715-001", "加固", "pending", "操作员01", now.Add(-2 * time.Hour)},
+		ServiceWorkorder{2, "WO-20260715-002", "拍照", "processing", "操作员02", now.Add(-1 * time.Hour)},
+		ServiceWorkorder{3, "WO-20260713-001", "打包", "completed", "操作员01", now.Add(-3 * 24 * time.Hour)},
+		ServiceWorkorder{4, "WO-20260714-001", "退货", "pending", "", now.Add(-1 * 24 * time.Hour)},
+	)
+
+	// ── 客户权限 (补充) ──
+	ClientPanelPermStore.Seed(
+		ClientPanelPerm{1, 1, "我的订单", true, true},
+		ClientPanelPerm{2, 1, "我的包裹", true, true},
+		ClientPanelPerm{3, 1, "申报人管理", true, true},
+		ClientPanelPerm{4, 1, "余额明细", true, false},
+		ClientPanelPerm{5, 1, "地址管理", true, true},
+		ClientPanelPerm{6, 1, "会员管理", true, true},
+	)
+
+	// ── 充值记录 (补充) ──
+	RechargeRecordStore.Seed(
+		RechargeRecord{1, 1, 5000, "银行转账", "completed", now.Add(-30 * 24 * time.Hour)},
+		RechargeRecord{2, 1, 3000, "微信支付", "completed", now.Add(-20 * 24 * time.Hour)},
+		RechargeRecord{3, 1, 2000, "银行转账", "completed", now.Add(-5 * 24 * time.Hour)},
+	)
 }
