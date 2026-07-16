@@ -124,11 +124,13 @@ type ContainerLoading struct {
 }
 
 type LogisticsTracking struct {
-	ID         int64     `json:"id"`
-	TrackingNo string    `json:"tracking_no"`
-	Location   string    `json:"location"`
-	Status     string    `json:"status"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID          int64     `json:"id"`
+	TrackingNo  string    `json:"tracking_no"`
+	Route       string    `json:"route"`
+	Status      string    `json:"status"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	CourierName string    `json:"courier_name"`
+	Detail      string    `json:"detail"`
 }
 
 type RouteTemplate struct {

@@ -230,10 +230,13 @@ func SeedAll() {
 		ShippingProvider{3, "万海航运", "WHL", "02-25679888"},
 	)
 
-	// ── 物流追踪 ──
+	// ── 物流追踪 BFT56: 含物流节点 ──
 	LogisticsTrackingStore.Seed(
-		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", now},
-		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1*24*time.Hour)},
+		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", now, "圆通", "到达台北转运中心"},
+		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1*24*time.Hour), "顺丰", "已签收·本人"},
+		LogisticsTracking{3, "SF1190887234567", "深圳→台中", "派送中", now.Add(-4*time.Hour), "顺丰", "快递员派送中"},
+		LogisticsTracking{4, "JT3001234567890", "厦门→基隆", "已出库", now.Add(-8*time.Hour), "极兔", "已离开厦门仓"},
+		LogisticsTracking{5, "YT9988776655443", "福州→新竹", "已签收", now.Add(-3*24*time.Hour), "圓通", "已签收·代理点"},
 	)
 	ContainerLoadingStore.Seed(
 		ContainerLoading{1, "CNTR-001", "厦门轮", "厦门", "台北", 450, now},
@@ -241,10 +244,13 @@ func SeedAll() {
 		ContainerLoading{3, "CNTR-003", "WAN HAI 235", "厦门", "基隆", 580, now.Add(-1 * 24 * time.Hour)},
 	)
 
-	// ── 通知 ──
+	// ── 通知中心 BFT56: 多渠道 ──
 	NotificationStore.Seed(
-		Notification{1, "系统上线通知", "I56 WMS 系统正式上线运行", "system", "all", true, now},
-		Notification{2, "订单异常提醒", "订单20260715120525777938需人工审核", "alert", "admin", false, now},
+		Notification{1, "系统维护通知", "系统将于7月20日凌晨2:00-4:00进行维护升级", "站内信", "全部客户", true, now.Add(-1*24*time.Hour)},
+		Notification{2, "新路线上线", "厦门→基隆 海运路线已开通，首重15元/kg", "邮件", "VIP客户", true, now.Add(-3*24*time.Hour)},
+		Notification{3, "账户余额不足", "您的账户余额已低于100元，请及时充值", "短信", "client_001", true, now.Add(-2*24*time.Hour)},
+		Notification{4, "包裹已签收", "您的包裹 YT7625763166053 已被签收", "微信", "client_001", true, now.Add(-12*time.Hour)},
+		Notification{5, "假期运营安排", "端午假期正常运营，部分路线时效延长", "站内信", "全部客户", true, now},
 	)
 
 	// ── 定时任务 ──
