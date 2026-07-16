@@ -9,7 +9,7 @@ export default function SchedulerPage() {
       columns={[
         { key: 'id', label: '编号' }, { key: 'name', label: '任务名称' },
         { key: 'cron', label: 'Cron表达式' }, { key: 'enabled', label: '启用' },
-        { key: 'last_run', label: '上次执行' }, { key: 'description', label: '描述' },
+        { key: 'last_run', label: '上次执行' },
       ]} getRowId={(r: any, i: number) => String(r.id || i)} />
   );
 }
