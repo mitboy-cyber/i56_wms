@@ -106,24 +106,37 @@ func SeedAll() {
 		RechargeRecord{2, 1, 3000, "微信支付", "已完成", now.Add(-20*24*time.Hour)},
 	)
 
-	// ── 客户端权限 (BFT56: 根据客户等级控制模块 + 增删改查导出权限) ──
+	// ── 客户端权限矩阵 (BFT56: 客户类型 × 功能模块) ──
 	ClientPanelPermStore.Seed(
-		// EZ集运通 — enterprise 全功能
-		ClientPanelPerm{1, 1, "EZ集运通", "订单管理", "我的订单", true, true, true, true, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), "企业级全功能"},
-		ClientPanelPerm{2, 1, "EZ集运通", "订单管理", "包裹列表", true, false, true, false, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{3, 1, "EZ集运通", "订单管理", "集运下单", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{4, 1, "EZ集运通", "申报管理", "申报人管理", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{5, 1, "EZ集运通", "财务管理", "余额明细", true, false, false, false, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{6, 1, "EZ集运通", "地址管理", "地址簿", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{7, 1, "EZ集运通", "会员管理", "子账户", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
-		ClientPanelPerm{8, 1, "EZ集运通", "系统设置", "API密钥", true, false, true, false, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), "只读+编辑API密钥"},
-		// i56平台 — pro 中等级
-		ClientPanelPerm{9, 2, "i56平台", "订单管理", "我的订单", true, true, true, false, true, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), "专业版"},
-		ClientPanelPerm{10, 2, "i56平台", "申报管理", "申报人管理", true, true, true, false, false, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), ""},
-		ClientPanelPerm{11, 2, "i56平台", "财务管理", "余额明细", true, false, false, false, false, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), "只读余额"},
-		// 测试客户A — basic (已过期)
-		ClientPanelPerm{12, 3, "测试客户A", "订单管理", "我的订单", true, false, false, false, false, "basic", "expired", now.Add(-60*24*time.Hour), now.Add(-1*24*time.Hour), "已过期需续费"},
-		ClientPanelPerm{13, 3, "测试客户A", "财务管理", "余额明细", true, false, false, false, false, "basic", "expired", now.Add(-60*24*time.Hour), now.Add(-1*24*time.Hour), "已过期"},
+		// 平台客户 — 全功能
+		ClientPanelPerm{1, 0, "platform", "包裹管理", "我的包裹", true, true, true, true, true, "platform", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{2, 0, "platform", "包裹管理", "预报包裹", true, true, true, true, true, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{3, 0, "platform", "包裹管理", "认领包裹", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{4, 0, "platform", "包裹管理", "Excel批量导入预报", true, true, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{5, 0, "platform", "订单管理", "我的订单", true, true, true, true, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{6, 0, "platform", "订单管理", "集运下单", true, true, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{7, 0, "platform", "订单管理", "取消订单", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{8, 0, "platform", "订单管理", "打包下单", true, true, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{9, 0, "platform", "订单管理", "附加服务订单", true, true, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{10, 0, "platform", "客户资料", "客户会员", true, true, true, true, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{11, 0, "platform", "客户资料", "收件地址", true, true, true, true, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{12, 0, "platform", "客户资料", "申报人", true, true, true, true, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{13, 0, "platform", "财务管理", "余额明细", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{14, 0, "platform", "财务管理", "月结对账单", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{15, 0, "platform", "财务管理", "路线价格", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{16, 0, "platform", "财务管理", "承运商派送价", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{17, 0, "platform", "财务管理", "承运商加收价", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{18, 0, "platform", "系统设置", "仓库信息", true, false, false, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{19, 0, "platform", "系统设置", "Webhook投递", true, false, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{20, 0, "platform", "系统设置", "API凭证", true, false, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{21, 0, "platform", "系统设置", "客服工单", true, true, true, false, false, "platform", "active", now, now.Add(365*24*time.Hour), ""},
+		// 蝦皮商家 — 无预报/集运
+		ClientPanelPerm{22, 0, "shopee", "包裹管理", "我的包裹", true, false, false, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{23, 0, "shopee", "订单管理", "我的订单", true, false, false, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{24, 0, "shopee", "订单管理", "附加服务订单", true, true, false, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{25, 0, "shopee", "客户资料", "收件地址", true, true, true, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{26, 0, "shopee", "财务管理", "余额明细", true, false, false, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{27, 0, "shopee", "系统设置", "客服工单", true, true, true, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
 	)
 
 	// ── 客户定价 ──
