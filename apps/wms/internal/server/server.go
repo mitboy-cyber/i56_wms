@@ -306,6 +306,19 @@ func (s *Server) registerRoutes() {
 		json.NewEncoder(w).Encode(all)
 	})
 
+	// Employee API — list users from RBAC repo
+	r.GET("/admin/api/employees", func(w http.ResponseWriter, req *http.Request) {
+		users, _, err := s.RBACRepo.ListUsers(req.Context(), 1, 0, 50)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(500)
+			w.Write([]byte(`{"error":"` + err.Error() + `"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(users)
+	})
+
 	adminapi.RegisterSystemAPI(r, aAPI)
 	adminapi.RegisterOMSAPI(r, aAPI, s.ParcelSvc, s.OrderSvc, s.WarehouseSvc,
 		s.ClientRepo, s.RouteRepo, s.CourierRepo, s.ServiceRepo,
