@@ -36,18 +36,25 @@ func SeedAll() {
 		InboundBoardEntry{5, "JD9999000011", "厦门仓", "待称重", now},
 	)
 
-	// ── PDA 在线会话 ──
+	// ── PDA 在线会话 BFT56: 12 columns ──
 	PDASessionStore.Seed(
-		PDASession{1, "厦门仓", "出库员-小蓝", "PDA-A01", now.Add(-200*time.Hour), now, "200h", "packing", "出库区", "A-01-01", true, nil},
+		PDASession{1, "厦门仓", "出库员-小蓝", "PDA-A01", now.Add(-365*time.Hour), now, "108h9min", "weighing", "出库区", "A-01-01", true, nil},
 		PDASession{2, "厦门仓", "入库员-小王", "PDA-B03", now.Add(-120*time.Hour), now.Add(-1*time.Hour), "119h", "receive", "入库区", "B-03-02", true, nil},
 		PDASession{3, "厦门仓", "拣货员-阿杰", "PDA-C05", now.Add(-80*time.Hour), now.Add(-2*time.Hour), "78h", "pick", "拣货区", "C-05-01", true, nil},
+		PDASession{4, "厦门仓", "打包员-老杨", "PDA-D02", now.Add(-50*time.Hour), now.Add(-30*time.Minute), "49h30min", "pack", "打包区", "D-02-03", true, nil},
+		PDASession{5, "厦门仓", "装车员-大刘", "PDA-E01", now.Add(-72*time.Hour), now.Add(-10*time.Minute), "71h50min", "load", "装车区", "E-01-01", true, nil},
+		PDASession{6, "厦门仓", "上架员-小陈", "PDA-F03", now.Add(-24*time.Hour), now.Add(-3*time.Hour), "3h", "shelve", "仓库A区", "A-02-05", false, &now},
 	)
 
-	// ── PDA 工单模板 ──
+	// ── PDA 工单模板 BFT56: 工种丰富 ──
 	PDAWorkorderTplStore.Seed(
 		PDAWorkorderTemplate{1, "厦门仓", "WT001", "入库上架", "入库", "WP-RECEIVE", 5, true, now.Add(-30*24*time.Hour)},
 		PDAWorkorderTemplate{2, "厦门仓", "WT002", "拣货-按集运单", "拣货", "WP-BIG-DELIVER", 3, true, now.Add(-20*24*time.Hour)},
 		PDAWorkorderTemplate{3, "厦门仓", "WT003", "打包装箱", "打包", "WP-BIG-DELIVER", 4, true, now.Add(-15*24*time.Hour)},
+		PDAWorkorderTemplate{4, "厦门仓", "WT004", "装车出库", "装车", "WP-BIG-DELIVER", 6, true, now.Add(-10*24*time.Hour)},
+		PDAWorkorderTemplate{5, "厦门仓", "WT005", "称重复核", "称重", "WP-RECEIVE", 2, true, now.Add(-8*24*time.Hour)},
+		PDAWorkorderTemplate{6, "厦门仓", "WT006", "退件签收", "入库", "WP-RETURN", 7, true, now.Add(-5*24*time.Hour)},
+		PDAWorkorderTemplate{7, "厦门仓", "WT007", "拍照验货", "入库", "WP-RECEIVE", 3, false, now.Add(-2*24*time.Hour)},
 	)
 
 	// ── 工单流程 ──
