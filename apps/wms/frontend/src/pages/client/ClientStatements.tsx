@@ -1,10 +1,10 @@
 import GenericListPage from '@/components/GenericListPage';
-import { clientApi } from '@/api/client';
+import client from '@/api/client';
 
 export default function ClientStatements() {
   return (
     <GenericListPage title="月结对账单" queryKey={['client-statements']}
-      queryFn={() => clientApi.get('/client/api/statements')}
+      queryFn={() => client.get('/client/api/statements')}
       columns={[
         { key: 'id', label: '编号' },
         { key: 'period', label: '期间' },
