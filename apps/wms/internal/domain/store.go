@@ -128,9 +128,12 @@ type LogisticsTracking struct {
 	TrackingNo  string    `json:"tracking_no"`
 	Route       string    `json:"route"`
 	Status      string    `json:"status"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	CourierName string    `json:"courier_name"`
+	Region      string    `json:"region"`
+	CompanyName string    `json:"company_name"`
 	Detail      string    `json:"detail"`
+	ErrorCount  int       `json:"error_count"`
+	OrderNo     string    `json:"order_no"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type RouteTemplate struct {
@@ -340,10 +343,14 @@ type WarehouseConsoleEntry struct {
 
 type Notification struct {
 	ID        int64     `json:"id"`
+	Type      string    `json:"type"`
+	Priority  string    `json:"priority"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	Scope     string    `json:"scope"`
 	Channel   string    `json:"channel"`
 	Recipient string    `json:"recipient"`
+	SenderName string   `json:"sender_name"`
 	Sent      bool      `json:"sent"`
 	CreatedAt time.Time `json:"created_at"`
 }

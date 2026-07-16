@@ -230,13 +230,14 @@ func SeedAll() {
 		ShippingProvider{3, "万海航运", "WHL", "02-25679888"},
 	)
 
-	// ── 物流追踪 BFT56: 含物流节点 ──
+	// ── 物流追踪 BFT56: 含区域、公司、失败次数 ──
 	LogisticsTrackingStore.Seed(
-		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", now, "圆通", "到达台北转运中心"},
-		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", now.Add(-1*24*time.Hour), "顺丰", "已签收·本人"},
-		LogisticsTracking{3, "SF1190887234567", "深圳→台中", "派送中", now.Add(-4*time.Hour), "顺丰", "快递员派送中"},
-		LogisticsTracking{4, "JT3001234567890", "厦门→基隆", "已出库", now.Add(-8*time.Hour), "极兔", "已离开厦门仓"},
-		LogisticsTracking{5, "YT9988776655443", "福州→新竹", "已签收", now.Add(-3*24*time.Hour), "圓通", "已签收·代理点"},
+		LogisticsTracking{1, "YT7625763166053", "厦门→台北", "运输中", "台湾段", "圆通速递 YTO", "到达台北转运中心", 0, "ORD-20260709-001", now},
+		LogisticsTracking{2, "435212825957725", "厦门→桃园", "已签收", "台湾段", "顺丰速运 SF", "已签收·本人签收", 0, "ORD-20260708-001", now.Add(-24*time.Hour)},
+		LogisticsTracking{3, "SF1190887234567", "深圳→台中", "派送中", "台湾段", "顺丰速运 SF", "快递员派送中，联系电话:0912345678", 0, "ORD-20260707-001", now.Add(-4*time.Hour)},
+		LogisticsTracking{4, "JT3001234567890", "厦门→基隆", "已出库", "台湾段", "极兔速递 J&T", "已离开厦门仓，下一站金门转运中心", 1, "", now.Add(-8*time.Hour)},
+		LogisticsTracking{5, "YT9988776655443", "福州→新竹", "已签收", "台湾段", "圓通速遞 YTO", "已签收·超商取件(全家新竹光復店)", 0, "ORD-DEMO-001", now.Add(-3*24*time.Hour)},
+		LogisticsTracking{6, "STO7788990011223", "厦门→彰化", "在途", "台湾段", "申通快递 STO", "到达厦门海关，等待清关", 2, "", now.Add(-2*24*time.Hour)},
 	)
 	ContainerLoadingStore.Seed(
 		ContainerLoading{1, "CNTR-001", "厦门轮", "厦门", "台北", 450, now},
@@ -244,13 +245,13 @@ func SeedAll() {
 		ContainerLoading{3, "CNTR-003", "WAN HAI 235", "厦门", "基隆", 580, now.Add(-1 * 24 * time.Hour)},
 	)
 
-	// ── 通知中心 BFT56: 多渠道 ──
+	// ── 通知中心 BFT56: 类型/优先级/范围/发送人 ──
 	NotificationStore.Seed(
-		Notification{1, "系统维护通知", "系统将于7月20日凌晨2:00-4:00进行维护升级", "站内信", "全部客户", true, now.Add(-1*24*time.Hour)},
-		Notification{2, "新路线上线", "厦门→基隆 海运路线已开通，首重15元/kg", "邮件", "VIP客户", true, now.Add(-3*24*time.Hour)},
-		Notification{3, "账户余额不足", "您的账户余额已低于100元，请及时充值", "短信", "client_001", true, now.Add(-2*24*time.Hour)},
-		Notification{4, "包裹已签收", "您的包裹 YT7625763166053 已被签收", "微信", "client_001", true, now.Add(-12*time.Hour)},
-		Notification{5, "假期运营安排", "端午假期正常运营，部分路线时效延长", "站内信", "全部客户", true, now},
+		Notification{1, "系统通知", "普通", "系统维护通知", "系统将于7月20日凌晨2:00-4:00进行维护升级", "全员(跨所有公司)", "站内信", "全部客户", "系统管理员", true, now.Add(-1*24*time.Hour)},
+		Notification{2, "公告", "紧急", "新路线上线", "厦门→基隆 海运路线已开通，首重15元/kg", "本公司全员", "邮件", "VIP客户", "运营经理", true, now.Add(-3*24*time.Hour)},
+		Notification{3, "任务通知", "普通", "账户余额不足", "您的账户余额已低于100元，请及时充值", "指定用户", "短信", "client_001", "财务系统", true, now.Add(-2*24*time.Hour)},
+		Notification{4, "任务通知", "普通", "包裹已签收", "包裹YT7625763166053已被签收", "指定用户", "微信", "client_001", "物流系统", true, now.Add(-12*time.Hour)},
+		Notification{5, "公告", "普通", "假期运营安排", "端午假期正常运营，部分路线时效延长", "全员(跨所有公司)", "站内信", "全部客户", "系统管理员", true, now},
 	)
 
 	// ── 定时任务 ──
