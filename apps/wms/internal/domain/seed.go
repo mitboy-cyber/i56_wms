@@ -61,6 +61,8 @@ func SeedAll() {
 	ContainerStore.Seed(
 		Container{1, "厦门仓", "CNTR-20260715-001", "海快-新竹物流", "装货中", 5000, now.Add(-1*24*time.Hour)},
 		Container{2, "厦门仓", "CNTR-20260714-002", "海快-新竹物流", "已发运", 4800, now.Add(-2*24*time.Hour)},
+		Container{3, "厦门仓", "CNTR-20260713-003", "空运-桃园", "已完成", 3500, now.Add(-7*24*time.Hour)},
+		Container{4, "厦门仓", "CNTR-20260716-004", "海运-基隆", "待装货", 8000, now},
 	)
 
 	// ── 客户 (BFT56: 4 clients, EZ集运通 main) ──
@@ -72,7 +74,10 @@ func SeedAll() {
 	)
 	ClientMemberStore.Seed(
 		ClientMember{1, 1, "蕭惠昱", "0912345678", "A123456789", "EZ集运通", now.Add(-30*24*time.Hour)},
-		ClientMember{2, 1, "张三", "0923456789", "B234567890", "EZ集运通", now.Add(-25*24*time.Hour)},
+		ClientMember{2, 1, "王小明", "0923456789", "B234567890", "EZ集运通", now.Add(-25*24*time.Hour)},
+		ClientMember{3, 1, "林大華", "0933334444", "F123456789", "EZ集运通", now.Add(-20*24*time.Hour)},
+		ClientMember{4, 1, "陳怡君", "0944445555", "D223456789", "EZ集运通", now.Add(-15*24*time.Hour)},
+		ClientMember{5, 1, "張志強", "0955556666", "E123456789", "EZ集运通", now.Add(-10*24*time.Hour)},
 	)
 
 	// ── 客户充值 ──
@@ -223,6 +228,14 @@ func SeedAll() {
 	SystemParamStore.Seed(
 		SystemParam{1, "site_name", "I56 WMS", "system", "站点名称"},
 		SystemParam{2, "default_warehouse", "厦门仓", "system", "默认仓库"},
+		SystemParam{3, "currency", "TWD", "finance", "结算货币"},
+		SystemParam{4, "volume_factor", "6000", "logistics", "体积重系数"},
+		SystemParam{5, "tax_rate", "0.05", "finance", "税率"},
+		SystemParam{6, "max_package_weight", "70", "logistics", "单件限重(kg)"},
+		SystemParam{7, "declaration_limit", "50000", "customs", "申报限额(NTD)"},
+		SystemParam{8, "auto_cancel_hours", "48", "order", "自动取消(小时)"},
+		SystemParam{9, "free_storage_days", "30", "warehouse", "免费仓储(天)"},
+		SystemParam{10, "storage_fee_daily", "5", "warehouse", "超期仓储费/天(NTD)"},
 	)
 
 	// ── 品牌 ──
