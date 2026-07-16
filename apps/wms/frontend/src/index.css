@@ -1,26 +1,192 @@
 @import "tailwindcss";
 
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
-  --radius: 0.5rem;
-  --sidebar-bg: 222.2 47.4% 11.2%;
-  --sidebar-fg: 210 40% 98%;
+/* ── Hallmark · macrostructure: Workbench · theme: I56 Logistics ── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400;9..40,500;9..40,600&family=Geist+Mono:wght@400;500&display=swap');
+
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-display: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ── Hallmark Colour System (OKLCH) ── */
+:root {
+  /* Anchor: emerald — logistics, trust, growth */
+  --color-paper:   oklch(97% 0.006 160);
+  --color-surface: oklch(95% 0.005 160);
+  --color-rule:    oklch(85% 0.008 160);
+  --color-neutral: oklch(50% 0.006 160);
+  --color-muted:   oklch(35% 0.005 160);
+  --color-ink:     oklch(18% 0.008 155);
+  --color-accent:  oklch(52% 0.18 160);     /* emerald-600 */
+  --color-accent-strong: oklch(42% 0.17 158); /* emerald-700 */
+  --color-accent-light:  oklch(92% 0.04 158); /* emerald-50  */
+
+  /* Hallmark semantic mappings */
+  --primary:       var(--color-accent);
+  --primary-fg:    white;
+  --background:    var(--color-paper);
+  --foreground:    var(--color-ink);
+  --card:          white;
+  --card-fg:       var(--color-ink);
+  --muted:         oklch(93% 0.004 160);
+  --muted-fg:     var(--color-neutral);
+  --border:        var(--color-rule);
+  --ring:          var(--color-accent);
+  --radius:        0.375rem;
+
+  /* Sidebar — light, clean */
+  --sidebar-bg:    oklch(96% 0.004 160);
+  --sidebar-fg:    var(--color-ink);
+  --sidebar-border: var(--color-rule);
+  --sidebar-accent: var(--color-accent-light);
+  --sidebar-accent-fg: var(--color-accent-strong);
+
+  /* Status semantics */
+  --color-success:      oklch(55% 0.17 160);
+  --color-success-bg:   oklch(92% 0.04 158);
+  --color-warning:      oklch(62% 0.16 85);
+  --color-warning-bg:   oklch(95% 0.06 85);
+  --color-destructive:  oklch(55% 0.22 25);
+  --color-destructive-bg: oklch(94% 0.06 25);
+}
+
+/* ── Hallmark Typography ── */
+html {
+  font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+
+/* Headings — light weight for contrast */
+h1, h2, h3 { font-weight: 300; letter-spacing: -0.015em; }
+h1 { font-size: 1.75rem; line-height: 1.2; }
+h2 { font-size: 1.35rem; line-height: 1.25; }
+h3 { font-size: 1.1rem; line-height: 1.3; }
+
+/* Labels / UI — medium weight */
+label, th, .label, .sidebar-label {
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: var(--color-neutral);
+}
+
+/* ── Hallmark Card = border, not shadow ── */
+.card, .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; }
+.card, .rounded-xl, [class*="shadow"] {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+}
+
+/* Clickable cards get shadow-sm on hover only */
+.card-clickable:hover {
+  box-shadow: 0 1px 3px oklch(0% 0 0 / 0.06);
+}
+
+/* ── Buttons — border-first ── */
+.btn, button[class*="bg-blue"], button[class*="bg-primary"] {
+  background: white !important;
+  color: var(--color-accent) !important;
+  border: 1px solid var(--color-accent) !important;
+  font-weight: 500;
+  font-size: 0.8125rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius);
+  transition: background 100ms ease, color 100ms ease;
+}
+.btn:hover, button[class*="bg-blue"]:hover, button[class*="bg-primary"]:hover {
+  background: var(--color-accent) !important;
+  color: white !important;
+}
+
+/* Destructive buttons */
+.btn-danger, button[class*="bg-red"], button[class*="bg-destructive"] {
+  background: white !important;
+  color: var(--color-destructive) !important;
+  border: 1px solid var(--color-destructive) !important;
+}
+.btn-danger:hover, button[class*="bg-red"]:hover {
+  background: var(--color-destructive) !important;
+  color: white !important;
+}
+
+/* ── Sidebar — light, restful, emerald accent ── */
+aside, [class*="sidebar"], .sidebar {
+  background: var(--sidebar-bg) !important;
+  color: var(--sidebar-fg) !important;
+  border-right: 1px solid var(--sidebar-border);
+}
+.sidebar a, .sidebar button { color: var(--sidebar-fg); }
+.sidebar a:hover, .sidebar button:hover { background: var(--sidebar-accent); }
+.sidebar .active, .sidebar [aria-current="page"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-fg);
+  border-left: 3px solid var(--color-accent);
+}
+
+/* ── Tables — border-only ── */
+table { border: 1px solid var(--color-rule); border-radius: var(--radius); }
+table thead { background: var(--color-surface); }
+th {
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-neutral);
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+td { padding: 0.5rem 0.75rem; }
+tr:hover td { background: var(--color-surface); }
+
+/* ── Form inputs — clean border ── */
+input, textarea, select {
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+  padding: 0.375rem 0.625rem;
+  font-size: 0.875rem;
+  background: white;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px oklch(52% 0.18 160 / 0.15);
+}
+
+/* ── Login page — split panel ── */
+.login-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+.login-panel-left {
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+}
+.login-panel-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Animation — minimal, fast ── */
+* { transition-duration: 100ms; }
+.will-animate { will-change: transform; }
+
+/* ── Status badges ── */
+.badge-success { background: var(--color-success-bg); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-error   { background: var(--color-destructive-bg); color: var(--color-destructive); }

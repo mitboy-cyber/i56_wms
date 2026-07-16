@@ -181,18 +181,21 @@ export function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0">
-        <div className="px-5 py-4 border-b border-slate-700">
-          <h1 className="text-lg font-bold tracking-tight">I56 Framework</h1>
-          <p className="text-xs text-slate-400">Admin Console</p>
+      {/* Sidebar — Hallmark: light, border-right, emerald accent */}
+      <aside className="w-64 flex flex-col shrink-0 border-r border-gray-200" style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)' }}>
+        <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
+          <h1 className="text-lg font-light tracking-tight" style={{ color: 'var(--color-ink)' }}>I56 Framework</h1>
+          <p className="text-xs" style={{ color: 'var(--color-neutral)' }}>Admin Console</p>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {menu.map((g) => (
             <div key={g.label}>
               <button
                 onClick={() => toggle(g.label)}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors"
+                style={{ color: 'var(--sidebar-fg)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--sidebar-accent)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
                 <g.icon size={16} />
                 <span className="flex-1 text-left">{g.label}</span>
@@ -206,8 +209,16 @@ export function DashboardLayout() {
                       to={c.href}
                       className={({ isActive }) =>
                         `block px-3 py-1.5 text-sm rounded-md transition-colors ${
-                          isActive ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white hover:bg-slate-800"
+                          isActive ? 'active-nav' : ''
                         }`
+                      }
+                      style={({ isActive }: { isActive: boolean }) => isActive ? {
+                        background: 'var(--sidebar-accent)',
+                        color: 'var(--sidebar-accent-fg)',
+                        borderLeft: '3px solid var(--color-accent)',
+                      } : {
+                        color: 'var(--color-muted)',
+                      }}
                       }
                     >
                       {c.label}
@@ -226,9 +237,9 @@ export function DashboardLayout() {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0">
-          <h2 className="text-sm font-medium text-gray-700">I56 WMS 管理后台</h2>
+      <div className="flex-1 flex flex-col min-w-0" style={{ background: 'var(--color-paper)' }}>
+        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0" style={{ borderColor: 'var(--color-rule)' }}>
+          <h2 className="text-sm font-medium" style={{ color: 'var(--color-neutral)' }}>I56 WMS 管理后台</h2>
         </header>
         <TabBar />
         <main className="flex-1 overflow-y-auto p-6">
