@@ -23,6 +23,6 @@ require (
 )
 
 replace (
-	github.com/i56/framework => ../../framework
+	github.com/i56/framework => ../../../i56-framework
 	github.com/i56/modules => ../../modules
 )
