@@ -207,18 +207,12 @@ export function DashboardLayout() {
                     <NavLink
                       key={c.href}
                       to={c.href}
-                      className={({ isActive }) =>
+                      className={({ isActive }: { isActive: boolean }) =>
                         `block px-3 py-1.5 text-sm rounded-md transition-colors ${
-                          isActive ? 'active-nav' : ''
+                          isActive
+                            ? 'active-nav'
+                            : ''
                         }`
-                      }
-                      style={({ isActive }: { isActive: boolean }) => isActive ? {
-                        background: 'var(--sidebar-accent)',
-                        color: 'var(--sidebar-accent-fg)',
-                        borderLeft: '3px solid var(--color-accent)',
-                      } : {
-                        color: 'var(--color-muted)',
-                      }}
                       }
                     >
                       {c.label}
