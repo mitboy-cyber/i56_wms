@@ -4,7 +4,7 @@ import client from '@/api/client';
 export default function ClientMembersPage() {
   return (
     <GenericListPage title="客户会员" queryKey={['admin-ClientMembers']}
-      queryFn={() => client.get('/admin/api/client-members').then(r => r.data)}
+      queryFn={() => client.get('/admin/api/client-members')}
       apiBase="/admin/api/client-members"
       columns={[
         { key: 'id', label: '编号' }, { key: 'name', label: '会员名称' },

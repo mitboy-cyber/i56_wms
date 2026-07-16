@@ -4,7 +4,7 @@ import client from '@/api/client';
 export default function ContainersPage() {
   return (
     <GenericListPage title="集装柜管理" queryKey={['admin-Containers']}
-      queryFn={() => client.get('/admin/api/containers').then(r => r.data)}
+      queryFn={() => client.get('/admin/api/containers')}
       apiBase="/admin/api/containers"
       columns={[
         { key: 'id', label: '编号' }, { key: 'warehouse', label: '仓库' },
