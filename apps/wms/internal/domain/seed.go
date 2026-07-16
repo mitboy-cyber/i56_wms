@@ -106,14 +106,24 @@ func SeedAll() {
 		RechargeRecord{2, 1, 3000, "微信支付", "已完成", now.Add(-20*24*time.Hour)},
 	)
 
-	// ── 客户端权限 ──
+	// ── 客户端权限 (BFT56: 根据客户等级控制模块 + 增删改查导出权限) ──
 	ClientPanelPermStore.Seed(
-		ClientPanelPerm{1, 1, "我的订单", true, true},
-		ClientPanelPerm{2, 1, "我的包裹", true, true},
-		ClientPanelPerm{3, 1, "申报人", true, true},
-		ClientPanelPerm{4, 1, "余额明细", true, false},
-		ClientPanelPerm{5, 1, "地址管理", true, true},
-		ClientPanelPerm{6, 1, "会员管理", true, true},
+		// EZ集运通 — enterprise 全功能
+		ClientPanelPerm{1, 1, "EZ集运通", "订单管理", "我的订单", true, true, true, true, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), "企业级全功能"},
+		ClientPanelPerm{2, 1, "EZ集运通", "订单管理", "包裹列表", true, false, true, false, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{3, 1, "EZ集运通", "订单管理", "集运下单", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{4, 1, "EZ集运通", "申报管理", "申报人管理", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{5, 1, "EZ集运通", "财务管理", "余额明细", true, false, false, false, true, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{6, 1, "EZ集运通", "地址管理", "地址簿", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{7, 1, "EZ集运通", "会员管理", "子账户", true, true, true, true, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), ""},
+		ClientPanelPerm{8, 1, "EZ集运通", "系统设置", "API密钥", true, false, true, false, false, "enterprise", "active", now.Add(-180*24*time.Hour), now.Add(365*24*time.Hour), "只读+编辑API密钥"},
+		// i56平台 — pro 中等级
+		ClientPanelPerm{9, 2, "i56平台", "订单管理", "我的订单", true, true, true, false, true, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), "专业版"},
+		ClientPanelPerm{10, 2, "i56平台", "申报管理", "申报人管理", true, true, true, false, false, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), ""},
+		ClientPanelPerm{11, 2, "i56平台", "财务管理", "余额明细", true, false, false, false, false, "pro", "active", now.Add(-90*24*time.Hour), now.Add(180*24*time.Hour), "只读余额"},
+		// 测试客户A — basic (已过期)
+		ClientPanelPerm{12, 3, "测试客户A", "订单管理", "我的订单", true, false, false, false, false, "basic", "expired", now.Add(-60*24*time.Hour), now.Add(-1*24*time.Hour), "已过期需续费"},
+		ClientPanelPerm{13, 3, "测试客户A", "财务管理", "余额明细", true, false, false, false, false, "basic", "expired", now.Add(-60*24*time.Hour), now.Add(-1*24*time.Hour), "已过期"},
 	)
 
 	// ── 客户定价 ──
@@ -346,16 +356,7 @@ func SeedAll() {
 	)
 
 	// ── 客户权限 (补充) ──
-	ClientPanelPermStore.Seed(
-		ClientPanelPerm{1, 1, "我的订单", true, true},
-		ClientPanelPerm{2, 1, "我的包裹", true, true},
-		ClientPanelPerm{3, 1, "申报人管理", true, true},
-		ClientPanelPerm{4, 1, "余额明细", true, false},
-		ClientPanelPerm{5, 1, "地址管理", true, true},
-		ClientPanelPerm{6, 1, "会员管理", true, true},
-	)
-
-	// ── 充值记录 (补充) ──
+	// ── 计费 ──
 	RechargeRecordStore.Seed(
 		RechargeRecord{1, 1, 5000, "银行转账", "completed", now.Add(-30 * 24 * time.Hour)},
 		RechargeRecord{2, 1, 3000, "微信支付", "completed", now.Add(-20 * 24 * time.Hour)},

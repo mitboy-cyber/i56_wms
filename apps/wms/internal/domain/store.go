@@ -449,11 +449,21 @@ type Container struct {
 
 // ClientPanelPerm 客户端权限 (BFT56 client panel permission)
 type ClientPanelPerm struct {
-	ID         int64  `json:"id"`
-	ClientID   int64  `json:"client_id"`
-	MenuName   string `json:"menu_name"`
-	CanView    bool   `json:"can_view"`
-	CanOperate bool   `json:"can_operate"`
+	ID          int64     `json:"id"`
+	ClientID    int64     `json:"client_id"`
+	ClientName  string    `json:"client_name"`
+	Module      string    `json:"module"`
+	MenuName    string    `json:"menu_name"`
+	CanView     bool      `json:"can_view"`
+	CanCreate   bool      `json:"can_create"`
+	CanEdit     bool      `json:"can_edit"`
+	CanDelete   bool      `json:"can_delete"`
+	CanExport   bool      `json:"can_export"`
+	Level       string    `json:"level"`
+	Status      string    `json:"status"`
+	GrantedAt   time.Time `json:"granted_at"`
+	ExpiresAt   time.Time `json:"expires_at"`
+	Remarks     string    `json:"remarks"`
 }
 
 type NotificationChannel struct {
