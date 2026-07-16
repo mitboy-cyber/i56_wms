@@ -3,6 +3,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -293,6 +294,17 @@ func (s *Server) registerRoutes() {
 	// ══════════════════════════════════════════
 	// JSON API routes
 	// ══════════════════════════════════════════
+	// Device & Shelf API (explicit handlers to avoid route conflicts)
+	r.GET("/admin/api/devices", func(w http.ResponseWriter, req *http.Request) {
+		all := domain.DeviceStore.List()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(all)
+	})
+	r.GET("/admin/api/shelves", func(w http.ResponseWriter, req *http.Request) {
+		all := domain.ShelfStore.List()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(all)
+	})
 
 	adminapi.RegisterSystemAPI(r, aAPI)
 	adminapi.RegisterOMSAPI(r, aAPI, s.ParcelSvc, s.OrderSvc, s.WarehouseSvc,
