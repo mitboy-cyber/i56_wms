@@ -3,19 +3,13 @@ import client from '@/api/client';
 
 export default function AiExceptionsPage() {
   return (
-    <GenericListPage
-      title="AI异常"
-      queryKey={['admin-AiExceptionsPage']}
+    <GenericListPage title="AI 异常检测" queryKey={['admin-AiExceptionsPage']}
       queryFn={() => client.get('/admin/api/ai-exceptions')}
+      apiBase="/admin/api/ai-exceptions"
       columns={[
-        { key: 'id', label: 'Id' },
-        { key: 'parcel_id', label: 'Parcel Id' },
-        { key: 'reason', label: 'Reason' },
-        { key: 'confidence', label: 'Confidence' },
-        { key: 'reviewed', label: 'Reviewed' },
-        { key: 'created_at', label: 'Created At' },
-      ]}
-      getRowId={(_, i) => String(i)}
-    />
+        { key: 'id', label: '编号' }, { key: 'parcel_id', label: '包裹编号' },
+        { key: 'reason', label: '异常原因' }, { key: 'confidence', label: '置信度' },
+        { key: 'reviewed', label: '已审核' }, { key: 'created_at', label: '时间' },
+      ]} getRowId={(_, i) => String(i)} />
   );
 }

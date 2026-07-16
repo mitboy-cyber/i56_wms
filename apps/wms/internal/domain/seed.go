@@ -146,6 +146,17 @@ func SeedAll() {
 		ClientPanelPerm{27, 0, "shopee", "系统设置", "客服工单", true, true, true, false, false, "shopee", "active", now, now.Add(365*24*time.Hour), ""},
 	)
 
+	// ── 客户权限 (RBAC: Module × CanRead/CanWrite) ──
+	ClientPermissionStore.Seed(
+		ClientPermission{1, 1, "包裹管理", true, true},
+		ClientPermission{2, 1, "订单管理", true, true},
+		ClientPermission{3, 1, "申报管理", true, false},
+		ClientPermission{4, 1, "财务查询", true, false},
+		ClientPermission{5, 1, "地址管理", true, true},
+		ClientPermission{6, 2, "包裹管理", true, false},
+		ClientPermission{7, 2, "订单管理", true, false},
+	)
+
 	// ── 客户定价 ──
 	ClientPricingStore.Seed(
 		ClientPricing{1, 1, 1, 15.0, 0.9},
