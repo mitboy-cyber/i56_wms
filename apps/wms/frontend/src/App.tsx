@@ -25,6 +25,7 @@ import ClientParcels from '@/pages/client/ClientParcels';
 import ClientOrders from '@/pages/client/ClientOrders';
 import ClientLedger from '@/pages/client/ClientLedger';
 import ClientDeclarants from '@/pages/client/ClientDeclarants';
+import ClientStatements from '@/pages/client/ClientStatements';
 import ClientMembers from '@/pages/client/ClientMembers';
 import ClientAddresses from '@/pages/client/ClientAddresses';
 import ClientWarehouses from '@/pages/client/ClientWarehouses';
@@ -213,6 +214,7 @@ export default function App() {
             <Route path="orders/:id" element={<ClientOrderDetail />} />
             <Route path="ledger" element={<ClientLedger />} />
             <Route path="declarants" element={<ClientDeclarants />} />
+            <Route path="statements" element={<ClientStatements />} />
             <Route path="members" element={<ClientMembers />} />
             <Route path="addresses" element={<ClientAddresses />} />
             <Route path="warehouses" element={<ClientWarehouses />} />

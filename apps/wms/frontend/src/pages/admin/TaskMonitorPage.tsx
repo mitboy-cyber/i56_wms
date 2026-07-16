@@ -3,7 +3,7 @@ import client from '@/api/client';
 import { Server, Database, HardDrive, Activity, Wifi, Clock } from 'lucide-react';
 
 export default function TaskMonitorPage() {
-  const { data: stats } = useQuery<any>({ queryKey: ['monitor-stats'], queryFn: () => client.get('/admin/api/dashboard/stats').then(r => r.data) });
+  const { data: stats } = useQuery<any>({ queryKey: ['monitor-stats'], queryFn: () => client.get('/admin/api/dashboard/stats') });
 
   const serverTime = new Date().toLocaleString('zh-CN');
 
