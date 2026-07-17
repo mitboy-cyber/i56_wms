@@ -11,17 +11,74 @@
 }
 
 /* ── Hallmark Colour System (OKLCH) ── */
-:root {
-  /* Anchor: emerald — logistics, trust, growth */
+:root,
+[data-theme="default"] {
   --color-paper:   oklch(97% 0.006 160);
   --color-surface: oklch(95% 0.005 160);
   --color-rule:    oklch(85% 0.008 160);
   --color-neutral: oklch(50% 0.006 160);
   --color-muted:   oklch(35% 0.005 160);
   --color-ink:     oklch(18% 0.008 155);
-  --color-accent:  oklch(52% 0.18 160);     /* emerald-600 */
-  --color-accent-strong: oklch(42% 0.17 158); /* emerald-700 */
-  --color-accent-light:  oklch(92% 0.04 158); /* emerald-50  */
+  --color-accent:  oklch(52% 0.18 160);
+  --color-accent-strong: oklch(42% 0.17 158);
+  --color-accent-light:  oklch(92% 0.04 158);
+  --bg-primary:    white;
+  --bg-secondary:  oklch(97% 0.006 160);
+  --text-primary:  oklch(18% 0.008 155);
+  --text-secondary: oklch(50% 0.006 160);
+  --border-color:  oklch(85% 0.008 160);
+}
+
+[data-theme="dark"] {
+  --color-paper:   oklch(14% 0.008 160);
+  --color-surface: oklch(18% 0.006 160);
+  --color-rule:    oklch(28% 0.006 160);
+  --color-neutral: oklch(55% 0.004 160);
+  --color-muted:   oklch(68% 0.004 160);
+  --color-ink:     oklch(94% 0.004 160);
+  --color-accent:  oklch(65% 0.16 160);
+  --color-accent-strong: oklch(72% 0.14 158);
+  --color-accent-light:  oklch(22% 0.04 158);
+  --bg-primary:    oklch(14% 0.008 160);
+  --bg-secondary:  oklch(18% 0.006 160);
+  --text-primary:  oklch(94% 0.004 160);
+  --text-secondary: oklch(55% 0.004 160);
+  --border-color:  oklch(28% 0.006 160);
+}
+
+[data-theme="blue"] {
+  --color-paper:   oklch(97% 0.008 250);
+  --color-surface: oklch(95% 0.006 250);
+  --color-rule:    oklch(85% 0.008 250);
+  --color-neutral: oklch(50% 0.006 250);
+  --color-muted:   oklch(35% 0.005 250);
+  --color-ink:     oklch(18% 0.008 245);
+  --color-accent:  oklch(52% 0.18 255);
+  --color-accent-strong: oklch(42% 0.17 253);
+  --color-accent-light:  oklch(92% 0.04 250);
+  --bg-primary:    white;
+  --bg-secondary:  oklch(97% 0.008 250);
+  --text-primary:  oklch(18% 0.008 245);
+  --text-secondary: oklch(50% 0.006 250);
+  --border-color:  oklch(85% 0.008 250);
+}
+
+[data-theme="enterprise"] {
+  --color-paper:   oklch(97% 0.004 270);
+  --color-surface: oklch(95% 0.003 270);
+  --color-rule:    oklch(85% 0.004 270);
+  --color-neutral: oklch(48% 0.003 270);
+  --color-muted:   oklch(32% 0.003 270);
+  --color-ink:     oklch(16% 0.004 265);
+  --color-accent:  oklch(45% 0.16 40);
+  --color-accent-strong: oklch(38% 0.15 38);
+  --color-accent-light:  oklch(90% 0.06 42);
+  --bg-primary:    white;
+  --bg-secondary:  oklch(97% 0.004 270);
+  --text-primary:  oklch(16% 0.004 265);
+  --text-secondary: oklch(48% 0.003 270);
+  --border-color:  oklch(85% 0.004 270);
+}
 
   /* Hallmark semantic mappings */
   --primary:       var(--color-accent);

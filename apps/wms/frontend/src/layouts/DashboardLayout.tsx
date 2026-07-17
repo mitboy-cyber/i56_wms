@@ -1,7 +1,8 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth"
 import { useTabStore } from "@/stores/tabs"
-import { TabBar } from "@/components/TabBar"
+import ThemeSwitcher from '@/components/ThemeSwitcher';
+import TabBar from '@/components/TabBar';
 import {
   LayoutDashboard, Package, Users, Warehouse, Truck, Shield,
   Settings, LogOut, ChevronDown, ChevronRight, Box, Ship, Plane,
@@ -227,6 +228,9 @@ export function DashboardLayout() {
           <Shield size={16} className="text-slate-400" />
           <span className="text-sm text-slate-300 flex-1 truncate">{user?.real_name || user?.username}</span>
           <button onClick={handleLogout} className="text-slate-400 hover:text-white"><LogOut size={16} /></button>
+        </div>
+        <div className="px-3 pb-3 mt-auto">
+          <ThemeSwitcher />
         </div>
       </aside>
 
