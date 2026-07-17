@@ -209,10 +209,10 @@ export function DashboardLayout() {
                       key={c.href}
                       to={c.href}
                       className={({ isActive }: { isActive: boolean }) =>
-                        `block px-3 py-1.5 text-sm rounded-md transition-colors ${
+                        `dashboard-nav-link block px-3 py-1.5 text-sm rounded-md transition-colors ${
                           isActive
                             ? 'active-nav'
-                            : ''
+                            : 'hover:bg-gray-100'
                         }`
                       }
                     >
@@ -224,10 +224,10 @@ export function DashboardLayout() {
             </div>
           ))}
         </nav>
-        <div className="px-5 py-3 border-t border-slate-700 flex items-center gap-3 shrink-0">
-          <Shield size={16} className="text-slate-400" />
-          <span className="text-sm text-slate-300 flex-1 truncate">{user?.real_name || user?.username}</span>
-          <button onClick={handleLogout} className="text-slate-400 hover:text-white"><LogOut size={16} /></button>
+        <div className="px-5 py-3 border-t flex items-center gap-3 shrink-0" style={{ borderColor: 'var(--border)' }}>
+          <Shield size={16} style={{ color: 'var(--color-neutral)' }} />
+          <span className="text-sm flex-1 truncate" style={{ color: 'var(--color-muted)' }}>{user?.real_name || user?.username}</span>
+          <button onClick={handleLogout} style={{ color: 'var(--color-neutral)' }} onMouseEnter={e => (e.target as HTMLElement).style.color = 'var(--color-accent)'} onMouseLeave={e => (e.target as HTMLElement).style.color = 'var(--color-neutral)'}><LogOut size={16} /></button>
         </div>
         <div className="px-3 pb-3 mt-auto">
           <ThemeSwitcher />

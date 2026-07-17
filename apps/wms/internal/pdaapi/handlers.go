@@ -56,7 +56,10 @@ func RegisterPDAAPI(
 
 	// Login
 	r.POST("/pda/api/login", func(w http.ResponseWriter, req *http.Request) {
-		var body struct{ Code, PIN string }
+		var body struct {
+			Code string `json:"code"`
+			PIN  string `json:"pin"`
+		}
 		json.NewDecoder(req.Body).Decode(&body)
 		sess, err := svc.Login(body.Code, body.PIN, req.RemoteAddr)
 		if err != nil {

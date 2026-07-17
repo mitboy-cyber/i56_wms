@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import pdaApi from '@/api/pdaApi';
 
 interface PDAAuthState {
   operatorId: number | null;
@@ -14,7 +13,13 @@ export const usePDAAuth = create<PDAAuthState>((set) => ({
   loading: true,
   login: async (code, pin) => {
     try {
-      await pdaApi.login(code, pin);
+      const res = await fetch('/pda/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, pin }),
+        credentials: 'include',
+      });
+      if (!res.ok) return false;
       await usePDAAuth.getState().checkSession();
       return true;
     } catch {
@@ -22,13 +27,16 @@ export const usePDAAuth = create<PDAAuthState>((set) => ({
     }
   },
   logout: async () => {
-    await pdaApi.logout();
+    await fetch('/pda/api/logout', { method: 'POST', credentials: 'include' });
     set({ operatorId: null });
   },
   checkSession: async () => {
     try {
-      const res = await pdaApi.me();
-      set({ operatorId: res.data.operator_id, loading: false });
+      const res = await fetch('/pda/api/me', { credentials: 'include' });
+      if (!res.ok) throw new Error('no session');
+      const data = await res.json();
+      // Go returns {"code":200,"data":{"operator_id":1}}
+      set({ operatorId: data?.data?.operator_id || data?.operator_id || null, loading: false });
     } catch {
       set({ operatorId: null, loading: false });
     }
