@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth"
 import { useTabStore } from "@/stores/tabs"
 import ThemeSwitcher from '@/components/ThemeSwitcher';
-import TabBar from '@/components/TabBar';
+import { TabBar } from "@/components/TabBar"
 import {
   LayoutDashboard, Package, Users, Warehouse, Truck, Shield,
   Settings, LogOut, ChevronDown, ChevronRight, Box, Ship, Plane,
