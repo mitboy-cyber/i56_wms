@@ -6,8 +6,20 @@ import path from 'path'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+    alias: { '@': path.resolve(__dirname, './src') },
+  },
+  base: '/',
+  build: {
+    modulePreload: false,
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
+  },
+  experimental: {
+    renderBuiltUrl() {
+      return { relative: true }
     },
   },
   server: {
