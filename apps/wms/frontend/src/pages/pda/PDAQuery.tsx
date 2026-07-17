@@ -1,22 +1,25 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import pdaApi from '@/api/pdaApi';
-import ScanInput from './ScanInput';
+import { ScanInput } from './ScanInput';
+
 export default function PDAQuery() {
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState('');
-  const qc = useQueryClient();
-  const mut = useMutation({
-    mutationFn: (scan: string) => (pdaApi as any).query({ scan } as any),
-    onSuccess: (res: any) => { setResult(res.data); setError(''); qc.invalidateQueries({ queryKey: ['pda-dashboard'] } as any); },
-    onError: (err: any) => { setError(err.response?.data?.error || err.message); setResult(null); },
-  } as any);
+  const [scan, setScan] = useState('');
+  const [result, setResult] = useState('');
+  const submit = async () => {
+    try {
+      const r = await fetch('/pda/api/query', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scan }) });
+      const d = await r.json();
+      setResult(r.ok ? JSON.stringify(d, null, 2) : (d?.error || '查询失败'));
+    } catch { setResult('网络错误'); }
+  };
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">查询</h2>
-      <ScanInput placeholder="查询扫码..." onSubmit={(s) => (mut as any).mutate(s)} loading={mut.isPending as boolean} />
-      {error && <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">{error}</div>}
-      {result && <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl text-sm"><pre className="text-gray-700 overflow-auto max-h-60">{JSON.stringify(result, null, 2)}</pre></div>}
+      <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-ink)' }}>🔍 包裹查询</h2>
+      <div className="bg-white rounded-xl border p-4 space-y-3 shadow-sm" style={{ borderColor: 'var(--border)' }}>
+        <ScanInput value={scan} onChange={setScan} placeholder="扫描或输入包裹条码" />
+        <button onClick={submit} className="w-full py-2.5 text-white rounded-lg font-medium"
+          style={{ background: 'var(--color-accent)' }}>查询</button>
+        {result && <pre className="text-xs mt-3 p-3 bg-gray-50 rounded-lg overflow-auto max-h-64 whitespace-pre-wrap">{result}</pre>}
+      </div>
     </div>
   );
 }

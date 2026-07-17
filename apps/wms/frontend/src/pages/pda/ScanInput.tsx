@@ -1,18 +1,23 @@
-import { useState, useRef, useEffect } from 'react';
-interface Props { placeholder: string; onSubmit: (scan: string) => void; loading?: boolean; }
-export default function ScanInput({ placeholder, onSubmit, loading }: Props) {
-  const [scan, setScan] = useState('');
-  const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => { ref.current?.focus(); }, []);
+interface Props {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}
+
+export function ScanInput({ value, onChange, placeholder = '扫描条码' }: Props) {
   return (
-    <div className="flex gap-2">
-      <input ref={ref} value={scan} onChange={e => setScan(e.target.value)}
-        placeholder={placeholder} className="flex-1 px-4 py-3 border rounded-xl text-lg outline-none focus:ring-2 focus:ring-blue-500"
-        onKeyDown={e => { if (e.key==='Enter' && scan) { onSubmit(scan); setScan(''); }}} autoFocus />
-      <button onClick={() => { if (scan) { onSubmit(scan); setScan(''); }}}
-        disabled={loading} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-medium disabled:opacity-50">
-        {loading ? '处理中' : '确认'}
-      </button>
+    <div>
+      <label className="text-xs font-medium mb-1 block" style={{ color: 'var(--color-muted)' }}>{placeholder}</label>
+      <div className="relative">
+        <input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full px-4 py-3 border rounded-lg outline-none text-center focus:ring-2 transition-shadow"
+          style={{ borderColor: 'var(--border)', '--tw-ring-color': 'var(--ring)' } as React.CSSProperties}
+          placeholder={placeholder}
+          autoFocus
+        />
+      </div>
     </div>
   );
 }
