@@ -13,15 +13,15 @@ client.interceptors.response.use(
   (err) => {
     const url = err.config?.url || ""
     const isLoginPage = window.location.pathname === "/admin/login"
-    // Never redirect on auth-related endpoints (they're expected to fail sometimes)
-    const isAuthEndpoint = url.includes("/admin/api/me") || url.includes("/admin/login")
+    const isClientPage = window.location.pathname.startsWith("/client")
+    const isAuthEndpoint = url.includes("/admin/api/me") || url.includes("/admin/login") || url.includes("/client/api/me") || url.includes("/client/login")
 
     if (
       (err.response?.status === 401 || err.response?.status === 303) &&
       !isLoginPage && !isAuthEndpoint && !redirecting
     ) {
       redirecting = true
-      window.location.replace("/admin/login")
+      window.location.replace(isClientPage ? "/client/login" : "/admin/login")
     }
     return Promise.reject(err)
   }

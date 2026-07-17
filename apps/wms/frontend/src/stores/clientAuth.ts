@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import client from '@/api/client';
 
 interface ClientAuthState {
   client: string | null;
@@ -30,13 +29,16 @@ export const useClientAuth = create<ClientAuthState>((set) => ({
     return false;
   },
   logout: async () => {
-    await client.get('/client/logout');
+    await fetch('/client/logout', { credentials: 'include' });
     set({ client: null });
   },
   checkSession: async () => {
     try {
-      const res = await client.get('/client/api/me');
-      set({ client: res.data.client, loading: false });
+      const res = await fetch('/client/api/me', { credentials: 'include' });
+      if (!res.ok) throw new Error('no session');
+      const data = await res.json();
+      // Go backend returns array wrapped in {data: [...]} or plain object
+      set({ client: data?.client || data?.data?.client || null, loading: false });
     } catch {
       set({ client: null, loading: false });
     }

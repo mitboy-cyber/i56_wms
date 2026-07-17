@@ -279,6 +279,9 @@ func (s *Server) registerRoutes() {
 	})
 	r.POST("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		u, p := req.FormValue("username"), req.FormValue("password")
+		if u == "" {
+			u = req.FormValue("email")
+		}
 		if u == "" || p == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(401)
