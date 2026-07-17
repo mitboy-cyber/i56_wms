@@ -11,7 +11,7 @@ type MemPDARepo struct {
 	nextOpID  int64
 }
 func NewMemPDARepo() *MemPDARepo {
-	r:=&MemPDARepo{operators:make(map[int64]*domain.Operator),sessions:make(map[string]*domain.Session)}
+	r:=&MemPDARepo{operators:make(map[int64]*domain.Operator),sessions:make(map[string]*domain.Session),nextOpID:1}
 	r.seedOperators()
 	return r
 }

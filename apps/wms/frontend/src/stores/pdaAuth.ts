@@ -36,7 +36,7 @@ export const usePDAAuth = create<PDAAuthState>((set) => ({
       if (!res.ok) throw new Error('no session');
       const data = await res.json();
       // Go returns {"code":200,"data":{"operator_id":1}}
-      set({ operatorId: data?.data?.operator_id || data?.operator_id || null, loading: false });
+      set({ operatorId: data?.data?.operator_id ?? data?.operator_id ?? null, loading: false });
     } catch {
       set({ operatorId: null, loading: false });
     }
