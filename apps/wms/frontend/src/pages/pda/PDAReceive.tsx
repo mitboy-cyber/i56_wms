@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ScanInput } from './ScanInput';
+import { Package } from 'lucide-react';
 
 export default function PDAReceive() {
   const [scan, setScan] = useState('');
@@ -18,14 +19,15 @@ export default function PDAReceive() {
         body: JSON.stringify({ scan, weight: +weight, length: +length, width: +width, height: +height }),
       });
       const d = await res.json();
-      if (res.ok) setMsg(d?.message || '收货成功');
-      else setMsg(d?.error || '收货失败');
+      setMsg(res.ok ? (d?.message || '收货成功') : (d?.error || '收货失败'));
     } catch { setMsg('网络错误'); }
   };
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--color-ink)' }}>📦 收货入库</h2>
+      <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-ink)' }}>
+        <Package size={20} style={{ color: 'var(--color-accent)' }} /> 收货入库
+      </h2>
       <div className="bg-white rounded-xl border p-4 space-y-3 shadow-sm" style={{ borderColor: 'var(--border)' }}>
         <ScanInput value={scan} onChange={setScan} placeholder="扫描包裹条码" />
         <div className="grid grid-cols-2 gap-2">
