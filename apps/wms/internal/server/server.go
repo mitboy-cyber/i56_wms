@@ -293,6 +293,11 @@ func (s *Server) registerRoutes() {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"success":true,"username":"` + u + `"}`))
 	})
+	r.GET("/client/logout", func(w http.ResponseWriter, req *http.Request) {
+		http.SetCookie(w, &http.Cookie{Name: "client_token", Value: "", Path: "/client", MaxAge: -1})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"success":true}`))
+	})
 
 	// ══════════════════════════════════════════
 	// JSON API routes
