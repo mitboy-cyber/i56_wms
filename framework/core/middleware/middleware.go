@@ -95,7 +95,7 @@ func CORS(opts *CORSOptions) Middleware {
 					break
 				}
 			}
-			if allowed {
+			if allowed && origin != "" {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 				w.Header().Set("Access-Control-Allow-Methods", join(opts.AllowedMethods))
 				w.Header().Set("Access-Control-Allow-Headers", join(opts.AllowedHeaders))

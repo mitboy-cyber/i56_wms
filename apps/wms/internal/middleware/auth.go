@@ -60,6 +60,12 @@ func CORS(allowedOrigins []string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
+			// Skip CORS for same-origin requests — setting empty Access-Control-Allow-Origin
+			// breaks crossorigin module scripts (blank white screen).
+			if origin == "" {
+				next(w, r)
+				return
+			}
 			allowed := false
 			for _, o := range allowedOrigins {
 				if o == "*" || o == origin {
@@ -69,11 +75,10 @@ func CORS(allowedOrigins []string) func(http.HandlerFunc) http.HandlerFunc {
 			}
 			if allowed || len(allowedOrigins) == 0 {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			w.Header().Set("Access-Control-Allow-Credentials", "true")
-
 			if r.Method == "OPTIONS" {
 				w.WriteHeader(204)
 				return
