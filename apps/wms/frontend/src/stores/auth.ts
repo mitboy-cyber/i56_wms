@@ -1,5 +1,4 @@
 import { create } from "zustand"
-import axios from "@/api/client"
 
 interface User {
   id: number
@@ -12,7 +11,7 @@ interface User {
 interface AuthState {
   user: User | null
   loading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string) => Promise<boolean>
   logout: () => Promise<void>
   checkSession: () => Promise<void>
 }
@@ -22,22 +21,34 @@ export const useAuthStore = create<AuthState>((set) => ({
   loading: true,
 
   login: async (username, password) => {
-    const form = new URLSearchParams()
-    form.append("username", username)
-    form.append("password", password)
-    await axios.post("/admin/login", form)
-    await useAuthStore.getState().checkSession()
+    const params = new URLSearchParams()
+    params.append("username", username)
+    params.append("password", password)
+    const res = await fetch("/admin/login", {
+      method: "POST",
+      body: params,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      credentials: "include",
+      redirect: "manual",
+    })
+    if (res.status === 303 || res.ok) {
+      await useAuthStore.getState().checkSession()
+      return true
+    }
+    return false
   },
 
   logout: async () => {
-    await axios.get("/admin/logout")
+    await fetch("/admin/logout", { credentials: "include" })
     set({ user: null })
   },
 
   checkSession: async () => {
     try {
-      const res = await axios.get("/admin/api/me")
-      set({ user: res.data, loading: false })
+      const res = await fetch("/admin/api/me", { credentials: "include" })
+      if (!res.ok) throw new Error("no session")
+      const data = await res.json()
+      set({ user: data, loading: false })
     } catch {
       set({ user: null, loading: false })
     }

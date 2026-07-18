@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="UTF-8"><title>Test</title>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0f4f0;color:#333}h1{font-size:2rem}</style>
+</head>
+<body><div id="root"><h1>I56 WMS — Test Page</h1><p>If you can read this, static HTML works.</p></div>
+<script>
+// Test if JS executes
+document.getElementById('root').innerHTML += '<p style="color:green">✓ JavaScript is executing!</p>';
+
+// Test if fetch works
+fetch('/api/v1/health')
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById('root').innerHTML += '<p style="color:green">✓ API fetch works: ' + d.data.status + ' v' + d.data.version + '</p>';
+  })
+  .catch(e => {
+    document.getElementById('root').innerHTML += '<p style="color:red">✗ API fetch failed: ' + e.message + '</p>';
+  });
+</script>
+</body>
+</html>

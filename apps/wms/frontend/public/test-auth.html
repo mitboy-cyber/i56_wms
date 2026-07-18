@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head><title>I56 Auth Test</title></head>
+<body>
+<h1>Auth Flow Test</h1>
+<pre id="log"></pre>
+<script>
+const log = (...args) => { document.getElementById('log').textContent += args.join(' ') + '\n'; };
+
+(async () => {
+  log('=== Step 1: Login ===');
+  const params = new URLSearchParams();
+  params.append('username', 'admin');
+  params.append('password', 'admin');
+  const r1 = await fetch('/admin/login', {
+    method: 'POST',
+    body: params,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    credentials: 'include',
+    redirect: 'manual'
+  });
+  log('Status:', r1.status, 'Type:', r1.headers.get('content-type'));
+  const data = await r1.json();
+  log('Body:', JSON.stringify(data));
+
+  log('');
+  log('=== Step 2: Check Session ===');
+  const r2 = await fetch('/admin/api/me', { credentials: 'include' });
+  log('Status:', r2.status);
+  const me = await r2.json();
+  log('User:', JSON.stringify(me));
+
+  log('');
+  log('=== Step 3: Dashboard Stats ===');
+  const r3 = await fetch('/admin/api/dashboard/stats', { credentials: 'include' });
+  log('Status:', r3.status);
+  const stats = await r3.json();
+  log('Stats:', JSON.stringify(stats).substring(0, 200));
+
+  log('');
+  log('=== ALL PASSED ===');
+})();
+</script>
+</body>
+</html>

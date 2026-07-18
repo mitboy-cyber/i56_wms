@@ -16,10 +16,9 @@ export function LoginPage() {
     setError("")
     setLoading(true)
     try {
-      await login(username, password)
-      navigate("/admin/dashboard")
-    } catch {
-      setError("账号或密码错误")
+      const ok = await login(username, password)
+      if (ok) navigate("/admin/dashboard")
+      else setError("账号或密码错误")
     } finally {
       setLoading(false)
     }
