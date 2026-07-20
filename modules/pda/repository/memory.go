@@ -58,3 +58,15 @@ func (r *MemPDARepo) RecentScans(limit int)[]domain.ScanLog{
 	if limit>len(r.scanLogs){limit=len(r.scanLogs)}
 	return r.scanLogs[len(r.scanLogs)-limit:]
 }
+func (r *MemPDARepo) ActiveSessionCount() int {
+	r.mu.RLock(); defer r.mu.RUnlock()
+	count := 0
+	for _, s := range r.sessions { if s.IsActive { count++ } }
+	return count
+}
+func (r *MemPDARepo) ListOperators() []domain.Operator {
+	r.mu.RLock(); defer r.mu.RUnlock()
+	var ops []domain.Operator
+	for _, op := range r.operators { ops = append(ops, *op) }
+	return ops
+}
