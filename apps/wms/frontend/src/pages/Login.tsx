@@ -26,7 +26,7 @@ export function LoginPage() {
     setLoading(true)
     try {
       const ok = await login(username, password)
-      if (ok) navigate("/admin/dashboard")
+      if (ok) navigate("/admin")
       else setError("账号或密码错误")
     } finally {
       setLoading(false)

@@ -370,13 +370,13 @@ func (s *Server) registerRoutes() {
 			return
 		}
 		cookieValue := s.SessionMgr.CreateSession(u)
-		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: cookieValue, Path: "/admin", HttpOnly: true, MaxAge: int(adminAuth.SessionTTL.Seconds())})
+		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: cookieValue, Path: "/", HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode, MaxAge: int(adminAuth.SessionTTL.Seconds())})
 		// Always return JSON for SPA
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"success": true, "username": u})
 	})
 	r.GET("/admin/logout", func(w http.ResponseWriter, req *http.Request) {
-		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/admin", MaxAge: -1})
+		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/", MaxAge: -1})
 		http.Redirect(w, req, "/admin/login", 303)
 	})
 	// Client login

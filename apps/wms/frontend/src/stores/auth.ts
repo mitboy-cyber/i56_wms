@@ -16,11 +16,11 @@ interface AuthState {
   checkSession: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: true,
 
-  login: async (username, password) => {
+  login: async (username: string, password: string): Promise<boolean> => {
     const params = new URLSearchParams()
     params.append("username", username)
     params.append("password", password)
@@ -29,13 +29,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       body: params,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       credentials: "include",
-      redirect: "manual",
     })
-    if (res.ok) {
-      // Small delay to ensure cookie is set before checkSession
-      await new Promise(r => setTimeout(r, 50))
-      await useAuthStore.getState().checkSession()
-      return true
+    if (!res.ok) return false
+
+    // Retry checkSession up to 3 times with increasing delays
+    for (let i = 0; i < 3; i++) {
+      await new Promise<void>(r => setTimeout(r, 100 * (i + 1)))
+      try {
+        const meRes = await fetch("/admin/api/me", { credentials: "include" })
+        if (meRes.ok) {
+          const data: User = await meRes.json()
+          set({ user: data, loading: false })
+          return true
+        }
+      } catch { /* retry */ }
     }
     return false
   },
@@ -49,7 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const res = await fetch("/admin/api/me", { credentials: "include" })
       if (!res.ok) throw new Error("no session")
-      const data = await res.json()
+      const data: User = await res.json()
       set({ user: data, loading: false })
     } catch {
       set({ user: null, loading: false })
