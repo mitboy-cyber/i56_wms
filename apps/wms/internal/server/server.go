@@ -24,6 +24,7 @@ import (
 	"github.com/i56/framework/core/sse"
 	"github.com/i56/framework/core/eventbus"
 	"github.com/i56/framework/core/tenant"
+	"github.com/i56/framework/core/rbac"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -77,6 +78,8 @@ type Server struct {
 	EventBus   *eventbus.EventBus
 	EventLog   []map[string]interface{} // in-memory event log
 	TenantMgr  *tenant.InMemTenantStore
+	RBAC       *rbac.Enforcer
+	PermStore  *rbac.InMemPermissionStore
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -150,6 +153,22 @@ func New(cfg Config) (*Server, error) {
 	s.TenantMgr = tenant.NewInMemTenantStore()
 	s.TenantMgr.AddTenant(&tenant.TenantInfo{ID: "default", Name: "默认租户", Strategy: tenant.StrategyShared})
 	s.TenantMgr.AddTenant(&tenant.TenantInfo{ID: "t2", Name: "测试租户2", Strategy: tenant.StrategyShared})
+
+	// RBAC
+	s.PermStore = rbac.NewInMemPermissionStore()
+	s.PermStore.AddRole("admin", map[string][]string{"*": {"*"}})
+	s.PermStore.AddRole("operator", map[string][]string{
+		"parcel": {"read", "create", "update"}, "order": {"read", "create"},
+		"warehouse": {"read"}, "report": {"read"},
+	})
+	s.PermStore.AddRole("viewer", map[string][]string{
+		"parcel": {"read"}, "order": {"read"}, "report": {"read"},
+	})
+	s.PermStore.AssignRole("admin", "admin")
+	s.PermStore.AssignRole("OP001", "operator")
+	s.PermStore.SetDataScope("parcel", rbac.ScopeWarehouse)
+	s.PermStore.SetDataScope("order", rbac.ScopeTenant)
+	s.RBAC = rbac.NewEnforcer(s.PermStore)
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -361,6 +380,7 @@ func (s *Server) registerRoutes() {
 	adminapi.RegisterFinanceAPI(r, aAPI)
 	s.registerEventAPI(r, aAPI)
 	s.registerTenantAPI(r, aAPI)
+	s.registerRBACAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -682,5 +702,53 @@ func (s *Server) registerTenantAPI(r *router.Router, a func(h http.HandlerFunc) 
 		}
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(info)
+	}))
+}
+
+// registerRBACAPI exposes RBAC permission checks and subject info.
+func (s *Server) registerRBACAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	// Helper: build Subject from request session
+	buildSubject := func(req *http.Request) rbac.Subject {
+		ck, _ := req.Cookie("admin_session")
+		username := "anonymous"
+		roleName := "viewer"
+		if ck != nil {
+			if sess := s.SessionMgr.ValidateSession(ck.Value); sess != nil {
+				username = sess.Username
+				// Map username to role
+				if username == "admin" {
+					roleName = "admin"
+				} else {
+					roleName = "operator"
+				}
+			}
+		}
+		ti := tenant.FromContext(req.Context())
+		tid := "default"
+		if ti != nil { tid = ti.ID }
+		return rbac.Subject{UserID: username, TenantID: tid, RoleIDs: []string{roleName}}
+	}
+
+	// Current subject
+	r.GET("/admin/api/rbac/subject", a(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(buildSubject(req))
+	}))
+	// Permission check: GET /admin/api/rbac/check?resource=parcel&action=create
+	r.GET("/admin/api/rbac/check", a(func(w http.ResponseWriter, req *http.Request) {
+		resource := req.URL.Query().Get("resource")
+		action := req.URL.Query().Get("action")
+		subj := buildSubject(req)
+		ok := s.RBAC.Enforce(req.Context(), subj, resource, action)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"resource": resource, "action": action, "allowed": ok})
+	}))
+	// Data scope
+	r.GET("/admin/api/rbac/datascope", a(func(w http.ResponseWriter, req *http.Request) {
+		resource := req.URL.Query().Get("resource")
+		subj := buildSubject(req)
+		scope := s.RBAC.DataScope(req.Context(), subj, resource)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"resource": resource, "scope": scope.String()})
 	}))
 }
