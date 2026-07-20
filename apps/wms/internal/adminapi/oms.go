@@ -8,6 +8,7 @@ import (
 
 	"github.com/i56/framework/core/router"
 	"github.com/i56/framework/core/eventbus"
+	"github.com/i56/framework/core/tenant"
 
 	custDomain "github.com/i56/modules/customer/domain"
 	custRepo "github.com/i56/modules/customer/repository"
@@ -35,23 +36,33 @@ func RegisterOMSAPI(
 	acr *pricingRepo.MemApiCredentialRepo,
 	eb *eventbus.EventBus,
 ) {
-	const t int64 = 1
+	// Extract tenant from context (fallback to 1 for backward compatibility)
+	tenantID := func(req *http.Request) int64 {
+		if ti := tenant.FromContext(req.Context()); ti != nil {
+			switch ti.ID {
+			case "default": return 1
+			case "t2": return 2
+			default: return 1
+			}
+		}
+		return 1
+	}
 
 	// Warehouses
 	r.GET("/admin/api/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
-		wh, _, _ := ws.List(req.Context(), t, 0, 200)
+		wh, _, _ := ws.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, wh)
 	}))
 	r.POST("/admin/api/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
 		var b struct{ Name, Code, Address, Contact, Phone string }
 		json.NewDecoder(req.Body).Decode(&b)
-		wh, _ := ws.Create(req.Context(), t, b.Name, b.Code, b.Address, b.Contact, b.Phone)
+		wh, _ := ws.Create(req.Context(), tenantID(req), b.Name, b.Code, b.Address, b.Contact, b.Phone)
 		apiJSON(w, 201, wh)
 	}))
 
 	// Parcels
 	r.GET("/admin/api/parcels", a(func(w http.ResponseWriter, req *http.Request) {
-		px, _, _ := ps.List(req.Context(), t, 0, 200)
+		px, _, _ := ps.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, px)
 	}))
 	r.POST("/admin/api/parcels", a(func(w http.ResponseWriter, req *http.Request) {
@@ -62,7 +73,7 @@ func RegisterOMSAPI(
 		}
 		p, err := ps.PreDeclare(req.Context(), &parcelDomain.Parcel{
 			TrackingNumber: b.TrackingNumber, ProductName: b.ProductName,
-			TenantID: t, WarehouseID: b.WarehouseID, CourierCode: b.CourierCode,
+			TenantID: tenantID(req), WarehouseID: b.WarehouseID, CourierCode: b.CourierCode,
 		})
 		if err != nil {
 			apiJSON(w, 400, map[string]string{"error": err.Error()})
@@ -73,7 +84,7 @@ func RegisterOMSAPI(
 
 	// Orders
 	r.GET("/admin/api/orders", a(func(w http.ResponseWriter, req *http.Request) {
-		ox, _, _ := osvc.List(req.Context(), t, 0, 200)
+		ox, _, _ := osvc.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, ox)
 	}))
 	r.POST("/admin/api/orders", a(func(w http.ResponseWriter, req *http.Request) {
@@ -87,7 +98,7 @@ func RegisterOMSAPI(
 		o := &orderDomain.Order{
 			OrderNo: b.OrderNo, RecipientName: b.RecipientName,
 			ParcelCount: b.ParcelCount, TotalPrice: b.TotalPrice,
-			RouteID: b.RouteID, TenantID: t,
+			RouteID: b.RouteID, TenantID: tenantID(req),
 		}
 		created, err := osvc.Create(req.Context(), o)
 		if err != nil {
@@ -107,9 +118,9 @@ func RegisterOMSAPI(
 	r.GET("/admin/api/orders/{id}", a(func(w http.ResponseWriter, req *http.Request) {
 		idStr := req.PathValue("id")
 		id, _ := strconv.ParseInt(idStr, 10, 64)
-		o, _ := osvc.GetByOrderNo(req.Context(), t, idStr)
+		o, _ := osvc.GetByOrderNo(req.Context(), tenantID(req), idStr)
 		if o == nil {
-			o, _ = osvc.GetByID(req.Context(), t, id)
+			o, _ = osvc.GetByID(req.Context(), tenantID(req), id)
 		}
 		if o == nil {
 			apiJSON(w, 404, map[string]string{"error": "not found"})
@@ -120,14 +131,14 @@ func RegisterOMSAPI(
 
 	// Clients (real repos)
 	r.GET("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
-		cl, _, _ := cr.List(req.Context(), t, 0, 200)
+		cl, _, _ := cr.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, cl)
 	}))
 	r.POST("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
 		var b struct{ Name, Code string }
 		json.NewDecoder(req.Body).Decode(&b)
 		c := &custDomain.Client{Name: b.Name, Code: b.Code}
-		cr.Create(req.Context(), t, c)
+		cr.Create(req.Context(), tenantID(req), c)
 		apiJSON(w, 201, c)
 	}))
 
@@ -148,13 +159,13 @@ func RegisterOMSAPI(
 		apiJSON(w, 200, lr.GetByClient(req.Context(), 1, 1))
 	}))
 	r.GET("/admin/api/service-orders", a(func(w http.ResponseWriter, req *http.Request) {
-		so, _, _ := sr.List(req.Context(), t, 0, 200)
+		so, _, _ := sr.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, so)
 	}))
 
 	// Transport
 	r.GET("/admin/api/carriers", a(func(w http.ResponseWriter, req *http.Request) {
-		routes, _, _ := rr.List(req.Context(), t, 0, 200)
+		routes, _, _ := rr.List(req.Context(), tenantID(req), 0, 200)
 		apiJSON(w, 200, routes)
 	}))
 	r.GET("/admin/api/couriers", a(func(w http.ResponseWriter, req *http.Request) {
