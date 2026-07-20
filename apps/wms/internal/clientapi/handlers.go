@@ -18,6 +18,7 @@ import (
 	tmsRepo "github.com/i56/modules/transport/repository"
 	whSvc "github.com/i56/modules/warehouse/service"
 	whRepo2 "github.com/i56/modules/webhook/repository"
+	whDomain "github.com/i56/modules/webhook/domain"
 )
 
 // RegisterClientAPI registers all client portal JSON API endpoints.
@@ -191,10 +192,25 @@ func RegisterClientAPI(
 		apiJSON(w, 200, so)
 	}))
 
-	// Webhooks
+	// Webhooks — CRUD
 	r.GET("/client/api/webhooks", ca(func(w http.ResponseWriter, req *http.Request) {
 		wh, _ := whr.ListSubs(req.Context(), t)
 		apiJSON(w, 200, wh)
+	}))
+	r.POST("/client/api/webhooks", ca(func(w http.ResponseWriter, req *http.Request) {
+		var b struct {
+			Event string `json:"event"`
+			URL   string `json:"url"`
+		}
+		json.NewDecoder(req.Body).Decode(&b)
+		sub := &whDomain.WebhookSubscription{TenantID: t, Event: b.Event, URL: b.URL, IsActive: true}
+		whr.CreateSub(req.Context(), sub)
+		apiJSON(w, 201, sub)
+	}))
+	r.DELETE("/client/api/webhooks/{id}", ca(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := strconv.ParseInt(req.PathValue("id"), 10, 64)
+		whr.DeleteSub(req.Context(), id)
+		apiJSON(w, 200, map[string]string{"ok": "true"})
 	}))
 
 	// Credentials

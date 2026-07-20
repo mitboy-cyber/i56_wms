@@ -731,6 +731,21 @@ func (s *Server) registerEventHandlers() {
 				To: []string{"admin"},
 			})
 		}
+		// Fire webhooks
+		if s.WebhookRepo != nil {
+			subs, _ := s.WebhookRepo.ListSubs(ctx, 1)
+			for _, sub := range subs {
+				if sub.IsActive && sub.Event == "order.created" {
+					go func(url string) {
+						payload, _ := json.Marshal(e.(*adminapi.DataEvent).Data)
+						resp, err := http.Post(url, "application/json", strings.NewReader(string(payload)))
+						if err == nil {
+							resp.Body.Close()
+						}
+					}(sub.URL)
+				}
+			}
+		}
 		return nil
 	}, true)
 	s.EventBus.Subscribe("parcel.received", func(ctx context.Context, e eventbus.Event) error {

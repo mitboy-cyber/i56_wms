@@ -29,6 +29,10 @@ func (r *MemWebhookRepo) FindByEvent(ctx context.Context, event string) []domain
 	for _,s := range r.subs { if s.Event==event&&s.IsActive { result=append(result,*s) } }
 	return result
 }
+func (r *MemWebhookRepo) DeleteSub(ctx context.Context, id int64) error {
+	r.mu.Lock(); defer r.mu.Unlock()
+	delete(r.subs, id); return nil
+}
 func (r *MemWebhookRepo) LogDelivery(ctx context.Context, log *domain.WebhookDeliveryLog) {
 	r.mu.Lock(); defer r.mu.Unlock()
 	log.DeliveredAt=time.Now(); r.logs=append(r.logs,*log)
