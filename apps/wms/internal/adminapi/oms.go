@@ -128,6 +128,18 @@ func RegisterOMSAPI(
 		}
 		apiJSON(w, 200, o)
 	}))
+	// Order status transition
+	r.PUT("/admin/api/orders/{id}/status", a(func(w http.ResponseWriter, req *http.Request) {
+		id, _ := strconv.ParseInt(req.PathValue("id"), 10, 64)
+		var b struct{ Status string `json:"status"` }
+		json.NewDecoder(req.Body).Decode(&b)
+		if err := osvc.Transition(req.Context(), tenantID(req), id, orderDomain.OrderStatus(b.Status)); err != nil {
+			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			return
+		}
+		o, _ := osvc.GetByID(req.Context(), tenantID(req), id)
+		apiJSON(w, 200, o)
+	}))
 
 	// Clients (real repos)
 	r.GET("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
