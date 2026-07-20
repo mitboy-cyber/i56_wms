@@ -37,7 +37,7 @@ func RegisterCRMAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc,
 	registerCRUD(r, "/admin/api/containers", domain.ContainerStore, a)
 	registerCRUD(r, "/admin/api/client-panel-perms", domain.ClientPanelPermStore, a)
 	// Batch save client panel permissions matrix
-	r.POST("/admin/api/client-panel-perms/batch", func(w http.ResponseWriter, req *http.Request) {
+	r.POST("/admin/api/client-panel-perms/batch", a(func(w http.ResponseWriter, req *http.Request) {
 		var items []map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&items); err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -66,7 +66,7 @@ func RegisterCRMAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc,
 		domain.ClientPanelPermStore.Seed(newPerms...)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(fmt.Sprintf(`{"ok":true,"saved":%d}`, len(newPerms))))
-	})
+	}))
 
 	// CRM sub-module
 	registerCRUD(r, "/admin/api/crm/leads", domain.ClientAccountStore, a)

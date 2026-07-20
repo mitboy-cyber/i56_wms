@@ -78,11 +78,13 @@ type Server struct {
 	router      *router.Router
 	httpSrv     *http.Server
 	dbAvailable bool
+	dbConn     interface{} // *sql.DB handle for graceful shutdown
 
 	SessionMgr *adminAuth.SessionManager
 	TokenMgr   *auth.TokenManager
 	EventBus   *eventbus.EventBus
 	EventLog   []map[string]interface{} // in-memory event log
+	evtMu      sync.RWMutex             // guards EventLog
 	TenantMgr  *tenant.InMemTenantStore
 	PermStore  *rbac.InMemPermissionStore
 	RBAC       *rbac.Enforcer
@@ -147,7 +149,10 @@ func New(cfg Config) (*Server, error) {
 		return nil, fmt.Errorf("jwt: %w", err)
 	}
 
-	sysCfg, _ := config.Load()
+	sysCfg, err := config.Load()
+	if err != nil {
+		return nil, fmt.Errorf("config: %w", err)
+	}
 	tm, err := auth.NewTokenManager(sysCfg.Auth)
 	if err != nil {
 		return nil, fmt.Errorf("token manager: %w", err)
@@ -184,8 +189,10 @@ func New(cfg Config) (*Server, error) {
 	// Storage
 	st, err := storage.NewLocalStorage("/opt/i56/storage")
 	if err != nil {
-		log.Printf("[WARN] Storage init failed: %v, using /tmp fallback", err)
-		st, _ = storage.NewLocalStorage("/tmp/i56-storage")
+		st, err = storage.NewLocalStorage("/tmp/i56-storage")
+	}
+	if err != nil || st == nil {
+		return nil, fmt.Errorf("storage init failed: %w", err)
 	}
 	s.Storage = st
 
@@ -232,7 +239,7 @@ func New(cfg Config) (*Server, error) {
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
 		s.dbAvailable = true
-		defer db.Close()
+		s.dbConn = db.Pool // keep handle for later close
 		log.Println("[DB] Using PostgreSQL")
 	}
 
@@ -331,7 +338,11 @@ func (s *Server) registerRoutes() {
 			s.TemplateMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": "用户名或密码错误", "HideSidebar": true})
 			return
 		}
-		tk, _ := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"admin"}, []string{"*"})
+		tk, err := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"admin"}, []string{"*"})
+		if err != nil {
+			s.TemplateMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": "令牌生成失败", "HideSidebar": true})
+			return
+		}
 		http.SetCookie(w, &http.Cookie{Name: "i56_token", Value: tk, Path: "/", HttpOnly: true, MaxAge: 86400})
 		http.Redirect(w, req, "/admin", 303)
 	})
@@ -389,7 +400,13 @@ func (s *Server) registerRoutes() {
 			w.Write([]byte(`{"error":"请输入账号和密码"}`))
 			return
 		}
-		tk, _ := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"client"}, []string{"read:parcels"})
+		tk, err := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"client"}, []string{"read:parcels"})
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(500)
+			w.Write([]byte(`{"error":"token_generation_failed"}`))
+			return
+		}
 		http.SetCookie(w, &http.Cookie{Name: "client_token", Value: tk, Path: "/client", HttpOnly: true, MaxAge: 86400})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"success":true,"username":"` + u + `"}`))
@@ -713,6 +730,8 @@ func (s *Server) registerEventHandlers() {
 
 // logEvent records event in buffer (ring buffer, max 200).
 func (s *Server) logEvent(entry map[string]interface{}) {
+	s.evtMu.Lock()
+	defer s.evtMu.Unlock()
 	s.EventLog = append(s.EventLog, entry)
 	if len(s.EventLog) > 200 {
 		s.EventLog = s.EventLog[1:]
@@ -722,6 +741,8 @@ func (s *Server) logEvent(entry map[string]interface{}) {
 // registerEventAPI exposes the event stream.
 func (s *Server) registerEventAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
 	r.GET("/admin/api/events", a(func(w http.ResponseWriter, req *http.Request) {
+		s.evtMu.RLock()
+		defer s.evtMu.RUnlock()
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(s.EventLog)
 	}))
