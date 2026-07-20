@@ -1,6 +1,6 @@
 module github.com/i56/i56-apps/i56-wms
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/i56/framework v1.1.0

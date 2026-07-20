@@ -1,6 +1,6 @@
 module github.com/i56/modules
 
-go 1.22
+go 1.26.0
 
 require (
 	github.com/i56/framework v1.1.0
