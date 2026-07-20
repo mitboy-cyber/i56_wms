@@ -25,6 +25,7 @@ import (
 	"github.com/i56/framework/core/eventbus"
 	"github.com/i56/framework/core/tenant"
 	"github.com/i56/framework/core/rbac"
+	"github.com/i56/framework/core/storage"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -78,8 +79,9 @@ type Server struct {
 	EventBus   *eventbus.EventBus
 	EventLog   []map[string]interface{} // in-memory event log
 	TenantMgr  *tenant.InMemTenantStore
-	RBAC       *rbac.Enforcer
 	PermStore  *rbac.InMemPermissionStore
+	RBAC       *rbac.Enforcer
+	Storage    storage.StorageProvider
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -169,6 +171,14 @@ func New(cfg Config) (*Server, error) {
 	s.PermStore.SetDataScope("parcel", rbac.ScopeWarehouse)
 	s.PermStore.SetDataScope("order", rbac.ScopeTenant)
 	s.RBAC = rbac.NewEnforcer(s.PermStore)
+
+	// Storage
+	st, err := storage.NewLocalStorage("/opt/i56/storage")
+	if err != nil {
+		log.Printf("[WARN] Storage init failed: %v, using /tmp fallback", err)
+		st, _ = storage.NewLocalStorage("/tmp/i56-storage")
+	}
+	s.Storage = st
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -381,6 +391,7 @@ func (s *Server) registerRoutes() {
 	s.registerEventAPI(r, aAPI)
 	s.registerTenantAPI(r, aAPI)
 	s.registerRBACAPI(r, aAPI)
+	s.registerStorageAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -750,5 +761,43 @@ func (s *Server) registerRBACAPI(r *router.Router, a func(h http.HandlerFunc) ht
 		scope := s.RBAC.DataScope(req.Context(), subj, resource)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{"resource": resource, "scope": scope.String()})
+	}))
+}
+
+// registerStorageAPI exposes file upload/download endpoints.
+func (s *Server) registerStorageAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	r.POST("/admin/api/storage/upload", a(func(w http.ResponseWriter, req *http.Request) {
+		req.ParseMultipartForm(32 << 20) // 32 MB
+		file, header, err := req.FormFile("file")
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400)
+			w.Write([]byte(`{"error":"no file uploaded"}`))
+			return
+		}
+		defer file.Close()
+		bucket := req.FormValue("bucket")
+		if bucket == "" { bucket = "default" }
+		// Use tenant-aware prefix if available
+		if ti := tenant.FromContext(req.Context()); ti != nil && ti.ID != "" {
+			bucket = ti.ID + "/" + bucket
+		}
+		url, err := s.Storage.Upload(req.Context(), bucket, header.Filename, file, header.Size, header.Header.Get("Content-Type"))
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(500)
+			w.Write([]byte(`{"error":"upload failed: ` + err.Error() + `"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"ok": true, "url": url, "filename": header.Filename, "size": header.Size})
+	}))
+	// List files in a bucket
+	r.GET("/admin/api/storage/list", a(func(w http.ResponseWriter, req *http.Request) {
+		bucket := req.URL.Query().Get("bucket")
+		if bucket == "" { bucket = "default" }
+		// For local storage, just list directory
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"bucket":"` + bucket + `","files":[],"note":"use upload to add files"}`))
 	}))
 }
