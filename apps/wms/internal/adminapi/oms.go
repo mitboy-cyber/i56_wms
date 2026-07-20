@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/i56/framework/core/router"
+	"github.com/i56/framework/core/eventbus"
 
 	custDomain "github.com/i56/modules/customer/domain"
 	custRepo "github.com/i56/modules/customer/repository"
@@ -32,6 +33,7 @@ func RegisterOMSAPI(
 	ar *custRepo.MemAddressRepo, rpr *pricingRepo.MemRoutePriceRepo,
 	dfr *pricingRepo.MemDeliveryFeeRepo, scr *pricingRepo.MemSurchargeRepo,
 	acr *pricingRepo.MemApiCredentialRepo,
+	eb *eventbus.EventBus,
 ) {
 	const t int64 = 1
 
@@ -92,6 +94,14 @@ func RegisterOMSAPI(
 			apiJSON(w, 400, map[string]string{"error": err.Error()})
 			return
 		}
+		eb.Publish(req.Context(), &DataEvent{
+			BaseEvent: eventbus.NewEvent("order.created"),
+			Data: map[string]interface{}{
+				"order_id": created.ID, "order_no": created.OrderNo,
+				"recipient": created.RecipientName, "amount": created.TotalPrice,
+				"parcel_count": created.ParcelCount,
+			},
+		})
 		apiJSON(w, 201, created)
 	}))
 	r.GET("/admin/api/orders/{id}", a(func(w http.ResponseWriter, req *http.Request) {
@@ -165,4 +175,10 @@ func RegisterOMSAPI(
 	r.GET("/admin/api/pricing/surcharges", a(func(w http.ResponseWriter, req *http.Request) {
 		apiJSON(w, 200, scr.List())
 	}))
+}
+
+// dataEvent wraps BaseEvent with payload for domain events.
+type DataEvent struct {
+	eventbus.BaseEvent
+	Data map[string]interface{}
 }

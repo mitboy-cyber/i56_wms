@@ -447,9 +447,10 @@ func (s *Server) registerRoutes() {
 
 	adminapi.RegisterSystemAPI(r, aAPI)
 	adminapi.RegisterOMSAPI(r, aAPI, s.ParcelSvc, s.OrderSvc, s.WarehouseSvc,
-		s.ClientRepo, s.RouteRepo, s.CourierRepo, s.ServiceRepo,
-		s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo,
-		s.RoutePriceRepo, s.DeliveryFeeRepo, s.SurchargeRepo, s.APICredentialRepo)
+		s.ClientRepo, s.RouteRepo, s.CourierRepo,
+		s.ServiceRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo,
+		s.RoutePriceRepo, s.DeliveryFeeRepo, s.SurchargeRepo, s.APICredentialRepo,
+		s.EventBus)
 	adminapi.RegisterWMSAPI(r, aAPI, s.PrintRepo, s.WorkflowRepo, s.TaskDispatchRepo, s.WebhookRepo, s.WorkOrderRepo)
 	adminapi.RegisterTMSAPI(r, aAPI)
 	adminapi.RegisterCRMAPI(r, aAPI, s.ClientSvc, s.ClientRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.PdaRepo)
@@ -717,9 +718,19 @@ func (s *Server) registerEventHandlers() {
 		return nil
 	}, true) // async
 
-	// Business events
+	// Business events — create notifications on order events
 	s.EventBus.Subscribe("order.created", func(ctx context.Context, e eventbus.Event) error {
-		s.logEvent(map[string]interface{}{"name": e.EventName()})
+		s.logEvent(map[string]interface{}{"name": e.EventName(), "data": e.(*adminapi.DataEvent).Data})
+		// Send in-app notification
+		if s.NotifySvc != nil {
+			data := e.(*adminapi.DataEvent).Data
+			title := "新订单创建"
+			body := fmt.Sprintf("订单 %v 已创建", data["order_no"])
+			s.NotifySvc.Send(ctx, "in_app", notification.Message{
+				Title: title, Body: body,
+				To: []string{"admin"},
+			})
+		}
 		return nil
 	}, true)
 	s.EventBus.Subscribe("parcel.received", func(ctx context.Context, e eventbus.Event) error {
