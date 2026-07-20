@@ -824,6 +824,9 @@ func (s *Server) registerRBACAPI(r *router.Router, a func(h http.HandlerFunc) ht
 		return rbac.Subject{UserID: username, TenantID: tid, RoleIDs: []string{roleName}}
 	}
 
+	// DataScope middleware — enforces warehouse/tenant data visibility
+	s.router.Use(wmsMiddleware.DataScopeMiddleware(s.RBAC, buildSubject))
+
 	// Current subject
 	r.GET("/admin/api/rbac/subject", a(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
