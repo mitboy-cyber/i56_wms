@@ -3,7 +3,9 @@ package workflow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -158,6 +160,10 @@ func (e *Engine) Transition(ctx context.Context, instanceID, toState string, var
 	valid := false
 	for _, t := range def.Transitions {
 		if t.From == inst.CurrentState && t.To == toState {
+			// Evaluate condition if present
+			if t.Condition != "" && !evaluateCondition(t.Condition, inst.Variables) {
+				continue // condition not met, try next transition
+			}
 			valid = true
 			break
 		}
@@ -246,4 +252,53 @@ func randomStr(n int) string {
 		b[i] = letters[time.Now().UnixNano()%int64(len(letters))]
 	}
 	return string(b)
+}
+
+// evaluateCondition parses simple expressions like "amount>5000" and evaluates against vars.
+// Supports: >, <, >=, <=, ==
+func evaluateCondition(expr string, vars map[string]any) bool {
+	// Split by operator
+	type op struct{ sym string; fn func(a, b float64) bool }
+	ops := []op{
+		{">=", func(a, b float64) bool { return a >= b }},
+		{"<=", func(a, b float64) bool { return a <= b }},
+		{">", func(a, b float64) bool { return a > b }},
+		{"<", func(a, b float64) bool { return a < b }},
+		{"==", func(a, b float64) bool { return a == b }},
+	}
+	for _, o := range ops {
+		parts := splitTrim(expr, o.sym)
+		if len(parts) == 2 {
+			val := toFloat(vars[parts[0]])
+			target := parseFloat(parts[1])
+			return o.fn(val, target)
+		}
+	}
+	return false // unparseable condition
+}
+
+func splitTrim(s, sep string) []string {
+	parts := make([]string, 0, 2)
+	for i := 0; i < len(s); i++ {
+		if i+len(sep) <= len(s) && s[i:i+len(sep)] == sep {
+			parts = append(parts, s[:i], s[i+len(sep):])
+			return parts
+		}
+	}
+	return parts
+}
+
+func toFloat(v any) float64 {
+	switch n := v.(type) {
+	case float64: return n
+	case int: return float64(n)
+	case int64: return float64(n)
+	case json.Number: f, _ := n.Float64(); return f
+	}
+	return 0
+}
+
+func parseFloat(s string) float64 {
+	f, _ := strconv.ParseFloat(s, 64)
+	return f
 }
