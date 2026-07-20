@@ -13,7 +13,7 @@ export interface Client {
 
 export const clientApi = {
   list: () => axios.get<Client[]>("/admin/api/clients").then((r) => r.data),
-  create: (data: Record<string, string>) => axios.post("/admin/clients/save", new URLSearchParams(data)).then(() => {}),
-  update: (id: number, data: Record<string, string>) => axios.put(`/admin/clients/${id}`, new URLSearchParams(data)).then(() => {}),
-  delete: (id: number) => axios.delete(`/admin/clients/${id}`).then(() => {}),
+  create: (data: Record<string, string>) => axios.post("/admin/api/clients", new URLSearchParams(data)).then(() => {}),
+  update: (id: number, data: Record<string, string>) => axios.put(`/admin/api/clients/${id}`, new URLSearchParams(data)).then(() => {}),
+  delete: (id: number) => axios.delete(`/admin/api/clients/${id}`).then(() => {}),
 }

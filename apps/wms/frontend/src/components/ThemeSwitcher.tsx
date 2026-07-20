@@ -31,11 +31,11 @@ export default function ThemeSwitcher() {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute bottom-full left-0 mb-1 w-40 bg-white border rounded-md shadow-sm z-20"
-            style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-color)' }}>
+            style={{ background: 'var(--sidebar-bg)', borderColor: 'var(--border)' }}>
             {themes.map(t => (
               <button key={t.id} onClick={() => { setTheme(t.id); setOpen(false); }}
                 className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:opacity-80 ${t.id === theme ? 'font-medium' : ''}`}
-                style={{ color: t.id === theme ? 'var(--color-accent)' : 'var(--text-secondary)' }}
+                style={{ color: t.id === theme ? 'var(--color-accent)' : 'var(--color-muted)' }}
               >
                 <t.icon size={14} color={t.color} />
                 {t.label}

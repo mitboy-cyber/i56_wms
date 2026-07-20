@@ -1,4 +1,4 @@
-import axios from "@/api/client"
+import client from "@/api/client"
 
 export interface Employee {
   id: number
@@ -12,8 +12,8 @@ export interface Employee {
 }
 
 export const employeeApi = {
-  list: () => axios.get<Employee[]>("/admin/api/employees").then((r) => r.data),
-  create: (data: Record<string, string>) => axios.post("/admin/employees/save", new URLSearchParams(data)).then(() => {}),
-  update: (id: number, data: Record<string, string>) => axios.put(`/admin/employees/${id}`, new URLSearchParams(data)).then(() => {}),
-  delete: (id: number) => axios.delete(`/admin/employees/${id}`).then(() => {}),
+  list: () => client.get<Employee[]>("/admin/api/employees").then((r) => r.data),
+  create: (data: Record<string, string>) => client.post("/admin/api/employees", new URLSearchParams(data)).then(() => {}),
+  update: (id: number, data: Record<string, string>) => client.put(`/admin/api/employees/${id}`, new URLSearchParams(data)).then(() => {}),
+  delete: (id: number) => client.delete(`/admin/api/employees/${id}`).then(() => {}),
 }
