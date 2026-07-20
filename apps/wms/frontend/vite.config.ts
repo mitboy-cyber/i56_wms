@@ -26,6 +26,7 @@ export default defineConfig({
     proxy: {
       '/admin': 'http://127.0.0.1:8080',
       '/client': 'http://127.0.0.1:8080',
+      '/pda': 'http://127.0.0.1:8080',
       '/api': 'http://127.0.0.1:8080',
     },
   },

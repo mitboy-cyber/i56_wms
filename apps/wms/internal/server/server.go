@@ -267,12 +267,6 @@ func (s *Server) registerRoutes() {
 		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/admin", MaxAge: -1})
 		http.Redirect(w, req, "/admin/login", 303)
 	})
-	r.GET("/admin/api/debug-auth", func(w http.ResponseWriter, req *http.Request) {
-		cookieValue := s.SessionMgr.CreateSession("admin")
-		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: cookieValue, Path: "/admin", HttpOnly: true, MaxAge: int(adminAuth.SessionTTL.Seconds())})
-		http.Redirect(w, req, "/admin/dashboard", 303)
-	})
-
 	// Client login
 	r.GET("/client/login", func(w http.ResponseWriter, req *http.Request) {
 		http.ServeFile(w, req, "/opt/i56/frontend/index.html")

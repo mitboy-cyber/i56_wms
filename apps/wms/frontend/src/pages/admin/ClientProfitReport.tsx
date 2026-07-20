@@ -33,7 +33,7 @@ export default function ClientProfitReport() {
               <tr key={i} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium">{r.client}</td><td className="px-4 py-3 text-right">{r.orders}</td><td className="px-4 py-3 text-right">{r.services}</td>
                 <td className="px-4 py-3 text-right">¥{r.revenue.toLocaleString()}</td><td className="px-4 py-3 text-right">¥{r.cost.toLocaleString()}</td>
-                <td className="px-4 py-3 text-right font-medium" style={{color: r.profit>=0?'#16a34a':'#dc2626'}}>¥{r.profit.toLocaleString()}</td>
+                <td className={`px-4 py-3 text-right font-medium ${r.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>¥{r.profit.toLocaleString()}</td>
                 <td className="px-4 py-3 text-right">{(r.margin*100).toFixed(2)}%</td>
               </tr>
             ))}

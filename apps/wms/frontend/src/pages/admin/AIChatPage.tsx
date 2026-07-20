@@ -28,9 +28,11 @@ export default function AIChatPage() {
 
     try {
       const res = await client.post('/admin/api/system/ai-chat', { role: 'user', content: text, time: new Date().toISOString() });
+      const data = res.data;
+      const reply = typeof data === 'string' ? data : data?.reply || data?.content || data?.message || `收到你的消息：「${text}」`;
       const aiMsg: Message = {
         id: Date.now() + 1, role: 'assistant',
-        content: `收到你的消息：「${text}」\n\n作为 I56 智能助手，我可以帮你：\n• 查询订单/包裹状态\n• 分析仓库运营数据\n• 解答系统使用问题\n• 生成报表\n\n请告诉我你需要什么帮助？`,
+        content: reply,
         time: new Date().toLocaleTimeString()
       };
       setMessages(prev => [...prev, aiMsg]);

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useClientAuth } from '@/stores/clientAuth';
 
 export default function ClientLogin() {
-  const [username, setUsername] = useState('plat_ezjyt');
-  const [password, setPassword] = useState('123456');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useClientAuth();
   const navigate = useNavigate();

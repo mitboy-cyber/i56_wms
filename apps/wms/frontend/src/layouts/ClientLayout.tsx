@@ -26,33 +26,37 @@ export default function ClientLayout() {
     navigate('/client/login');
   };
 
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-blue-600">I56 Client</h1>
-          <p className="text-xs text-gray-500">{client}</p>
+    <div className="flex min-h-screen" style={{ background: 'var(--background)' }}>
+      <aside className="w-56 flex flex-col" style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--border)' }}>
+        <div className="p-4" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--color-accent)' }}>I56 Client</h1>
+          <p className="text-xs" style={{ color: 'var(--color-neutral)' }}>{client}</p>
         </div>
         <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                location.pathname.startsWith(item.to)
-                  ? 'bg-blue-50 text-blue-700 font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
+              style={{
+                background: isActive(item.to) ? 'var(--accent-bg, color-mix(in oklch, var(--color-accent), transparent 90%))' : 'transparent',
+                color: isActive(item.to) ? 'var(--color-accent)' : 'var(--color-muted)',
+                fontWeight: isActive(item.to) ? 500 : 400,
+              }}
             >
               <item.icon className="w-4 h-4" />
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3" style={{ borderTop: '1px solid var(--border)' }}>
           <button
             onClick={handleLogout}
-            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors"
+            style={{ color: 'var(--destructive)' }}
           >
             退出登录
           </button>

@@ -121,7 +121,6 @@ const adminModuleRoutes = [
   { path: 'pda-workorder-templates', page: () => import('@/pages/admin/PDAWorkorderTemplatesPage') },
   { path: 'workflow-management', page: () => import('@/pages/admin/WorkflowManagementPage') },
   { path: 'client-members-list', page: () => import('@/pages/admin/ClientMembersPage') },
-  { path: 'balance-logs', page: () => import('@/pages/admin/BalanceLogsPage') },
   { path: 'recharge-records', page: () => import('@/pages/admin/RechargeRecordsPage') },
   { path: 'containers', page: () => import('@/pages/admin/ContainersPage') },
   { path: 'client-panel-perms', page: () => import('@/pages/admin/ClientPanelPermsPage') },
