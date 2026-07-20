@@ -244,6 +244,15 @@ func (s *InMemPermissionStore) HasPermission(ctx context.Context, subject Subjec
 
 	for _, roleID := range subject.RoleIDs {
 		if rd, ok := s.roles[roleID]; ok {
+			// Check wildcard resource "*" first (super admin)
+			if wildActions, ok := rd.permissions["*"]; ok {
+				for _, a := range wildActions {
+					if a == "*" || a == action {
+						return true, nil
+					}
+				}
+			}
+			// Check specific resource
 			if actions, ok := rd.permissions[resource]; ok {
 				for _, a := range actions {
 					if a == action || a == "*" {
