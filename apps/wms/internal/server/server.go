@@ -23,6 +23,7 @@ import (
 	jpkg "github.com/i56/framework/core/jwt"
 	"github.com/i56/framework/core/sse"
 	"github.com/i56/framework/core/eventbus"
+	"github.com/i56/framework/core/tenant"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -75,6 +76,7 @@ type Server struct {
 	TokenMgr   *auth.TokenManager
 	EventBus   *eventbus.EventBus
 	EventLog   []map[string]interface{} // in-memory event log
+	TenantMgr  *tenant.InMemTenantStore
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -144,6 +146,11 @@ func New(cfg Config) (*Server, error) {
 	s.EventLog = make([]map[string]interface{}, 0, 200)
 	s.registerEventHandlers()
 
+	// Tenant
+	s.TenantMgr = tenant.NewInMemTenantStore()
+	s.TenantMgr.AddTenant(&tenant.TenantInfo{ID: "default", Name: "默认租户", Strategy: tenant.StrategyShared})
+	s.TenantMgr.AddTenant(&tenant.TenantInfo{ID: "t2", Name: "测试租户2", Strategy: tenant.StrategyShared})
+
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
 		s.dbAvailable = true
@@ -205,7 +212,21 @@ func New(cfg Config) (*Server, error) {
 
 	// Router
 	s.router = router.New()
-	s.router.Use(middleware.Recovery(nil), middleware.RequestID(), middleware.CORS(nil))
+	// Tenant resolver: try header, fall back to "default"
+	tr := tenant.NewMultiResolver(
+		tenant.NewHeaderResolver("X-Tenant-ID", s.TenantMgr),
+	)
+	tenMw := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			info, err := tr.Resolve(r)
+			if err != nil || info == nil {
+				info = &tenant.TenantInfo{ID: "default", Name: "默认租户", Strategy: tenant.StrategyShared}
+			}
+			ctx := tenant.WithContext(r.Context(), info)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+	s.router.Use(tenMw, middleware.Recovery(nil), middleware.RequestID(), middleware.CORS(nil))
 
 	return s, nil
 }
@@ -339,6 +360,7 @@ func (s *Server) registerRoutes() {
 	adminapi.RegisterCRMAPI(r, aAPI, s.ClientSvc, s.ClientRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.PdaRepo)
 	adminapi.RegisterFinanceAPI(r, aAPI)
 	s.registerEventAPI(r, aAPI)
+	s.registerTenantAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -636,5 +658,29 @@ func (s *Server) registerEventAPI(r *router.Router, a func(h http.HandlerFunc) h
 		s.logEvent(map[string]interface{}{"name": payload.Name, "data": payload.Data})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"ok":true}`))
+	}))
+}
+
+// registerTenantAPI exposes tenant management endpoints.
+func (s *Server) registerTenantAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	r.GET("/admin/api/tenants", a(func(w http.ResponseWriter, req *http.Request) {
+		tenants, err := s.TenantMgr.ListTenants(req.Context())
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(500)
+			w.Write([]byte(`{"error":"` + err.Error() + `"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(tenants)
+	}))
+	// Current tenant info from context
+	r.GET("/admin/api/tenant", a(func(w http.ResponseWriter, req *http.Request) {
+		info := tenant.FromContext(req.Context())
+		if info == nil {
+			info = &tenant.TenantInfo{ID: "default", Name: "默认租户", Strategy: tenant.StrategyShared}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(info)
 	}))
 }
