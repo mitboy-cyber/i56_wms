@@ -104,14 +104,11 @@ func (p *PDAOperations) PutAway(ctx context.Context, opID int64, trackingNo, loc
 	if pr.Status != parcelDomain.StatusReceived && pr.Status != parcelDomain.StatusWeighed {
 		return nil, fmt.Errorf("包裹状态为 %s，不能上架（需先入库或核重）", pr.Status)
 	}
-	loc := p.wms.GetLocationByBarcode(ctx, locationBarcode)
-	if loc == nil { return nil, fmt.Errorf("库位 %s 不存在", locationBarcode) }
-	if loc.IsOccupied { return nil, fmt.Errorf("库位 %s 已被占用", locationBarcode) }
-
-	loc.IsOccupied = true; loc.CurrentParcelID = &pr.ID
-	pr.LocationCode = loc.Code; pr.Status = parcelDomain.StatusStored; pr.UpdatedAt = time.Now()
+	pr.LocationCode = locationBarcode
+	pr.Status = parcelDomain.StatusStored
+	pr.UpdatedAt = time.Now()
 	p.parcels.Update(ctx, pr)
-	p.log("putaway", locationBarcode, trackingNo, fmt.Sprintf("→ 库位 %s", loc.Code), opID, true)
+	p.log("putaway", locationBarcode, trackingNo, fmt.Sprintf("→ 库位 %s", locationBarcode), opID, true)
 	return pr, nil
 }
 
