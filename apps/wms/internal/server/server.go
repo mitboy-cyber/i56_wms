@@ -29,6 +29,7 @@ import (
 	"github.com/i56/framework/core/rbac"
 	"github.com/i56/framework/core/storage"
 	"github.com/i56/framework/core/workflow"
+	"github.com/i56/framework/core/notification"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -86,6 +87,8 @@ type Server struct {
 	RBAC       *rbac.Enforcer
 	Storage    storage.StorageProvider
 	Workflow   *workflow.Engine
+	NotifySvc  *notification.Service
+	notifChan  *memNotifChannel // in-memory channel for list API
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -208,6 +211,12 @@ func New(cfg Config) (*Server, error) {
 			{From: "gm_approve", To: "end"},
 		},
 	})
+
+	// Notification Center
+	memChan := &memNotifChannel{}
+	s.notifChan = memChan
+	s.NotifySvc = notification.NewService(&noopLogger{})
+	s.NotifySvc.Register(memChan)
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -422,6 +431,7 @@ func (s *Server) registerRoutes() {
 	s.registerRBACAPI(r, aAPI)
 	s.registerStorageAPI(r, aAPI)
 	s.registerWorkflowAPI(r, aAPI)
+	s.registerNotificationAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -914,3 +924,64 @@ func (l noopLogger) Warn(msg string, args ...any)       {}
 func (l noopLogger) Error(msg string, args ...any)      {}
 func (l noopLogger) With(args ...any) logger.Logger        { return l }
 func (l noopLogger) WithGroup(name string) logger.Logger   { return l }
+
+// ─── Mem Notification Channel ────────────────────────────────────────
+
+type memNotifChannel struct {
+	mu       sync.RWMutex
+	messages []map[string]interface{}
+}
+
+func (c *memNotifChannel) Name() string { return "in_app" }
+func (c *memNotifChannel) Send(ctx context.Context, msg notification.Message) error {
+	c.mu.Lock(); defer c.mu.Unlock()
+	c.messages = append(c.messages, map[string]interface{}{
+		"title": msg.Title, "body": msg.Body, "to": msg.To, "data": msg.Data,
+		"sent_at": time.Now().Format(time.RFC3339),
+	})
+	return nil
+}
+func (c *memNotifChannel) List() []map[string]interface{} {
+	c.mu.RLock(); defer c.mu.RUnlock()
+	return c.messages
+}
+
+// ─── Notification API ────────────────────────────────────────────────
+
+func (s *Server) registerNotificationAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	// Send notification: POST /admin/api/notifications {channel, title, body, to}
+	r.POST("/admin/api/notifications", a(func(w http.ResponseWriter, req *http.Request) {
+		var body struct {
+			Channel string   `json:"channel"`
+			Title   string   `json:"title"`
+			Body    string   `json:"body"`
+			To      []string `json:"to,omitempty"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400); w.Write([]byte(`{"error":"invalid json"}`))
+			return
+		}
+		msg := notification.Message{Title: body.Title, Body: body.Body, To: body.To}
+		if body.Channel != "" {
+			if err := s.NotifySvc.Send(req.Context(), body.Channel, msg); err != nil {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(500); w.Write([]byte(`{"error":"`+err.Error()+`"}`))
+				return
+			}
+		} else {
+			s.NotifySvc.SendAll(req.Context(), msg)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"ok":true}`))
+	}))
+	// List notifications: GET /admin/api/notifications
+	r.GET("/admin/api/notifications", a(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if s.notifChan != nil {
+			json.NewEncoder(w).Encode(s.notifChan.List())
+		} else {
+			w.Write([]byte(`[]`))
+		}
+	}))
+}
