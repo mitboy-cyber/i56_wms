@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
+	"text/template"
 	"time"
 
 	"github.com/i56/framework/core/auth"
@@ -23,9 +24,11 @@ import (
 	jpkg "github.com/i56/framework/core/jwt"
 	"github.com/i56/framework/core/sse"
 	"github.com/i56/framework/core/eventbus"
+	"github.com/i56/framework/core/logger"
 	"github.com/i56/framework/core/tenant"
 	"github.com/i56/framework/core/rbac"
 	"github.com/i56/framework/core/storage"
+	"github.com/i56/framework/core/workflow"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -82,6 +85,7 @@ type Server struct {
 	PermStore  *rbac.InMemPermissionStore
 	RBAC       *rbac.Enforcer
 	Storage    storage.StorageProvider
+	Workflow   *workflow.Engine
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -179,6 +183,31 @@ func New(cfg Config) (*Server, error) {
 		st, _ = storage.NewLocalStorage("/tmp/i56-storage")
 	}
 	s.Storage = st
+
+	// Workflow Engine
+	wfStore := &memWorkflowStore{instances: make(map[string]*workflow.ProcessInstance)}
+	// Use a noop logger to prevent nil-pointer SEGV during process transitions
+	s.Workflow = workflow.NewEngine(wfStore, &noopLogger{})
+	// Register purchase approval workflow
+	s.Workflow.RegisterDefinition(&workflow.ProcessDefinition{
+		ID:   "purchase-approval",
+		Name: "采购审批流程",
+		States: []workflow.State{
+			{ID: "start", Name: "开始", Type: workflow.StateStart},
+			{ID: "dept_approve", Name: "部门审批", Type: workflow.StateTask},
+			{ID: "finance_approve", Name: "财务审批", Type: workflow.StateTask},
+			{ID: "gm_approve", Name: "总经理审批", Type: workflow.StateTask},
+			{ID: "end", Name: "完成", Type: workflow.StateEnd},
+		},
+		Transitions: []workflow.Transition{
+			{From: "start", To: "dept_approve"},
+			{From: "dept_approve", To: "finance_approve", Condition: "amount>5000"},
+			{From: "dept_approve", To: "end", Condition: "amount<=5000"},
+			{From: "finance_approve", To: "gm_approve", Condition: "amount>50000"},
+			{From: "finance_approve", To: "end", Condition: "amount<=50000"},
+			{From: "gm_approve", To: "end"},
+		},
+	})
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -392,6 +421,7 @@ func (s *Server) registerRoutes() {
 	s.registerTenantAPI(r, aAPI)
 	s.registerRBACAPI(r, aAPI)
 	s.registerStorageAPI(r, aAPI)
+	s.registerWorkflowAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -801,3 +831,86 @@ func (s *Server) registerStorageAPI(r *router.Router, a func(h http.HandlerFunc)
 		w.Write([]byte(`{"bucket":"` + bucket + `","files":[],"note":"use upload to add files"}`))
 	}))
 }
+
+// ─── In-memory Workflow Store ─────────────────────────────────────────
+
+type memWorkflowStore struct {
+	mu        sync.RWMutex
+	instances map[string]*workflow.ProcessInstance
+}
+
+func (s *memWorkflowStore) GetDefinition(ctx context.Context, id string) (*workflow.ProcessDefinition, error) { return nil, nil }
+func (s *memWorkflowStore) SaveInstance(ctx context.Context, inst *workflow.ProcessInstance) error {
+	s.mu.Lock(); defer s.mu.Unlock()
+	s.instances[inst.ID] = inst
+	return nil
+}
+func (s *memWorkflowStore) GetInstance(ctx context.Context, id string) (*workflow.ProcessInstance, error) {
+	s.mu.RLock(); defer s.mu.RUnlock()
+	if inst, ok := s.instances[id]; ok { return inst, nil }
+	return nil, fmt.Errorf("instance not found: %s", id)
+}
+
+// ─── Workflow API ────────────────────────────────────────────────────
+
+func (s *Server) registerWorkflowAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	// Start new approval process: POST /admin/api/workflow/start {definition_id, amount}
+	r.POST("/admin/api/workflow/start", a(func(w http.ResponseWriter, req *http.Request) {
+		var body struct {
+			DefinitionID string  `json:"definition_id"`
+			Amount       float64 `json:"amount"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400); w.Write([]byte(`{"error":"invalid json"}`))
+			return
+		}
+		inst, err := s.Workflow.StartProcess(req.Context(), body.DefinitionID, map[string]any{"amount": body.Amount})
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(500); w.Write([]byte(`{"error":"` + err.Error() + `"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(inst)
+	}))
+	// Approve/reject step: POST /admin/api/workflow/transition {instance_id, to_state}
+	r.POST("/admin/api/workflow/transition", a(func(w http.ResponseWriter, req *http.Request) {
+		var body struct {
+			InstanceID string `json:"instance_id"`
+			ToState    string `json:"to_state"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400); w.Write([]byte(`{"error":"invalid json"}`))
+			return
+		}
+		if err := s.Workflow.Transition(req.Context(), body.InstanceID, body.ToState, nil); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400); w.Write([]byte(`{"error":"` + err.Error() + `"}`))
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"ok":true}`))
+	}))
+	// List definitions
+	r.GET("/admin/api/workflow/definitions", a(func(w http.ResponseWriter, req *http.Request) {
+		defs := []map[string]interface{}{{
+			"id": "purchase-approval", "name": "采购审批流程",
+			"states": []string{"开始", "部门审批", "财务审批", "总经理审批", "完成"},
+		}}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(defs)
+	}))
+}
+
+// ─── Noop Logger (for framework modules that require non-nil logger) ───
+
+type noopLogger struct{}
+
+func (l noopLogger) Debug(msg string, args ...any)      {}
+func (l noopLogger) Info(msg string, args ...any)       {}
+func (l noopLogger) Warn(msg string, args ...any)       {}
+func (l noopLogger) Error(msg string, args ...any)      {}
+func (l noopLogger) With(args ...any) logger.Logger        { return l }
+func (l noopLogger) WithGroup(name string) logger.Logger   { return l }
