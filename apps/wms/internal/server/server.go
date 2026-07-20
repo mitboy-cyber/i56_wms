@@ -30,6 +30,7 @@ import (
 	"github.com/i56/framework/core/storage"
 	"github.com/i56/framework/core/workflow"
 	"github.com/i56/framework/core/notification"
+	"github.com/i56/framework/core/plugin"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -88,7 +89,8 @@ type Server struct {
 	Storage    storage.StorageProvider
 	Workflow   *workflow.Engine
 	NotifySvc  *notification.Service
-	notifChan  *memNotifChannel // in-memory channel for list API
+	NotifChan  *memNotifChannel
+	Registry   *plugin.Registry // unified service locator
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -214,9 +216,18 @@ func New(cfg Config) (*Server, error) {
 
 	// Notification Center
 	memChan := &memNotifChannel{}
-	s.notifChan = memChan
+	s.NotifChan = memChan
 	s.NotifySvc = notification.NewService(&noopLogger{})
 	s.NotifySvc.Register(memChan)
+
+	// Plugin Registry — unified service locator for all framework modules
+	s.Registry = plugin.NewRegistry(&noopLogger{})
+	s.Registry.Provide("eventbus", s.EventBus)
+	s.Registry.Provide("tenant", s.TenantMgr)
+	s.Registry.Provide("rbac", s.RBAC)
+	s.Registry.Provide("storage", s.Storage)
+	s.Registry.Provide("workflow", s.Workflow)
+	s.Registry.Provide("notification", s.NotifySvc)
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -432,6 +443,7 @@ func (s *Server) registerRoutes() {
 	s.registerStorageAPI(r, aAPI)
 	s.registerWorkflowAPI(r, aAPI)
 	s.registerNotificationAPI(r, aAPI)
+	s.registerPluginAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -949,8 +961,8 @@ func (c *memNotifChannel) List() []map[string]interface{} {
 // ─── Notification API ────────────────────────────────────────────────
 
 func (s *Server) registerNotificationAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
-	// Send notification: POST /admin/api/notifications {channel, title, body, to}
-	r.POST("/admin/api/notifications", a(func(w http.ResponseWriter, req *http.Request) {
+	// Send notification: POST /admin/api/notify/send {channel, title, body, to}
+	r.POST("/admin/api/notify/send", a(func(w http.ResponseWriter, req *http.Request) {
 		var body struct {
 			Channel string   `json:"channel"`
 			Title   string   `json:"title"`
@@ -975,13 +987,41 @@ func (s *Server) registerNotificationAPI(r *router.Router, a func(h http.Handler
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"ok":true}`))
 	}))
-	// List notifications: GET /admin/api/notifications
-	r.GET("/admin/api/notifications", a(func(w http.ResponseWriter, req *http.Request) {
+	// List notifications: GET /admin/api/notify/inbox
+	r.GET("/admin/api/notify/inbox", a(func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		if s.notifChan != nil {
-			json.NewEncoder(w).Encode(s.notifChan.List())
+		if s.NotifChan != nil {
+			json.NewEncoder(w).Encode(s.NotifChan.List())
 		} else {
 			w.Write([]byte(`[]`))
+		}
+	}))
+}
+
+// ─── Plugin API ──────────────────────────────────────────────────────
+
+func (s *Server) registerPluginAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	r.GET("/admin/api/plugins", a(func(w http.ResponseWriter, req *http.Request) {
+		svcs := []map[string]string{
+			{"name": "eventbus", "type": "events.Bus", "module": "framework"},
+			{"name": "tenant", "type": "tenant.TenantStore", "module": "framework"},
+			{"name": "rbac", "type": "rbac.Enforcer", "module": "framework"},
+			{"name": "storage", "type": "storage.StorageProvider", "module": "framework"},
+			{"name": "workflow", "type": "workflow.Engine", "module": "framework"},
+			{"name": "notification", "type": "notification.Service", "module": "framework"},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(svcs)
+	}))
+	// Resolve a service: GET /admin/api/plugins/resolve?name=storage
+	r.GET("/admin/api/plugins/resolve", a(func(w http.ResponseWriter, req *http.Request) {
+		name := req.URL.Query().Get("name")
+		svc := s.Registry.Resolve(name)
+		w.Header().Set("Content-Type", "application/json")
+		if svc == nil {
+			w.Write([]byte(`{"name":"` + name + `","found":false}`))
+		} else {
+			json.NewEncoder(w).Encode(map[string]interface{}{"name": name, "found": true, "type": fmt.Sprintf("%T", svc)})
 		}
 	}))
 }
