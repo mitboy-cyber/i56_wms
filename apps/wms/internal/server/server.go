@@ -445,7 +445,7 @@ func (s *Server) registerRoutes() {
 		json.NewEncoder(w).Encode(users)
 	})
 
-	adminapi.RegisterSystemAPI(r, aAPI)
+	adminapi.RegisterSystemAPI(r, aAPI, s.OrderRepo, s.ParcelRepo, s.ClientRepo, s.CourierRepo, s.RouteRepo)
 	adminapi.RegisterOMSAPI(r, aAPI, s.ParcelSvc, s.OrderSvc, s.WarehouseSvc,
 		s.ClientRepo, s.RouteRepo, s.CourierRepo,
 		s.ServiceRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo,

@@ -97,30 +97,4 @@ func RegisterDashboardAPI(r *router.Router,
 		}
 		apiJSON(w, 200, map[string]any{"total": len(result), "logs": result})
 	}))
-
-	// Frontend-aligned stats endpoint
-	r.GET("/admin/api/dashboard/stats", a(func(w http.ResponseWriter, req *http.Request) {
-		orders, _, _ := or.List(req.Context(), 1, 0, 500)
-		parcels, _, _ := pr.List(req.Context(), 1, 0, 500)
-		var revenue float64
-		active := 0
-		pending := 0
-		for _, o := range orders {
-			revenue += o.TotalPrice
-			if o.Status == "in_transit" || o.Status == "pending_picking" || o.Status == "picking" {
-				active++
-			}
-		}
-		for _, p := range parcels {
-			if p.Status == "stored" || p.Status == "received" || p.Status == "weighed" {
-				pending++
-			}
-		}
-		apiJSON(w, 200, map[string]any{
-			"total_orders": len(orders), "total_parcels": len(parcels),
-			"total_clients": 6, "pending_parcels": pending,
-			"active_orders": active, "total_revenue": revenue,
-			"total_carriers": 3, "total_couriers": 4,
-		})
-	}))
 }

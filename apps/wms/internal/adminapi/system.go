@@ -8,10 +8,18 @@ import (
 
 	"github.com/i56/framework/core/router"
 
+	custRepo "github.com/i56/modules/customer/repository"
+	orderRepo "github.com/i56/modules/order/repository"
+	parcelRepo "github.com/i56/modules/parcel/repository"
+	tmsRepo "github.com/i56/modules/transport/repository"
+
 	"github.com/i56/i56-apps/i56-wms/internal/domain"
 )
 
-func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc) {
+func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc,
+	or *orderRepo.MemOrderRepo, pr *parcelRepo.MemParcelRepo,
+	cr *custRepo.MemClientRepo, courr *tmsRepo.MemCourierRepo,
+	rr *tmsRepo.MemRouteRepo) {
 	registerCRUD(r, "/admin/api/roles", domain.RoleStore, a)
 	registerCRUD(r, "/admin/api/notifications", domain.NotificationStore, a)
 	registerCRUD(r, "/admin/api/printers", domain.PrinterStore, a)
@@ -62,16 +70,37 @@ func RegisterSystemAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFu
 
 	// ── Dashboard Stats ──
 	r.GET("/admin/api/dashboard/stats", a(func(w http.ResponseWriter, req *http.Request) {
+		orders, _, _ := or.List(req.Context(), 1, 0, 500)
+		parcels, _, _ := pr.List(req.Context(), 1, 0, 500)
+		clients, _, _ := cr.List(req.Context(), 1, 0, 200)
+		couriers, _ := courr.List(req.Context())
+		routes, _, _ := rr.List(req.Context(), 1, 0, 100)
+
+		var revenue float64
+		active := 0
+		pending := 0
+		for _, o := range orders {
+			revenue += o.TotalPrice
+			if o.Status == "in_transit" || o.Status == "pending_picking" || o.Status == "picking" {
+				active++
+			}
+		}
+		for _, p := range parcels {
+			if p.Status == "stored" || p.Status == "received" || p.Status == "weighed" {
+				pending++
+			}
+		}
+
 		apiJSON(w, 200, map[string]any{
-			"total_orders":     9,
-			"total_parcels":    12,
-			"total_clients":    len(domain.ClientAccountStore.List()),
-			"total_carriers":   len(domain.ShippingProviderStore.List()),
-			"total_couriers":   9,
+			"total_orders":     len(orders),
+			"total_parcels":    len(parcels),
+			"total_clients":    len(clients),
+			"total_carriers":   len(routes),
+			"total_couriers":   len(couriers),
 			"active_templates": len(domain.ServiceTemplateStore.List()),
-			"total_revenue":    71323.20,
-			"pending_parcels":  7,
-			"active_orders":    3,
+			"total_revenue":    revenue,
+			"pending_parcels":  pending,
+			"active_orders":    active,
 		})
 	}))
 }
