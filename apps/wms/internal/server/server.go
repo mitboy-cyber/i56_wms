@@ -22,6 +22,7 @@ import (
 	"github.com/i56/framework/core/scheduler"
 	jpkg "github.com/i56/framework/core/jwt"
 	"github.com/i56/framework/core/sse"
+	"github.com/i56/framework/core/eventbus"
 	"github.com/i56/framework/db"
 
 	adminAuth "github.com/i56/i56-apps/i56-wms/internal/auth"
@@ -72,6 +73,8 @@ type Server struct {
 
 	SessionMgr *adminAuth.SessionManager
 	TokenMgr   *auth.TokenManager
+	EventBus   *eventbus.EventBus
+	EventLog   []map[string]interface{} // in-memory event log
 
 	// Repos (singletons)
 	ClientRepo        *custRepo.MemClientRepo
@@ -135,6 +138,11 @@ func New(cfg Config) (*Server, error) {
 	}
 	s.TokenMgr = tm
 	s.SessionMgr = adminAuth.NewSessionManager()
+
+	// Event Bus
+	s.EventBus = eventbus.New(nil)
+	s.EventLog = make([]map[string]interface{}, 0, 200)
+	s.registerEventHandlers()
 
 	// PostgreSQL
 	if err := db.Connect(cfg.DBDSN); err == nil {
@@ -330,6 +338,7 @@ func (s *Server) registerRoutes() {
 	adminapi.RegisterTMSAPI(r, aAPI)
 	adminapi.RegisterCRMAPI(r, aAPI, s.ClientSvc, s.ClientRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.PdaRepo)
 	adminapi.RegisterFinanceAPI(r, aAPI)
+	s.registerEventAPI(r, aAPI)
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
@@ -570,4 +579,62 @@ func initAdminTemplates() map[string]*template.Template {
 
 func initClientTemplates() map[string]*template.Template {
 	return map[string]*template.Template{}
+}
+
+// ─── Event Bus ────────────────────────────────────────────────────────────
+
+// registerEventHandlers wires up domain event handlers.
+func (s *Server) registerEventHandlers() {
+	// Audit: log all events (wildcard)
+	s.EventBus.Subscribe("*", func(ctx context.Context, e eventbus.Event) error {
+		entry := map[string]interface{}{
+			"name": e.EventName(), "time": e.OccurredAt().Format(time.RFC3339),
+		}
+		domain.AuditLogStore.Add(domain.AuditLog{Action: e.EventName(), Detail: fmt.Sprintf("%v", entry)})
+		s.logEvent(entry)
+		return nil
+	}, true) // async
+
+	// Business events
+	s.EventBus.Subscribe("order.created", func(ctx context.Context, e eventbus.Event) error {
+		s.logEvent(map[string]interface{}{"name": e.EventName()})
+		return nil
+	}, true)
+	s.EventBus.Subscribe("parcel.received", func(ctx context.Context, e eventbus.Event) error {
+		s.logEvent(map[string]interface{}{"name": e.EventName()})
+		return nil
+	}, true)
+}
+
+// logEvent records event in buffer (ring buffer, max 200).
+func (s *Server) logEvent(entry map[string]interface{}) {
+	s.EventLog = append(s.EventLog, entry)
+	if len(s.EventLog) > 200 {
+		s.EventLog = s.EventLog[1:]
+	}
+}
+
+// registerEventAPI exposes the event stream.
+func (s *Server) registerEventAPI(r *router.Router, a func(h http.HandlerFunc) http.HandlerFunc) {
+	r.GET("/admin/api/events", a(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(s.EventLog)
+	}))
+	r.POST("/admin/api/events/publish", a(func(w http.ResponseWriter, req *http.Request) {
+		var payload struct {
+			Name string                 `json:"name"`
+			Data map[string]interface{} `json:"data,omitempty"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(400)
+			w.Write([]byte(`{"error":"invalid event payload"}`))
+			return
+		}
+		ev := eventbus.NewEvent(payload.Name)
+		s.EventBus.Publish(req.Context(), ev)
+		s.logEvent(map[string]interface{}{"name": payload.Name, "data": payload.Data})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"ok":true}`))
+	}))
 }
