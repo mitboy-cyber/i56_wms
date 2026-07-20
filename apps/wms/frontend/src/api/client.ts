@@ -4,7 +4,16 @@ const client = axios.create({
   withCredentials: true,
 })
 
-// Track whether a redirect is already in progress
+// Inject Bearer token from localStorage if available
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem("admin_token")
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Track redirect state
 let redirecting = false
 
 client.interceptors.response.use(
@@ -14,22 +23,11 @@ client.interceptors.response.use(
     const url = err.config?.url || ""
     const isLoginPage = window.location.pathname === "/admin/login" || window.location.pathname === "/client/login"
     const isAuthEndpoint = url.includes("/api/me") || url.includes("/login")
-    const isClientPage = window.location.pathname.startsWith("/client")
 
-    // Only redirect on 401 when NOT on login page, NOT auth endpoint, and NOT already redirecting
     if (status === 401 && !isLoginPage && !isAuthEndpoint && !redirecting) {
-      // Verify session is truly invalid before redirecting
-      try {
-        const checkUrl = isClientPage ? "/client/api/me" : "/admin/api/me"
-        const checkRes = await axios.get(checkUrl, { withCredentials: true })
-        if (checkRes.status !== 200) throw new Error("invalid")
-        // Session still valid — this 401 was just for this specific resource
-        return Promise.reject(err)
-      } catch {
-        // Session truly invalid — redirect
-        redirecting = true
-        window.location.replace(isClientPage ? "/client/login" : "/admin/login")
-      }
+      redirecting = true
+      localStorage.removeItem("admin_token")
+      window.location.replace("/admin/login")
     }
     return Promise.reject(err)
   }

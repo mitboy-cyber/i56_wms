@@ -36,18 +36,28 @@ func AdminOnly(sm *adminAuth.SessionManager) func(http.HandlerFunc) http.Handler
 }
 
 // AdminOnlyAPI returns a middleware that validates admin sessions for JSON API endpoints.
-// Returns 401 JSON on failure instead of redirect.
+// Accepts both cookie (admin_session) and Bearer token (Authorization header).
 func AdminOnlyAPI(sm *adminAuth.SessionManager) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			ck, err := r.Cookie("admin_session")
-			if err != nil {
-				APIJSON(w, 401, map[string]string{"error": "unauthorized"})
-				return
+			var session *adminAuth.Session
+
+			// 1. Try Bearer token first
+			authHdr := r.Header.Get("Authorization")
+			if len(authHdr) > 7 && authHdr[:7] == "Bearer " {
+				session = sm.ValidateSession(authHdr[7:])
 			}
-			session := sm.ValidateSession(ck.Value)
+
+			// 2. Fallback to cookie
 			if session == nil {
-				APIJSON(w, 401, map[string]string{"error": "invalid_session"})
+				ck, err := r.Cookie("admin_session")
+				if err == nil {
+					session = sm.ValidateSession(ck.Value)
+				}
+			}
+
+			if session == nil {
+				APIJSON(w, 401, map[string]string{"error": "unauthorized"})
 				return
 			}
 			next(w, r)

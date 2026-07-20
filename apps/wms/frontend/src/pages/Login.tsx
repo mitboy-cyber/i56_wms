@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth"
-import { Package, Eye, EyeOff, LogIn, AlertCircle } from "lucide-react"
 
 export function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPwd, setShowPwd] = useState(false)
-  const [remember, setRemember] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -18,12 +16,12 @@ export function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
-    if (!username.trim() || !password.trim()) {
-      setError("请输入账号和密码")
+    if (!username || !password) {
+      setError("请输入员工编号和密码")
       return
     }
     setLoading(true)
+    setError("")
     try {
       const ok = await login(username, password)
       if (ok) navigate("/admin")
@@ -34,164 +32,72 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900">
-      {/* Left: Branding */}
-      <div className="hidden lg:flex lg:w-5/12 flex-col justify-center px-16 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(16,185,129,0.15),transparent_60%)]" />
-        <div className={`relative transition-all duration-1000 ${mounted ? "translate-x-0 opacity-100" : "-translate-x-8 opacity-0"}`}>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Package className="w-7 h-7 text-white" />
+    <div style={{ minHeight: "100vh", display: "flex", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%)" }}>
+      {/* Brand panel */}
+      <div style={{ display: "none", flexDirection: "column", justifyContent: "center", padding: "0 64px", color: "white", width: "42%", position: "relative", overflow: "hidden" }}
+        className="lg:flex">
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at top right, rgba(16,185,129,0.15), transparent 60%)" }} />
+        <div style={{ position: "relative", transition: "all 1s", transform: mounted ? "translateX(0)" : "translateX(-32px)", opacity: mounted ? 1 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
+            <div style={{ width: 48, height: 48, background: "#10b981", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(16,185,129,0.3)" }}>
+              <span style={{ fontSize: 24, fontWeight: "bold", color: "white" }}>I</span>
             </div>
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">I56 WMS</h2>
-              <p className="text-emerald-400 text-sm">Enterprise Warehouse Management</p>
+              <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>I56 WMS</h2>
+              <p style={{ color: "#34d399", fontSize: 13, margin: 0 }}>Enterprise Warehouse Management</p>
             </div>
           </div>
-          <h1 className="text-4xl font-bold leading-tight mb-4">
-            智能仓储
-            <br />
-            <span className="text-emerald-400">管理平台</span>
+          <h1 style={{ fontSize: 40, fontWeight: "bold", lineHeight: 1.2, marginBottom: 16 }}>
+            智能仓储<br /><span style={{ color: "#34d399" }}>管理平台</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-sm">
-            实时追踪、智能分配、精准履约。
-            <br />
-            让仓库运营更高效。
+          <p style={{ color: "#94a3b8", fontSize: 17, maxWidth: 320, lineHeight: 1.6 }}>
+            实时追踪、智能分配、精准履约。<br />让仓库运营更高效。
           </p>
-          <div className="mt-12 flex gap-6 text-sm text-slate-500">
-            <div>
-              <div className="text-2xl font-bold text-white">99.9%</div>
-              <div>系统可用性</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-white">毫秒级</div>
-              <div>响应延迟</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-white">7×24</div>
-              <div>运行保障</div>
-            </div>
+          <div style={{ display: "flex", gap: 32, marginTop: 48, fontSize: 13, color: "#64748b" }}>
+            <div><div style={{ fontSize: 24, fontWeight: "bold", color: "white" }}>99.9%</div><div>系统可用性</div></div>
+            <div><div style={{ fontSize: 24, fontWeight: "bold", color: "white" }}>毫秒级</div><div>响应延迟</div></div>
+            <div><div style={{ fontSize: 24, fontWeight: "bold", color: "white" }}>7×24</div><div>运行保障</div></div>
           </div>
         </div>
       </div>
 
-      {/* Right: Login Form */}
-      <div className="flex-1 flex items-center justify-center px-6 bg-white lg:rounded-l-[3rem] shadow-2xl">
-        <div className={`w-full max-w-md transition-all duration-700 delay-200 ${mounted ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
-          {/* Mobile branding */}
-          <div className="lg:hidden flex items-center gap-3 mb-10 justify-center">
-            <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center">
-              <Package className="w-6 h-6 text-white" />
+      {/* Login form */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "white", borderTopLeftRadius: "3rem", borderBottomLeftRadius: "3rem", boxShadow: "-8px 0 32px rgba(0,0,0,0.1)" }}>
+        <div style={{ width: "100%", maxWidth: 400, transition: "all .7s .2s", transform: mounted ? "translateY(0)" : "translateY(16px)", opacity: mounted ? 1 : 0 }}>
+          <h2 style={{ fontSize: 28, fontWeight: "bold", color: "#1f2937", marginBottom: 4 }}>欢迎回来</h2>
+          <p style={{ color: "#6b7280", marginBottom: 32 }}>登录管理后台</p>
+          {error && <div style={{ background: "#fef2f2", color: "#dc2626", padding: "10px 16px", borderRadius: 8, marginBottom: 16, fontSize: 14 }}>{error}</div>}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>员工编号</label>
+              <input type="text" value={username} onChange={e => setUsername(e.target.value)}
+                placeholder="请输入员工编号" autoFocus
+                style={{ width: "100%", padding: "10px 14px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 15, outline: "none", boxSizing: "border-box" }} />
             </div>
-            <h2 className="text-xl font-bold text-slate-800">I56 WMS</h2>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-900">欢迎回来</h2>
-            <p className="text-slate-500 mt-1">登录管理后台</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm animate-shake">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Username */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                员工编号
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => { setUsername(e.target.value); setError("") }}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm
-                  focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
-                  placeholder:text-slate-400 transition-colors"
-                placeholder="请输入员工编号"
-                autoComplete="username"
-                autoFocus
-              />
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                密码
-              </label>
-              <div className="relative">
-                <input
-                  type={showPwd ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError("") }}
-                  className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl text-sm
-                    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
-                    placeholder:text-slate-400 transition-colors"
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>密码</label>
+              <div style={{ position: "relative" }}>
+                <input type={showPwd ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="请输入密码"
-                  autoComplete="current-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  style={{ width: "100%", padding: "10px 44px 10px 14px", border: "1px solid #d1d5db", borderRadius: 8, fontSize: 15, outline: "none", boxSizing: "border-box" }} />
+                <button type="button" onClick={() => setShowPwd(!showPwd)}
+                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 18, padding: 4 }}>
+                  {showPwd ? "🙈" : "👁"}
                 </button>
               </div>
             </div>
-
-            {/* Remember + Forgot */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                />
-                保持登录状态
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7280", cursor: "pointer" }}>
+                <input type="checkbox" style={{ accentColor: "#10b981" }} /> 保持登录状态
               </label>
-              <a href="#" className="text-sm text-emerald-600 hover:text-emerald-700 transition-colors">
-                忘记密码?
-              </a>
+              <a href="#" style={{ fontSize: 13, color: "#10b981", textDecoration: "none" }}>忘记密码?</a>
             </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400
-                text-white font-medium rounded-xl transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
-                shadow-lg shadow-emerald-600/25 hover:shadow-emerald-600/40
-                active:scale-[0.98]"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  登录中...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <LogIn className="w-4 h-4" />
-                  登录
-                </span>
-              )}
+            <button type="submit" disabled={loading}
+              style={{ width: "100%", padding: 12, background: loading ? "#6ee7b7" : "#10b981", color: "white", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}>
+              {loading ? "登录中..." : "登录"}
             </button>
           </form>
-
-          {/* Footer */}
-          <p className="mt-8 text-center text-xs text-slate-400">
-            I56 Framework 1.0 LTS · Enterprise Application Platform
-          </p>
+          <p style={{ textAlign: "center", color: "#9ca3af", fontSize: 12, marginTop: 24 }}>I56 Framework 1.0 LTS · Enterprise Application Platform</p>
         </div>
       </div>
     </div>

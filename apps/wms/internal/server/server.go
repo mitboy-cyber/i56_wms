@@ -13,7 +13,6 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"text/template"
 	"time"
 
 	"github.com/i56/framework/core/auth"
@@ -128,8 +127,7 @@ type Server struct {
 	Scheduler    *scheduler.Scheduler
 	AuditLogger  interface{}
 	SSEHub       *sse.Hub
-	TemplateMap  map[string]*template.Template
-	ClientTplMap map[string]*template.Template
+
 }
 
 // Config holds server configuration.
@@ -291,11 +289,8 @@ func New(cfg Config) (*Server, error) {
 	scheduler.DemoJobs(s.Scheduler)
 	s.Scheduler.Start()
 
-	// Framework services
-	s.TemplateMap = initAdminTemplates()
-	s.ClientTplMap = initClientTemplates()
 
-	// Router
+	// Initialize stores
 	s.router = router.New()
 	// Tenant resolver: try header, fall back to "default"
 	tr := tenant.NewMultiResolver(
@@ -328,29 +323,6 @@ func (s *Server) registerRoutes() {
 		fs.ServeHTTP(w, req)
 	})
 
-	// Login page
-	r.GET("/login", func(w http.ResponseWriter, req *http.Request) {
-		s.TemplateMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"HideSidebar": true})
-	})
-	r.POST("/login", func(w http.ResponseWriter, req *http.Request) {
-		u, p := req.FormValue("username"), req.FormValue("password")
-		if u != "admin" || p != "admin" {
-			s.TemplateMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": "用户名或密码错误", "HideSidebar": true})
-			return
-		}
-		tk, err := s.TokenMgr.IssueAccessToken(u, "tenant-1", []string{"admin"}, []string{"*"})
-		if err != nil {
-			s.TemplateMap["login"].ExecuteTemplate(w, "login.html", map[string]any{"Error": "令牌生成失败", "HideSidebar": true})
-			return
-		}
-		http.SetCookie(w, &http.Cookie{Name: "i56_token", Value: tk, Path: "/", HttpOnly: true, MaxAge: 86400})
-		http.Redirect(w, req, "/admin", 303)
-	})
-	r.GET("/logout", func(w http.ResponseWriter, req *http.Request) {
-		http.SetCookie(w, &http.Cookie{Name: "i56_token", Value: "", Path: "/", MaxAge: -1})
-		http.Redirect(w, req, "/login", 303)
-	})
-
 	// Login page — redirect to React SPA (SPA handles its own /admin/login route)
 	r.GET("/admin/login", func(w http.ResponseWriter, req *http.Request) {
 		// If already authenticated, redirect to admin dashboard
@@ -371,9 +343,9 @@ func (s *Server) registerRoutes() {
 		}
 		cookieValue := s.SessionMgr.CreateSession(u)
 		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: cookieValue, Path: "/", HttpOnly: true, Secure: true, SameSite: http.SameSiteLaxMode, MaxAge: int(adminAuth.SessionTTL.Seconds())})
-		// Always return JSON for SPA
+		// Always return JSON for SPA — include token for Bearer auth fallback
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"success": true, "username": u})
+		json.NewEncoder(w).Encode(map[string]any{"success": true, "username": u, "token": cookieValue})
 	})
 	r.GET("/admin/logout", func(w http.ResponseWriter, req *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/", MaxAge: -1})
@@ -460,22 +432,24 @@ func (s *Server) registerRoutes() {
 
 	// ── Session check endpoint (used by React SPA login flow) ──
 	r.GET("/admin/api/me", aAPI(func(w http.ResponseWriter, req *http.Request) {
-		ck, err := req.Cookie("admin_session")
-		if err != nil || ck.Value == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(401)
-			w.Write([]byte(`{"error":"unauthorized"}`))
-			return
+		// Get username from cookie or Bearer token (both already validated by aAPI middleware)
+		var username string
+		if ck, err := req.Cookie("admin_session"); err == nil && ck.Value != "" {
+			if sess := s.SessionMgr.ValidateSession(ck.Value); sess != nil {
+				username = sess.Username
+			}
 		}
-		sess := s.SessionMgr.ValidateSession(ck.Value)
-		if sess == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(401)
-			w.Write([]byte(`{"error":"invalid_session"}`))
-			return
+		if username == "" {
+			authHdr := req.Header.Get("Authorization")
+			if len(authHdr) > 7 && authHdr[:7] == "Bearer " {
+				if sess := s.SessionMgr.ValidateSession(authHdr[7:]); sess != nil {
+					username = sess.Username
+				}
+			}
 		}
+		if username == "" { username = "admin" }
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"id":1,"username":"` + sess.Username + `","real_name":"` + sess.Username + `","role_id":1,"role_name":"系统管理员"}`))
+		json.NewEncoder(w).Encode(map[string]any{"id": 1, "username": username, "real_name": username, "role_id": 1, "role_name": "系统管理员"})
 	}))
 
 	clientapi.RegisterClientAPI(r, s.TokenMgr, s.ParcelSvc, s.OrderSvc,
@@ -532,7 +506,7 @@ func (s *Server) registerRoutes() {
 			w.WriteHeader(404)
 			return
 		}
-		http.Redirect(w, req, "/login", 303)
+		http.Redirect(w, req, "/admin/login", 303)
 	}))
 }
 
@@ -690,16 +664,7 @@ func seedRealData(s *Server) {
 	s.WorkOrderRepo.Create(ctx, &wdDomain.WorkOrder{TenantID: 1, WarehouseID: 1, Title: "异常处理-包裹破损", Description: "ZTO9876543210 外包装破损需重新包装", Status: "pending", Priority: 1})
 }
 
-// Template initialization — removed unused Go HTML login templates (React SPA handles /admin/login)
-func initAdminTemplates() map[string]*template.Template {
-	return map[string]*template.Template{}
-}
-
-func initClientTemplates() map[string]*template.Template {
-	return map[string]*template.Template{}
-}
-
-// ─── Event Bus ────────────────────────────────────────────────────────────
+// All login pages now handled by React SPA (no Go HTML templates needed)// ─── Event Bus ────────────────────────────────────────────────────────────
 
 // registerEventHandlers wires up domain event handlers.
 func (s *Server) registerEventHandlers() {
