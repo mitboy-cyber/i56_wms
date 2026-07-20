@@ -454,7 +454,7 @@ func (s *Server) registerRoutes() {
 	adminapi.RegisterWMSAPI(r, aAPI, s.PrintRepo, s.WorkflowRepo, s.TaskDispatchRepo, s.WebhookRepo, s.WorkOrderRepo)
 	adminapi.RegisterTMSAPI(r, aAPI)
 	adminapi.RegisterCRMAPI(r, aAPI, s.ClientSvc, s.ClientRepo, s.LedgerRepo, s.DeclarantRepo, s.MemberRepo, s.AddressRepo, s.PdaRepo)
-	adminapi.RegisterFinanceAPI(r, aAPI)
+	adminapi.RegisterFinanceAPI(r, aAPI, s.OrderRepo, s.LedgerRepo, s.RouteRepo)
 	s.registerEventAPI(r, aAPI)
 	s.registerTenantAPI(r, aAPI)
 	s.registerRBACAPI(r, aAPI)
