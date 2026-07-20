@@ -31,7 +31,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       credentials: "include",
       redirect: "manual",
     })
-    if (res.status === 303 || res.ok) {
+    if (res.ok) {
+      // Small delay to ensure cookie is set before checkSession
+      await new Promise(r => setTimeout(r, 50))
       await useAuthStore.getState().checkSession()
       return true
     }

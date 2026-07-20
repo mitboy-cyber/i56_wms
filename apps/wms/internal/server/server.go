@@ -371,15 +371,9 @@ func (s *Server) registerRoutes() {
 		}
 		cookieValue := s.SessionMgr.CreateSession(u)
 		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: cookieValue, Path: "/admin", HttpOnly: true, MaxAge: int(adminAuth.SessionTTL.Seconds())})
-		// Return JSON for React SPA; also support form-based redirect
-		accept := req.Header.Get("Accept")
-		isAjax := req.Header.Get("X-Requested-With") == "XMLHttpRequest"
-		if isAjax || strings.Contains(accept, "application/json") {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write([]byte(`{"success":true,"username":"` + u + `"}`))
-			return
-		}
-		http.Redirect(w, req, "/admin", 303)
+		// Always return JSON for SPA
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"success": true, "username": u})
 	})
 	r.GET("/admin/logout", func(w http.ResponseWriter, req *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "admin_session", Value: "", Path: "/admin", MaxAge: -1})
