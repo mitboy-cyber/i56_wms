@@ -49,15 +49,6 @@ func RegisterFinanceAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerF
 			"avg_order": func() float64 { if len(orders) == 0 { return 0 }; return revenue / float64(len(orders)) }()})
 	}))
 
-	// Route profitability
-	r.GET("/admin/api/finance/route-profit", a(func(w http.ResponseWriter, req *http.Request) {
-		routes, _, _ := rr.List(req.Context(), 1, 0, 100)
-		type rt struct { Name string `json:"name"`; Price float64 `json:"base_price"`; Type string `json:"type"` }
-		var out []rt
-		for _, r := range routes { out = append(out, rt{r.Name, r.BaseWeightPrice, r.TransportType}) }
-		apiJSON(w, 200, map[string]any{"report": "route_profit", "routes": out})
-	}))
-
 	// Customer balance
 	r.GET("/admin/api/finance/customer-balance", a(func(w http.ResponseWriter, req *http.Request) {
 		entries, _, _ := lr.List(context.Background(), 1, 0, 0, 200)
@@ -67,5 +58,43 @@ func RegisterFinanceAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerF
 		var out []cb
 		for id, bal := range balances { out = append(out, cb{id, bal}) }
 		apiJSON(w, 200, map[string]any{"report": "customer_balance", "customers": out})
+	}))
+
+	// Aliases for frontend compatibility
+	// /client-profit → customer-balance alias
+	r.GET("/admin/api/finance/client-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		routes, _, _ := rr.List(req.Context(), 1, 0, 100)
+		orders, _, _ := or.List(req.Context(), 1, 0, 200)
+		var rev float64
+		for _, o := range orders { rev += o.TotalPrice }
+		apiJSON(w, 200, map[string]any{"report": "client_profit", "total_revenue": rev, "clients": len(routes), "avg_per_client": func() float64 {
+			if len(routes) == 0 { return 0 }; return rev / float64(len(routes))
+		}()})
+	}))
+
+	// /income-statement → profit-loss alias
+	r.GET("/admin/api/finance/income-statement", a(func(w http.ResponseWriter, req *http.Request) {
+		stmts := domain.MonthlyStatementStore.List()
+		var rev, paid float64
+		for _, s := range stmts { rev += s.Total; paid += s.PaidAmount }
+		apiJSON(w, 200, map[string]any{"report": "income_statement", "total_revenue": rev, "total_paid": paid, "outstanding": rev - paid})
+	}))
+
+	// Fix route-profit: add total_revenue
+	r.GET("/admin/api/finance/route-profit", a(func(w http.ResponseWriter, req *http.Request) {
+		routes, _, _ := rr.List(req.Context(), 1, 0, 100)
+		orders, _, _ := or.List(req.Context(), 1, 0, 200)
+		var rev float64
+		routeRev := map[int64]float64{}
+		for _, o := range orders {
+			rev += o.TotalPrice
+			routeRev[o.RouteID] += o.TotalPrice
+		}
+		type rt struct { Name string `json:"name"`; Price float64 `json:"base_price"`; Type string `json:"type"`; Revenue float64 `json:"revenue"` }
+		var out []rt
+		for _, r := range routes {
+			out = append(out, rt{r.Name, r.BaseWeightPrice, r.TransportType, routeRev[r.ID]})
+		}
+		apiJSON(w, 200, map[string]any{"report": "route_profit", "total_revenue": rev, "routes": out})
 	}))
 }
