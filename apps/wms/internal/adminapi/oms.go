@@ -10,6 +10,9 @@ import (
 	"github.com/i56/framework/core/eventbus"
 	"github.com/i56/framework/core/tenant"
 
+	"github.com/i56/i56-apps/i56-wms/internal/httputil"
+	"github.com/i56/i56-apps/i56-wms/internal/types"
+	"github.com/i56/i56-apps/i56-wms/internal/validate"
 	custDomain "github.com/i56/modules/customer/domain"
 	custRepo "github.com/i56/modules/customer/repository"
 	orderDomain "github.com/i56/modules/order/domain"
@@ -54,10 +57,21 @@ func RegisterOMSAPI(
 		apiJSON(w, 200, wh)
 	}))
 	r.POST("/admin/api/warehouses", a(func(w http.ResponseWriter, req *http.Request) {
-		var b struct{ Name, Code, Address, Contact, Phone string }
-		json.NewDecoder(req.Body).Decode(&b)
-		wh, _ := ws.Create(req.Context(), tenantID(req), b.Name, b.Code, b.Address, b.Contact, b.Phone)
-		apiJSON(w, 201, wh)
+		var b types.CreateWarehouseRequest
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			httputil.BadRequest(w, "请求数据格式错误")
+			return
+		}
+		if errs := validate.Struct(&b); errs != nil {
+			httputil.ValidationError(w, errs)
+			return
+		}
+		wh, err := ws.Create(req.Context(), tenantID(req), b.Name, b.Code, b.Address, b.Contact, b.Phone)
+		if err != nil {
+			httputil.InternalError(w, err)
+			return
+		}
+		httputil.Created(w, wh)
 	}))
 
 	// Parcels
@@ -66,20 +80,28 @@ func RegisterOMSAPI(
 		apiJSON(w, 200, px)
 	}))
 	r.POST("/admin/api/parcels", a(func(w http.ResponseWriter, req *http.Request) {
-		var b struct{ TrackingNumber, ProductName, CourierCode string; WarehouseID int64 }
-		json.NewDecoder(req.Body).Decode(&b)
+		var b types.CreateParcelRequest
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			httputil.BadRequest(w, "请求数据格式错误")
+			return
+		}
+		if errs := validate.Struct(&b); errs != nil {
+			httputil.ValidationError(w, errs)
+			return
+		}
 		if b.WarehouseID == 0 {
 			b.WarehouseID = 1
 		}
 		p, err := ps.PreDeclare(req.Context(), &parcelDomain.Parcel{
 			TrackingNumber: b.TrackingNumber, ProductName: b.ProductName,
 			TenantID: tenantID(req), WarehouseID: b.WarehouseID, CourierCode: b.CourierCode,
+			ActualWeight: b.ActualWeight, CargoType: b.CargoType,
 		})
 		if err != nil {
-			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			httputil.InternalError(w, err)
 			return
 		}
-		apiJSON(w, 201, p)
+		httputil.Created(w, p)
 	}))
 
 	// Orders
@@ -88,21 +110,23 @@ func RegisterOMSAPI(
 		apiJSON(w, 200, ox)
 	}))
 	r.POST("/admin/api/orders", a(func(w http.ResponseWriter, req *http.Request) {
-		var b struct {
-			OrderNo, RecipientName string
-			ParcelCount            int
-			TotalPrice             float64
-			RouteID                int64
+		var b types.CreateOrderRequest
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			httputil.BadRequest(w, "请求数据格式错误")
+			return
 		}
-		json.NewDecoder(req.Body).Decode(&b)
+		if errs := validate.Struct(&b); errs != nil {
+			httputil.ValidationError(w, errs)
+			return
+		}
 		o := &orderDomain.Order{
-			OrderNo: b.OrderNo, RecipientName: b.RecipientName,
-			ParcelCount: b.ParcelCount, TotalPrice: b.TotalPrice,
-			RouteID: b.RouteID, TenantID: tenantID(req),
+			RecipientName: b.RecipientName, ParcelCount: b.ParcelCount,
+			TotalPrice: b.TotalPrice, RouteID: b.RouteID, TenantID: tenantID(req),
+			TrackingNumbers: b.TrackingNumbers, Remark: b.Remark,
 		}
 		created, err := osvc.Create(req.Context(), o)
 		if err != nil {
-			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			httputil.InternalError(w, err)
 			return
 		}
 		eb.Publish(req.Context(), &DataEvent{
@@ -113,7 +137,7 @@ func RegisterOMSAPI(
 				"parcel_count": created.ParcelCount,
 			},
 		})
-		apiJSON(w, 201, created)
+		httputil.Created(w, created)
 	}))
 	r.GET("/admin/api/orders/{id}", a(func(w http.ResponseWriter, req *http.Request) {
 		idStr := req.PathValue("id")
@@ -130,15 +154,26 @@ func RegisterOMSAPI(
 	}))
 	// Order status transition
 	r.PUT("/admin/api/orders/{id}/status", a(func(w http.ResponseWriter, req *http.Request) {
-		id, _ := strconv.ParseInt(req.PathValue("id"), 10, 64)
+		id, err := strconv.ParseInt(req.PathValue("id"), 10, 64)
+		if err != nil {
+			httputil.BadRequest(w, "无效的订单ID")
+			return
+		}
 		var b struct{ Status string `json:"status"` }
-		json.NewDecoder(req.Body).Decode(&b)
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			httputil.BadRequest(w, "请求数据格式错误")
+			return
+		}
+		if b.Status == "" {
+			httputil.BadRequest(w, "状态不能为空")
+			return
+		}
 		if err := osvc.Transition(req.Context(), tenantID(req), id, orderDomain.OrderStatus(b.Status)); err != nil {
-			apiJSON(w, 400, map[string]string{"error": err.Error()})
+			httputil.InternalError(w, err)
 			return
 		}
 		o, _ := osvc.GetByID(req.Context(), tenantID(req), id)
-		apiJSON(w, 200, o)
+		httputil.OK(w, o)
 	}))
 
 	// Clients (real repos)
@@ -147,11 +182,21 @@ func RegisterOMSAPI(
 		apiJSON(w, 200, cl)
 	}))
 	r.POST("/admin/api/clients", a(func(w http.ResponseWriter, req *http.Request) {
-		var b struct{ Name, Code string }
-		json.NewDecoder(req.Body).Decode(&b)
-		c := &custDomain.Client{Name: b.Name, Code: b.Code}
-		cr.Create(req.Context(), tenantID(req), c)
-		apiJSON(w, 201, c)
+		var b types.CreateClientRequest
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			httputil.BadRequest(w, "请求数据格式错误")
+			return
+		}
+		if errs := validate.Struct(&b); errs != nil {
+			httputil.ValidationError(w, errs)
+			return
+		}
+		c := &custDomain.Client{Name: b.Name, Code: b.Code, ContactName: b.Contact, ContactPhone: b.Phone}
+		if err := cr.Create(req.Context(), tenantID(req), c); err != nil {
+			httputil.InternalError(w, err)
+			return
+		}
+		httputil.Created(w, c)
 	}))
 
 	// Sub-resources
