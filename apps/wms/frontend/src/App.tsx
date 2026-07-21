@@ -97,7 +97,6 @@ const adminModuleRoutes = [
   { path: 'system/api-storage', page: () => import('@/pages/admin/ApiStoragePage') },
   { path: 'system/api-ezway', page: () => import('@/pages/admin/ApiEZWayPage') },
   { path: 'system/api-devices', page: () => import('@/pages/admin/ApiDevicesPage') },
-  { path: 'system/webhooks', page: () => import('@/pages/admin/WebhooksPage') },
   { path: 'system/brand', page: () => import('@/pages/admin/BrandSettingsPage') },
   { path: 'system/ai-settings', page: () => import('@/pages/admin/AISettingsPage') },
   { path: 'system/ai-chat', page: () => import('@/pages/admin/AIChatPage') },
