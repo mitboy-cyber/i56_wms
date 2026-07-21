@@ -1,66 +1,82 @@
-import { useQuery } from '@tanstack/react-query';
-import client from '@/api/client';
-import { Package, CheckCircle, Clock, AlertTriangle, Truck } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query"
+import client from "@/api/client"
 
 export default function InboundBoardPage() {
-  const { data: parcels = [] } = useQuery<any[]>({ queryKey: ['inbound-parcels'], queryFn: () => client.get('/admin/api/parcels') });
-  const { data: stats } = useQuery<any>({ queryKey: ['inbound-stats'], queryFn: () => client.get('/admin/api/dashboard/stats') });
+  const { data: parcels = [] } = useQuery<any[]>({
+    queryKey: ["inbound-parcels"],
+    queryFn: () => client.get("/admin/api/parcels").then(r => r.data),
+    retry: false,
+  })
+  const { data: stats } = useQuery<any>({
+    queryKey: ["inbound-stats"],
+    queryFn: () => client.get("/admin/api/dashboard/stats").then(r => r.data),
+    retry: false,
+  })
 
-  const received = parcels.filter((p: any) => p.status === 'received').length;
-  const preDeclared = parcels.filter((p: any) => p.status === 'pre_declared').length;
-  const weighed = parcels.filter((p: any) => p.status === 'weighed').length;
-  const stored = parcels.filter((p: any) => p.status === 'stored').length;
+  const arr = Array.isArray(parcels) ? parcels : []
+  const received = arr.filter((p: any) => p.status === "received").length
+  const preDeclared = arr.filter((p: any) => p.status === "pre_declared").length
+  const weighed = arr.filter((p: any) => p.status === "weighed").length
+  const stored = arr.filter((p: any) => p.status === "stored").length
+
+  const stages = [
+    { label: "预申报", value: preDeclared, color: "#9ca3af" },
+    { label: "已签收", value: received, color: "#3b82f6" },
+    { label: "已称重", value: weighed, color: "#14b8a6" },
+    { label: "已上架", value: stored, color: "#22c55e" },
+    { label: "异常", value: "0", color: "#ef4444" },
+  ]
+
+  const statusLabel: Record<string, string> = {
+    stored: "已上架", received: "已签收", weighed: "已称重",
+    signed: "已签收", pre_declared: "预申报",
+  }
+  const statusColor: Record<string, string> = {
+    stored: "#16a34a", received: "#2563eb", weighed: "#0d9488",
+    signed: "#2563eb", pre_declared: "#6b7280",
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-800">入库看板</h1>
-        <span className="text-sm text-gray-500">今日入库: {received + preDeclared} 件 | {new Date().toLocaleTimeString('zh-CN')}</span>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 20, fontWeight: "bold" }}>入库看板</h1>
+        <span style={{ color: "#6b7280", fontSize: 13 }}>今日入库: {received + preDeclared} 件 | {new Date().toLocaleTimeString("zh-CN")}</span>
       </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {[
-          { icon: Truck, label: '预申报', value: preDeclared, color: 'bg-gray-50 border-gray-200' },
-          { icon: Package, label: '已签收', value: received, color: 'bg-blue-50 border-blue-200' },
-          { icon: Clock, label: '已称重', value: weighed, color: 'bg-teal-50 border-teal-200' },
-          { icon: CheckCircle, label: '已上架', value: stored, color: 'bg-green-50 border-green-200' },
-          { icon: AlertTriangle, label: '异常', value: '0', color: 'bg-red-50 border-red-200' },
-        ].map(c => (
-          <div key={c.label} className={`rounded-lg border p-4 ${c.color}`}>
-            <div className="flex items-center gap-2 mb-1"><c.icon size={18} className="opacity-60" /><span className="text-xs font-medium opacity-70">{c.label}</span></div>
-            <div className="text-2xl font-bold">{c.value}</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10, marginBottom: 20 }}>
+        {stages.map(c => (
+          <div key={c.label} style={{ background: "white", borderRadius: 8, padding: "16px 20px", border: "1px solid #e5e7eb", borderTop: `3px solid ${c.color}` }}>
+            <div style={{ color: "#6b7280", fontSize: 13, marginBottom: 4 }}>{c.label}</div>
+            <div style={{ fontSize: 28, fontWeight: "bold" }}>{c.value}</div>
           </div>
         ))}
       </div>
-
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b"><tr>
-            <th className="px-4 py-3 text-left font-medium text-gray-600">快递单号</th>
-            <th className="px-4 py-3 text-left font-medium text-gray-600">品名</th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600">重量(kg)</th>
-            <th className="px-4 py-3 text-left font-medium text-gray-600">快递</th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600">状态</th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600">时间</th>
-          </tr></thead>
-          <tbody className="divide-y">
-            {parcels.map((p: any) => (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs">{p.tracking_number}</td>
-                <td className="px-4 py-3">{p.product_name}</td>
-                <td className="px-4 py-3 text-right">{p.actual_weight}</td>
-                <td className="px-4 py-3">{p.courier_code || '顺丰速运'}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                    p.status === 'stored' ? 'bg-green-100 text-green-700' : p.status === 'received' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                  }`}>{String(p.status)}</span>
+      <div style={{ background: "white", borderRadius: 8, padding: 16, border: "1px solid #e5e7eb" }}>
+        <table style={{ width: "100%", fontSize: 14, borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
+              {["快递单号", "品名", "重量(kg)", "快递", "状态", "时间"].map(h => (
+                <th key={h} style={{ padding: "8px 12px", textAlign: "left", color: "#6b7280", fontWeight: 600, fontSize: 13 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {arr.map((p: any) => (
+              <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                <td style={{ padding: "8px 12px", fontFamily: "monospace", fontSize: 13 }}>{p.tracking_number}</td>
+                <td style={{ padding: "8px 12px" }}>{p.product_name}</td>
+                <td style={{ padding: "8px 12px" }}>{p.actual_weight}</td>
+                <td style={{ padding: "8px 12px" }}>{p.courier_code || "顺丰速运"}</td>
+                <td style={{ padding: "8px 12px" }}>
+                  <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 10, fontSize: 12, fontWeight: 500, background: (statusColor[p.status] || "#6b7280") + "18", color: statusColor[p.status] || "#6b7280" }}>
+                    {statusLabel[p.status] || p.status}
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-right text-xs text-gray-500">{p.created_at ? new Date(p.created_at).toLocaleDateString('zh-CN') : '-'}</td>
+                <td style={{ padding: "8px 12px", color: "#9ca3af", fontSize: 13 }}>{p.created_at ? new Date(p.created_at).toLocaleDateString("zh-CN") : "-"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
     </div>
-  );
+  )
 }
