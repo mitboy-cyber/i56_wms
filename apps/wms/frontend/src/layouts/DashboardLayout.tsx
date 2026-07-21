@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { useAuthStore } from "@/stores/auth"
 import { useTabStore } from "@/stores/tabs"
@@ -11,7 +12,6 @@ import {
   ClipboardList, MapPin, Briefcase, ScrollText, UserCog, ListChecks,
   Activity, Radar, Camera, Workflow,
 } from "lucide-react"
-import { useState, useEffect } from "react"
 
 interface MenuGroup {
   label: string
@@ -156,6 +156,7 @@ export function DashboardLayout() {
     return state
   })
   const [searchQuery, setSearchQuery] = useState("")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Quick search: match menu items
   const allLinks: { label: string; href: string }[] = []
@@ -187,8 +188,11 @@ export function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Sidebar overlay for mobile */}
+      <div className={`i56-sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
+
       {/* Sidebar — Hallmark: light, border-right, emerald accent */}
-      <aside className="w-64 flex flex-col shrink-0 border-r border-gray-200" style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)' }}>
+      <aside className={`w-64 flex flex-col shrink-0 border-r border-gray-200 i56-sidebar ${sidebarOpen ? 'open' : ''}`} style={{ background: 'var(--sidebar-bg)', color: 'var(--sidebar-fg)' }}>
         <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--sidebar-border)' }}>
           <h1 className="text-lg font-light tracking-tight" style={{ color: 'var(--color-ink)' }}>I56 Framework</h1>
           <p className="text-xs" style={{ color: 'var(--color-neutral)' }}>Admin Console</p>
@@ -241,7 +245,8 @@ export function DashboardLayout() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0" style={{ background: 'var(--color-paper)' }}>
-        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0 gap-4" style={{ borderColor: 'var(--color-rule)' }}>
+        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0 gap-4 i56-header" style={{ borderColor: 'var(--color-rule)' }}>
+          <button className="i56-hamburger" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="菜单">☰</button>
           <h2 className="text-sm font-medium" style={{ color: 'var(--color-neutral)' }}>I56 WMS 管理后台</h2>
           <div style={{ flex: 1, maxWidth: 320 }}>
             <input
