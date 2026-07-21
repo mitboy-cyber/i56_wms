@@ -628,7 +628,10 @@ func seedRealData(s *Server) {
 		o8.CreatedAt = today.Add(-6 * 24 * time.Hour); o8.UpdatedAt = today.Add(-6 * 24 * time.Hour); s.OrderRepo.Update(ctx, o8)
 	}
 
-	s.LedgerRepo.Add(ctx, &custRepo.LedgerEntry{TenantID: 1, ClientID: c.ID, Amount: 5000, BalanceAfter: 5000, Type: "recharge", Description: ""})
+	s.LedgerRepo.Add(ctx, &custRepo.LedgerEntry{TenantID: 1, ClientID: c.ID, Amount: 5000, BalanceAfter: 5000, Type: "recharge", Description: "在线充值-银行转账"})
+	s.LedgerRepo.Add(ctx, &custRepo.LedgerEntry{TenantID: 1, ClientID: c.ID, Amount: -98, BalanceAfter: 4902, Type: "order_deduct", Description: "ORD-20260706-001 运费扣除", CreatedAt: now.AddDate(0, 0, -5)})
+	s.LedgerRepo.Add(ctx, &custRepo.LedgerEntry{TenantID: 1, ClientID: c.ID, Amount: 2000, BalanceAfter: 6902, Type: "recharge", Description: "微信支付充值", CreatedAt: now.AddDate(0, 0, -2)})
+	s.LedgerRepo.Add(ctx, &custRepo.LedgerEntry{TenantID: 1, ClientID: c.ID, Amount: -56.20, BalanceAfter: 6845.80, Type: "order_deduct", Description: "ORD-20260709-001 运费扣除", CreatedAt: now.AddDate(0, 0, -1)})
 
 	// Seed Members
 	s.MemberRepo.Create(ctx, 1, &custDomain.ClientMember{

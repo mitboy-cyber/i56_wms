@@ -1,5 +1,5 @@
-// Package demodata provides reusable demo data helpers for admin API endpoints.
-package demodata
+// Package adminapi provides reusable demo data helpers for admin API endpoints.
+package adminapi
 
 import "time"
 

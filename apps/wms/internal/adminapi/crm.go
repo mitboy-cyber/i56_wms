@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/i56/framework/core/router"
@@ -92,8 +93,37 @@ func RegisterCRMAPI(r *router.Router, a func(http.HandlerFunc) http.HandlerFunc,
 	// NOTE: /admin/api/client-members is now handled by registerCRUD above
 	// Client ledgers (real repo)
 	r.GET("/admin/api/client-ledgers", a(func(w http.ResponseWriter, req *http.Request) {
-		entries := lr.GetByClient(req.Context(), 1, 1)
+		cidStr := req.URL.Query().Get("client_id")
+		cid := int64(1)
+		if cidStr != "" {
+			if v, err := strconv.ParseInt(cidStr, 10, 64); err == nil { cid = v }
+		}
+		entries := lr.GetByClient(req.Context(), 1, cid)
 		apiJSON(w, 200, entries)
+	}))
+	// Client recharge: create
+	r.POST("/admin/api/ledger-recharge", a(func(w http.ResponseWriter, req *http.Request) {
+		var b struct {
+			ClientID int64   `json:"client_id"`
+			Amount   float64 `json:"amount"`
+			Method   string  `json:"method"`
+		}
+		if err := json.NewDecoder(req.Body).Decode(&b); err != nil {
+			apiJSON(w, 400, map[string]string{"error": "请求格式错误"})
+			return
+		}
+		if b.Amount <= 0 {
+			apiJSON(w, 400, map[string]string{"error": "金额必须大于0"})
+			return
+		}
+		entries := lr.GetByClient(req.Context(), 1, b.ClientID)
+		prevBalance := 0.0
+		if len(entries) > 0 { prevBalance = entries[0].BalanceAfter }
+		lr.Add(req.Context(), &custRepo.LedgerEntry{
+			ClientID: b.ClientID, Amount: b.Amount, BalanceAfter: prevBalance + b.Amount,
+			Type: "recharge", Description: b.Method + "充值",
+		})
+		apiJSON(w, 201, map[string]any{"amount": b.Amount, "balance": prevBalance + b.Amount, "method": b.Method})
 	}))
 	// NOTE: /admin/api/clients CRUD is registered above via registerCRUD
 	// but we need client list from real repo - use a DIFFERENT path
