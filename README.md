@@ -206,6 +206,13 @@ GET    /admin/api/area-groups              — 区域组列表
 - Donut Chart — 订单状态分布  
 - Bar Chart — 线路营收 TOP
 
+### 移动端适配 (v199+)
+- 📱 汉堡菜单（侧边栏滑入/滑出）  
+- 📊 表格横向滚动  
+- 📈 图表竖排堆叠  
+- 👆 触摸友好输入框（16px 防 iOS 缩放）  
+- 🎨 CSS 媒体查询断点：移动端 ≤768px / 平板 ≤1024px
+
 ### 全局搜索 (v194+)
 顶部搜索栏 → 输入关键词 → Enter 一键导航到对应页面
 
@@ -230,14 +237,32 @@ GET    /admin/api/area-groups              — 区域组列表
 - [x] 安全错误处理
 - [x] 64页白屏修复
 - [x] PRD.md + README.md
+- [x] 移动端响应式适配 🆕
 
 ### 🔜 v3.1（规划中）
 - [ ] PDA WebSocket 实时推送
 - [ ] 多租户隔离 (Schema/DB per Tenant)
-- [ ] 移动端响应式适配
 - [ ] PDF 打印面单
+- [ ] 订单导入 Excel
 
 ---
+
+## 📊 版本链
+
+```
+57044fc → v199: mobile responsive (hamburger + CSS media queries)
+6d49ce1 → v198: README.md v3.0
+d224c77 → v197: v3.0-final (webhook + i18n + recharge UI)
+827c580 → v195: recharge API + seed ledgers
+bf6acc9 → v194: global search + tracking timeline
+679fb9c → v193: SVG charts + CSV export
+fc24e52 → v192: PRD.md (1023 lines)
+c18611f → v191: README.md
+1c2e582 → v190: queryFn fix
+bc79f3b → v189: 64-page MinimalListPage
+3de0292 → v188: validation framework
+```
+### 分支策略
 
 ## 📝 贡献
 
@@ -251,8 +276,6 @@ go build -o i56-server ./cmd/server/ && ./i56-server
 # 前端
 cd frontend && npm install && npm run dev
 ```
-
-### 分支策略
 - `main` — 生产分支
 - `develop` — 开发分支
 - `feature/*` — 功能分支
