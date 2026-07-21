@@ -45,8 +45,9 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
   const perPage = 20
 
   const { data: rawData = [], isLoading, error } = useQuery<any[]>({ queryKey: [...queryKey, apiBase], queryFn: async () => {
-    const r = await client.get(apiBase)
-    return Array.isArray(r.data) ? r.data : []
+    // Use provided queryFn if it's not the default GET call; otherwise use apiBase
+    const r = await queryFn()
+    return Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
   }, retry: false })
 
   const filtered = search ? (Array.isArray(rawData) ? rawData.filter(row => 
