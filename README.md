@@ -1,8 +1,8 @@
 # I56 WMS — 跨境物流仓储管理系统
 
-> **版本**: v3.0 | **语言**: Go 1.24+ / TypeScript | **架构**: Modular Monolith  
+> **版本**: v3.1 | **语言**: Go 1.24+ / TypeScript | **架构**: Modular Monolith  
 > **生产环境**: https://wms.mikaplay.com | **竞品对标**: 八方云仓 (BFT56)  
-> **最新提交**: d224c77 | **GitHub**: github.com/mitboy-cyber/i56_wms
+> **最新提交**: a4f85d7 | **GitHub**: github.com/mitboy-cyber/i56_wms
 
 ---
 
