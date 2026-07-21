@@ -258,6 +258,12 @@ export function DashboardLayout() {
               style={{ width: "100%", padding: "4px 12px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 13, outline: "none", background: "#f9fafb" }}
             />
           </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => { localStorage.setItem("lang", localStorage.getItem("lang") === "en" ? "zh" : "en"); window.location.reload() }}
+              style={{ padding: "4px 10px", border: "1px solid #d1d5db", borderRadius: 6, background: "white", cursor: "pointer", fontSize: 12, color: "#6b7280", whiteSpace: "nowrap" }}>
+              {localStorage.getItem("lang") === "en" ? "🇨🇳 中文" : "🇺🇸 EN"}
+            </button>
+          </div>
         </header>
         <TabBar />
         <main className="flex-1 overflow-y-auto p-6">

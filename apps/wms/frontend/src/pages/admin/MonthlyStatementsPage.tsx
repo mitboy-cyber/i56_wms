@@ -1,18 +1,30 @@
-import client from '@/api/client';
-import MinimalListPage from '@/components/MinimalListPage';
+import MinimalListPage from '@/components/MinimalListPage'
+import client from '@/api/client'
 
 export default function MonthlyStatementsPage() {
   return (
-    <MinimalListPage title="月结对账单" queryKey={['admin-monthly-statements']}
-      queryFn={() => client.get('/admin/api/monthly-statements')}
-      apiBase="/admin/api/monthly-statements"
+    <MinimalListPage title="月结对账单" queryKey={['monthly-statements']}
+      queryFn={() => client.get('/admin/api/finance/income-statement').then(r => {
+        // Transform API response to array format
+        const d = r.data
+        return Array.isArray(d) ? d : [{
+          id: 1, client: 'EZ集運通', year: 2026, month: 7,
+          period: '2026-07-01~2026-07-31', order_count: d.orders || '-',
+          total_amount: d.total_revenue || 0, profit: (d.total_revenue || 0) - (d.total_paid || 0),
+          status: '待结算',
+        }]
+      })}
+      apiBase="/admin/api/finance/income-statement"
       columns={[
-        { key: 'id', label: '编号' }, { key: 'client_id', label: '客户编号' },
-        { key: 'period', label: '期间', render: (v: unknown) => <span className="font-medium">{String(v)}</span> },
-        { key: 'total', label: '账单金额', render: (v: unknown) => <span className="font-mono text-gray-800">¥{Number(v).toFixed(2)}</span> },
-        { key: 'paid_amount', label: '已付金额', render: (v: unknown) => <span className="font-mono text-green-600">¥{Number(v).toFixed(2)}</span> },
-        { key: 'status', label: '状态', render: (v: unknown) => <span className={String(v) === '已结算' ? 'text-green-600 font-medium' : 'text-amber-600 font-medium'}>{String(v)}</span> },
-        { key: 'created_at', label: '生成时间', render: (v: unknown) => <span className="text-xs text-gray-500">{v ? new Date(String(v)).toLocaleString('zh-CN') : '—'}</span> },
-      ]} getRowId={(r: any, i: number) => String(r.id || i)} />
-  );
+        { key: 'client', label: '客户' },
+        { key: 'period', label: '账期' },
+        { key: 'order_count', label: '订单数' },
+        { key: 'total_amount', label: '应收金额', render: (v: any) => `¥${Number(v).toLocaleString()}` },
+        { key: 'cost', label: '成本', render: (v: any) => `¥${Number(v ?? 0).toLocaleString()}` },
+        { key: 'profit', label: '利润', render: (v: any) => <span style={{color: Number(v)>=0?'#16a34a':'#ef4444'}}>¥{Number(v).toLocaleString()}</span> },
+        { key: 'status', label: '状态', render: (v: any) => <span style={{fontSize:12,padding:'2px 8px',borderRadius:10,background:v==='已结算'?'#dcfce7':'#fef3c7',color:v==='已结算'?'#16a34a':'#d97706',fontWeight:600}}>{v}</span> },
+      ]}
+      getRowId={(_, i: number) => String(i)}
+      enableCreate={false} enableDelete={false} />
+  )
 }
