@@ -155,6 +155,11 @@ export function DashboardLayout() {
     menu.forEach(g => { if (g.defaultOpen) state[g.label] = true })
     return state
   })
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Quick search: match menu items
+  const allLinks: { label: string; href: string }[] = []
+  menu.forEach(g => g.children.forEach(c => allLinks.push({ label: `${g.label} / ${c.label}`, href: c.href })))
 
   // Sync URL changes to tab store
   useEffect(() => {
@@ -236,8 +241,23 @@ export function DashboardLayout() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0" style={{ background: 'var(--color-paper)' }}>
-        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0" style={{ borderColor: 'var(--color-rule)' }}>
+        <header className="h-14 bg-white border-b flex items-center px-6 shrink-0 gap-4" style={{ borderColor: 'var(--color-rule)' }}>
           <h2 className="text-sm font-medium" style={{ color: 'var(--color-neutral)' }}>I56 WMS 管理后台</h2>
+          <div style={{ flex: 1, maxWidth: 320 }}>
+            <input
+              type="text"
+              placeholder="全局搜索..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === "Enter" && searchQuery.length >= 2) {
+                  const match = allLinks.find(l => l.label.includes(searchQuery) || l.href.includes(searchQuery))
+                  if (match) { navigate(match.href); openTab({ id: match.href, label: match.label, href: match.href }); setSearchQuery("") }
+                }
+              }}
+              style={{ width: "100%", padding: "4px 12px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 13, outline: "none", background: "#f9fafb" }}
+            />
+          </div>
         </header>
         <TabBar />
         <main className="flex-1 overflow-y-auto p-6">
