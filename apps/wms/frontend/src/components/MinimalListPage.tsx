@@ -28,14 +28,28 @@ interface Props {
   enableEdit?: boolean
   enableDelete?: boolean
   enableSearch?: boolean
-  // Ignored: compatibility with GenericListPage
+  enableExport?: boolean
   filters?: any
   onFilterChange?: any
   activeFilters?: any
   renderActions?: any
 }
 
-export default function MinimalListPage({ title, queryKey, queryFn, apiBase, columns, fields = [], searchable = true }: Props) {
+// CSV export helper
+function exportCSV(filename: string, columns: Column[], data: any[]) {
+  const header = columns.map(c => c.label).join(",")
+  const rows = data.map(row => columns.map(c => {
+    const v = String(row[c.key] ?? "").replace(/"/g, '""').replace(/\n/g, " ")
+    return `"${v}"`
+  }).join(","))
+  const csv = [header, ...rows].join("\n")
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a"); a.href = url; a.download = filename; a.click()
+  URL.revokeObjectURL(url)
+}
+
+export default function MinimalListPage({ title, queryKey, queryFn, apiBase, columns, fields = [], searchable = true, enableExport = true }: Props) {
   const qc = useQueryClient()
   const [search, setSearch] = useState("")
   const [modalOpen, setModalOpen] = useState(false)
@@ -45,12 +59,11 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
   const perPage = 20
 
   const { data: rawData = [], isLoading, error } = useQuery<any[]>({ queryKey: [...queryKey, apiBase], queryFn: async () => {
-    // Use provided queryFn if it's not the default GET call; otherwise use apiBase
     const r = await queryFn()
     return Array.isArray(r?.data) ? r.data : (Array.isArray(r) ? r : [])
   }, retry: false })
 
-  const filtered = search ? (Array.isArray(rawData) ? rawData.filter(row => 
+  const filtered = search ? (Array.isArray(rawData) ? rawData.filter(row =>
     columns.some(c => String(row[c.key] ?? "").toLowerCase().includes(search.toLowerCase()))
   ) : []) : (Array.isArray(rawData) ? rawData : [])
 
@@ -91,9 +104,17 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h1 style={{ fontSize: 20, fontWeight: "bold" }}>{title}</h1>
-        <button onClick={openCreate} style={{ background: "#10b981", color: "white", border: "none", borderRadius: 6, padding: "8px 16px", cursor: "pointer", fontSize: 14 }}>
-          + 添加
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {enableExport && filtered.length > 0 && (
+            <button onClick={() => exportCSV(`${title}-${new Date().toISOString().slice(0,10)}.csv`, columns, filtered)}
+              style={{ padding: "8px 16px", borderRadius: 6, border: "1px solid #6366f1", background: "white", color: "#6366f1", cursor: "pointer", fontSize: 14 }}>
+              📥 导出 CSV
+            </button>
+          )}
+          <button onClick={openCreate} style={{ background: "#10b981", color: "white", border: "none", borderRadius: 6, padding: "8px 16px", cursor: "pointer", fontSize: 14 }}>
+            + 添加
+          </button>
+        </div>
       </div>
 
       {searchable && (
@@ -104,8 +125,7 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
       )}
 
       {isLoading && <p style={{ color: "#9ca3af" }}>加载中...</p>}
-      {error && <p style={{ color: "#ef4444" }}>数据加载失败</p>}
-
+      {error && <p style={{ color: "#ef4444" }}>数据加载失败，请刷新重试</p>}
       {!isLoading && filtered.length === 0 && <p style={{ color: "#9ca3af" }}>暂无数据</p>}
 
       {filtered.length > 0 && (
@@ -125,7 +145,7 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
                     <td style={tdStyle}>{(page - 1) * perPage + idx + 1}</td>
                     {columns.map(c => (
                       <td key={c.key} style={tdStyle}>
-                        {c.render ? c.render(row[c.key], row) : String(row[c.key] ?? "")}
+                        {c.render ? c.render(row[c.key], row) : (row[c.key] != null ? String(row[c.key]) : "-")}
                       </td>
                     ))}
                     <td style={tdStyle}>
@@ -147,7 +167,6 @@ export default function MinimalListPage({ title, queryKey, queryFn, apiBase, col
         </>
       )}
 
-      {/* Create/Edit Modal */}
       {modalOpen && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
           <div style={{ background: "white", borderRadius: 12, padding: 24, width: 480, maxHeight: "80vh", overflow: "auto" }}>
