@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function PricingDeliveryPage() {
   return (
-    <GenericListPage title="派送报价" queryKey={['admin-pricing-delivery']}
+    <MinimalListPage title="派送报价" queryKey={['admin-pricing-delivery']}
       queryFn={() => client.get('/admin/api/pricing/delivery')}
       apiBase="/admin/api/pricing/delivery"
       columns={[

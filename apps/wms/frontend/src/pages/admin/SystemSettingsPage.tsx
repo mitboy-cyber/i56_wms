@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function SystemSettingsPage() {
   return (
-    <GenericListPage title="系统设置" queryKey={['admin-SystemSettingsPage']}
+    <MinimalListPage title="系统设置" queryKey={['admin-SystemSettingsPage']}
       queryFn={() => client.get('/admin/api/system-params')}
       apiBase="/admin/api/system-params"
       columns={[

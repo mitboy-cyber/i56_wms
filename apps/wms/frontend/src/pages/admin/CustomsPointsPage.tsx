@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function CustomsPointsPage() {
   return (
-    <GenericListPage title="海关口岸" queryKey={['admin-customs-points']}
+    <MinimalListPage title="海关口岸" queryKey={['admin-customs-points']}
       queryFn={() => client.get('/admin/api/customs-points')}
       apiBase="/admin/api/customs-points"
       columns={[

@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function AuditLogsPage() {
   return (
-    <GenericListPage title="审计日志" queryKey={['admin-audit-logs']}
+    <MinimalListPage title="审计日志" queryKey={['admin-audit-logs']}
       queryFn={() => client.get('/admin/api/system/audit-logs')}
       apiBase="/admin/api/system/audit-logs"
       columns={[

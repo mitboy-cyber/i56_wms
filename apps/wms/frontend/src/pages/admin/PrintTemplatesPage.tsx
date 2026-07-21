@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function PrintTemplatesPage() {
   return (
-    <GenericListPage title="打印模板" queryKey={['admin-print-templates']}
+    <MinimalListPage title="打印模板" queryKey={['admin-print-templates']}
       queryFn={() => client.get('/admin/api/print-templates')}
       apiBase="/admin/api/print-templates"
       columns={[

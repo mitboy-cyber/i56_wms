@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ApiCustomsPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="报关API"
       queryKey={['admin-api-customs']}
       queryFn={() => client.get('/admin/api/system/api-customs')}

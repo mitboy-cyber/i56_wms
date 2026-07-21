@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ApiStoragePage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="仓储API"
       queryKey={['admin-api-storage']}
       queryFn={() => client.get('/admin/api/system/api-storage')}

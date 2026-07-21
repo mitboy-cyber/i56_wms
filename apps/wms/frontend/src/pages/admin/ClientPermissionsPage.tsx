@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ClientPermissionsPage() {
   return (
-    <GenericListPage title="客户权限" queryKey={['admin-ClientPermissionsPage']}
+    <MinimalListPage title="客户权限" queryKey={['admin-ClientPermissionsPage']}
       queryFn={() => client.get('/admin/api/client-permissions')}
       apiBase="/admin/api/client-permissions"
       columns={[

@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ClientLedgersPage() {
   return (
-    <GenericListPage title="客户账本" queryKey={['admin-ClientLedgersPage']}
+    <MinimalListPage title="客户账本" queryKey={['admin-ClientLedgersPage']}
       queryFn={() => client.get('/admin/api/client-ledgers')}
       apiBase="/admin/api/client-ledgers"
       columns={[

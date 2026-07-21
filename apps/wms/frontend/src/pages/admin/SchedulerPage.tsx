@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function SchedulerPage() {
   return (
-    <GenericListPage title="定时任务" queryKey={['admin-scheduler']}
+    <MinimalListPage title="定时任务" queryKey={['admin-scheduler']}
       queryFn={() => client.get('/admin/api/system/scheduler')}
       apiBase="/admin/api/system/scheduler"
       columns={[

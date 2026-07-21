@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function PricingSurchargesPage() {
   return (
-    <GenericListPage title="附加费报价" queryKey={['admin-pricing-surcharges']}
+    <MinimalListPage title="附加费报价" queryKey={['admin-pricing-surcharges']}
       queryFn={() => client.get('/admin/api/pricing/surcharges')}
       apiBase="/admin/api/pricing/surcharges"
       columns={[

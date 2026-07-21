@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function NotificationChannelsPage() {
   return (
-    <GenericListPage title="通知渠道" queryKey={['admin-NotificationChannelsPage']}
+    <MinimalListPage title="通知渠道" queryKey={['admin-NotificationChannelsPage']}
       queryFn={() => client.get('/admin/api/system/notification-channels')}
       apiBase="/admin/api/system/notification-channels"
       columns={[

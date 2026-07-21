@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ExceptionsPage() {
   return (
-    <GenericListPage title="异常记录" queryKey={['admin-ExceptionsPage']}
+    <MinimalListPage title="异常记录" queryKey={['admin-ExceptionsPage']}
       queryFn={() => client.get('/admin/api/exceptions')}
       apiBase="/admin/api/exceptions"
       columns={[

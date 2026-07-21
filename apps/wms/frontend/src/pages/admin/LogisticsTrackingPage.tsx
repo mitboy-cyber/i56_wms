@@ -1,4 +1,4 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 const STATUS_MAP: Record<string, string> = {
@@ -8,7 +8,7 @@ const STATUS_MAP: Record<string, string> = {
 
 export default function LogisticsTrackingPage() {
   return (
-    <GenericListPage title="物流追踪" queryKey={['admin-logistics-tracking']}
+    <MinimalListPage title="物流追踪" queryKey={['admin-logistics-tracking']}
       queryFn={() => client.get('/admin/api/logistics-tracking')}
       apiBase="/admin/api/logistics-tracking"
       columns={[

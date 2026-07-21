@@ -1,5 +1,5 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 const PAGE_CN: Record<string, string> = {
   receive: '收货', weighing: '称重', shelve: '上架',
@@ -8,7 +8,7 @@ const PAGE_CN: Record<string, string> = {
 
 export default function PDASessionsPage() {
   return (
-    <GenericListPage title="PDA 在线会话" queryKey={['admin-pda-sessions']}
+    <MinimalListPage title="PDA 在线会话" queryKey={['admin-pda-sessions']}
       queryFn={() => client.get('/admin/api/pda-sessions')}
       apiBase="/admin/api/pda-sessions"
       columns={[

@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function LogisticsAPIPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="物流API"
       queryKey={['admin-LogisticsAPIPage']}
       queryFn={() => client.get('/admin/api/system/logistics-api')}

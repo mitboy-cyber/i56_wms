@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function EmployeesPage() {
   return (
-    <GenericListPage title="员工管理" queryKey={['admin-employees']}
+    <MinimalListPage title="员工管理" queryKey={['admin-employees']}
       queryFn={() => client.get('/admin/api/employees')}
       apiBase="/admin/api/employees"
       columns={[

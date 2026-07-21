@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function BrandSettingsPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="品牌设置"
       queryKey={['admin-brand-settings']}
       queryFn={() => client.get('/admin/api/system/brand')}

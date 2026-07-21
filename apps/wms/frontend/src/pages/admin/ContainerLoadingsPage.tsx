@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ContainerLoadingsPage() {
   return (
-    <GenericListPage title="装箱记录" queryKey={['admin-container-loadings']}
+    <MinimalListPage title="装箱记录" queryKey={['admin-container-loadings']}
       queryFn={() => client.get('/admin/api/container-loadings')}
       apiBase="/admin/api/container-loadings"
       columns={[

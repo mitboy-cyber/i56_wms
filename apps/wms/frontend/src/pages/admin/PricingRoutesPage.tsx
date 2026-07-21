@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function PricingRoutesPage() {
   return (
-    <GenericListPage title="路线报价" queryKey={['admin-pricing-routes']}
+    <MinimalListPage title="路线报价" queryKey={['admin-pricing-routes']}
       queryFn={() => client.get('/admin/api/pricing/routes')}
       apiBase="/admin/api/pricing/routes"
       columns={[

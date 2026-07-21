@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ApiNotificationsPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="通知API"
       queryKey={['admin-api-notifications']}
       queryFn={() => client.get('/admin/api/system/api-notifications')}

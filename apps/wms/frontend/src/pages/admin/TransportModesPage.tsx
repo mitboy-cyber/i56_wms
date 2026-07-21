@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function TransportModesPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="运输方式"
       queryKey={['admin-transport-modes']}
       queryFn={() => client.get('/admin/api/transport-modes')}

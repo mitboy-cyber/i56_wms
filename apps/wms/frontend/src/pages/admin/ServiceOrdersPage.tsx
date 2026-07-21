@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ServiceOrdersPage() {
   return (
-    <GenericListPage title="附加服务订单" queryKey={['admin-service-orders']}
+    <MinimalListPage title="附加服务订单" queryKey={['admin-service-orders']}
       queryFn={() => client.get('/admin/api/service-order-records')}
       apiBase="/admin/api/service-order-records"
       columns={[

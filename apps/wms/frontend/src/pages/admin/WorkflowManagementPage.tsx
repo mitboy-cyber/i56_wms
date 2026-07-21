@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function WorkflowManagementPage() {
   return (
-    <GenericListPage title="工作流管理" queryKey={['admin-workflow']}
+    <MinimalListPage title="工作流管理" queryKey={['admin-workflow']}
       queryFn={() => client.get('/admin/api/workflow')}
       apiBase="/admin/api/workflow"
       columns={[

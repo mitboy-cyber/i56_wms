@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function SystemParamsPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="系统参数"
       queryKey={['admin-system-params']}
       queryFn={() => client.get('/admin/api/system/params')}

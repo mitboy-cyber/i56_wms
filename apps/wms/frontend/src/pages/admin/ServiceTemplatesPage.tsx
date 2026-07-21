@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ServiceTemplatesPage() {
   return (
-    <GenericListPage title="附加服务模板" queryKey={['admin-service-templates']}
+    <MinimalListPage title="附加服务模板" queryKey={['admin-service-templates']}
       queryFn={() => client.get('/admin/api/service-templates')}
       apiBase="/admin/api/service-templates"
       columns={[

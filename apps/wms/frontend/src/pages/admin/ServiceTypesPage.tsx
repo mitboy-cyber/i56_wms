@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ServiceTypesPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="服务类型"
       queryKey={['admin-ServiceTypesPage']}
       queryFn={() => client.get('/admin/api/service-types')}

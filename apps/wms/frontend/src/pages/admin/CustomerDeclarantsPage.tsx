@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function CustomerDeclarantsPage() {
   return (
-    <GenericListPage title="客户报关员" queryKey={['admin-customer-declarants']}
+    <MinimalListPage title="客户报关员" queryKey={['admin-customer-declarants']}
       queryFn={() => client.get('/admin/api/customer-declarants')}
       apiBase="/admin/api/customer-declarants"
       columns={[

@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function AreaGroupsPage() {
   return (
-    <GenericListPage title="区域分组" queryKey={['admin-area-groups']}
+    <MinimalListPage title="区域分组" queryKey={['admin-area-groups']}
       queryFn={() => client.get('/admin/api/area-groups')}
       apiBase="/admin/api/area-groups"
       columns={[

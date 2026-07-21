@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function PDAWorkorderTemplatesPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="PDA 工单模板"
       queryKey={['admin-PDAWorkorderTemplates']}
       queryFn={() => client.get('/admin/api/pda-workorder-templates')}

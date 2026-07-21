@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function StorageConfigPage() {
   return (
-    <GenericListPage title="存储配置" queryKey={['admin-storage']}
+    <MinimalListPage title="存储配置" queryKey={['admin-storage']}
       queryFn={() => client.get('/admin/api/storage')}
       apiBase="/admin/api/storage"
       columns={[

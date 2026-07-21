@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function CouriersPage() {
   return (
-    <GenericListPage title="快递公司" queryKey={['admin-couriers']}
+    <MinimalListPage title="快递公司" queryKey={['admin-couriers']}
       queryFn={() => client.get('/admin/api/couriers')}
       apiBase="/admin/api/couriers"
       columns={[

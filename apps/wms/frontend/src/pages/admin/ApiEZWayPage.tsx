@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ApiEZWayPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="EZ Way API"
       queryKey={['admin-api-ezway']}
       queryFn={() => client.get('/admin/api/system/api-ezway')}

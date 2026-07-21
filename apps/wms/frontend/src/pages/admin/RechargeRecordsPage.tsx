@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function RechargeRecordsPage() {
   return (
-    <GenericListPage title="充值记录" queryKey={['admin-RechargeRecs']}
+    <MinimalListPage title="充值记录" queryKey={['admin-RechargeRecs']}
       queryFn={() => client.get('/admin/api/recharge-records')}
       apiBase="/admin/api/recharge-records"
       columns={[

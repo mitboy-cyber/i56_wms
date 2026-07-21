@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ReportsPage() {
   return (
-    <GenericListPage title="报表管理" queryKey={['admin-reports']}
+    <MinimalListPage title="报表管理" queryKey={['admin-reports']}
       queryFn={() => client.get('/admin/api/system/reports')}
       apiBase="/admin/api/system/reports"
       columns={[

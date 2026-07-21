@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function PrintersPage() {
   return (
-    <GenericListPage title="打印机管理" queryKey={['admin-printers']}
+    <MinimalListPage title="打印机管理" queryKey={['admin-printers']}
       queryFn={() => client.get('/admin/api/printers')}
       apiBase="/admin/api/printers"
       columns={[

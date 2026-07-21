@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function ShippingProvidersPage() {
   return (
-    <GenericListPage title="承运商列表" queryKey={['admin-shipping-providers']}
+    <MinimalListPage title="承运商列表" queryKey={['admin-shipping-providers']}
       queryFn={() => client.get('/admin/api/shipping-providers')}
       apiBase="/admin/api/shipping-providers"
       columns={[

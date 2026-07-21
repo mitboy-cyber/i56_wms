@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function ApiDevicesPage() {
   return (
-    <GenericListPage title="设备管理" queryKey={['admin-api-devices']}
+    <MinimalListPage title="设备管理" queryKey={['admin-api-devices']}
       queryFn={() => client.get('/admin/api/devices')}
       apiBase="/admin/api/devices"
       columns={[

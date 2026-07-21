@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function MonthlyStatementsPage() {
   return (
-    <GenericListPage title="月结对账单" queryKey={['admin-monthly-statements']}
+    <MinimalListPage title="月结对账单" queryKey={['admin-monthly-statements']}
       queryFn={() => client.get('/admin/api/monthly-statements')}
       apiBase="/admin/api/monthly-statements"
       columns={[

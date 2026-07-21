@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function RouteTemplatesPage() {
   return (
-    <GenericListPage title="路线模板" queryKey={['admin-route-templates']}
+    <MinimalListPage title="路线模板" queryKey={['admin-route-templates']}
       queryFn={() => client.get('/admin/api/route-templates')}
       apiBase="/admin/api/route-templates"
       columns={[

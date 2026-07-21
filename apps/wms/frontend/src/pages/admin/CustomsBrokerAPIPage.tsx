@@ -1,9 +1,9 @@
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 import client from '@/api/client';
 
 export default function CustomsBrokerAPIPage() {
   return (
-    <GenericListPage
+    <MinimalListPage
       title="报关API"
       queryKey={['admin-CustomsBrokerAPIPage']}
       queryFn={() => client.get('/admin/api/system/customs-broker-api')}

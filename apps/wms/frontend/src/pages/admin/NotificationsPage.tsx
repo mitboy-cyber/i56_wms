@@ -1,9 +1,9 @@
 import client from '@/api/client';
-import GenericListPage from '@/components/GenericListPage';
+import MinimalListPage from '@/components/MinimalListPage';
 
 export default function NotificationsPage() {
   return (
-    <GenericListPage title="通知管理" queryKey={['admin-notifications']}
+    <MinimalListPage title="通知管理" queryKey={['admin-notifications']}
       queryFn={() => client.get('/admin/api/notifications')}
       apiBase="/admin/api/notifications"
       columns={[
